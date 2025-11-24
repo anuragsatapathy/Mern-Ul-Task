@@ -28,6 +28,7 @@ console.log('Total Memory:', os.totalmem());
 console.log('CPU Info:', os.cpus()[0].model);
 console.log('Number of CPUs:', os.cpus().length);
 
+
 // Colored Arithmetic Outputs
 console.log(chalk.green('Add: 5 + 3 =', math.add(5, 3)));
 console.log(chalk.blue('Subtract: 10 - 4 =', math.subtract(10, 4)));
