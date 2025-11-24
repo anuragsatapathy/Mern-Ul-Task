@@ -1,0 +1,25 @@
+{
+  "name": "day3-express-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  
+  "scripts": {
+  "start": "node server.js",
+  "dev": "nodemon server.js",
+  "start-student": "node studentServer.js",
+  "dev-student": "nodemon studentServer.js"
+},
+
+
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}

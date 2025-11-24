@@ -1,0 +1,6 @@
+Add: 5 + 3 = 8
+Subtract: 10 - 4 = 6
+Multiply: 6 * 7 = 42
+Divide: 20 / 5 = 4
+Power: 2 ^ 3 = 8
+Factorial: 5! = 120

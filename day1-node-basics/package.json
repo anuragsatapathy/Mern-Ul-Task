@@ -1,0 +1,20 @@
+{
+  "name": "day1-node-basics",
+  "version": "1.0.0",
+  "description": "Simple ES6 math demo",
+  "main": "es6/app.js",
+  "type": "module",
+  "scripts": {
+  "start": "node common/app.cjs",
+  "start-es6": "node es6/app.js",
+  "start-common": "node common/app.cjs"
+},
+
+  "keywords": [],
+  "author": "Anurag Satapathy",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^4.1.2"
+  }
+}
+
