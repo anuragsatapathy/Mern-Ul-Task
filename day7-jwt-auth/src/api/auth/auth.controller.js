@@ -1,48 +1,52 @@
-const authService = require("./auth.service");
+const authService = require('./auth.service');
+const { success, error } = require('../../utility/responses');
 
 class AuthController {
-  async register(req, res) {
+  static async register(req, res) {
     try {
       const user = await authService.register(req.body);
-      res.status(201).json({ message: "User registered", user });
-    } catch (error) {
-      res.status(error.status || 500).json({ message: error.message });
+      // do not return password
+      return success(res, { user }, 'User registered', 201);
+    } catch (err) {
+      console.error(err);
+      return error(res, err.message || 'Registration failed', err.status || 500);
     }
   }
 
-  async login(req, res) {
+  static async login(req, res) {
     try {
       const result = await authService.login(req.body);
-      res.json(result);
-    } catch (error) {
-      res.status(error.status || 500).json({ message: error.message });
+      return success(res, result, 'Login successful');
+    } catch (err) {
+      console.error(err);
+      return error(res, err.message || 'Login failed', err.status || 500);
     }
   }
 
-  // Forgot Password
-  async forgotPassword(req, res) {
+  static async forgotPassword(req, res) {
     try {
-      const response = await authService.forgotPassword(req.body.email);
-      res.json(response);
-    } catch (error) {
-      res.status(error.status || 500).json({ message: error.message });
+      await authService.forgotPassword(req.body.email);
+      return success(res, {}, 'If the email exists, a reset link was sent');
+    } catch (err) {
+      console.error(err);
+      return error(res, err.message || 'Forgot password failed', err.status || 500);
     }
   }
 
-  // Reset Password
-  async resetPassword(req, res) {
+  static async resetPassword(req, res) {
     try {
       const { token } = req.params;
       const { password } = req.body;
-
-      const response = await authService.resetPassword(token, password);
-      res.json(response);
-    } catch (error) {
-      res.status(error.status || 500).json({ message: error.message });
+      await authService.resetPassword(token, password);
+      return success(res, {}, 'Password reset successful');
+    } catch (err) {
+      console.error(err);
+      return error(res, err.message || 'Reset failed', err.status || 500);
     }
   }
 }
 
-module.exports = new AuthController();
+module.exports = AuthController;
+
 
 

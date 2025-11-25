@@ -1,10 +1,14 @@
-const router = require("express").Router();
-const controller = require("./user.controller");
-const checkToken = require("../../middlewares/checkToken");
+const express = require('express');
+const router = express.Router();
+const UserController = require('./user.controller');
+const checkToken = require('../../middlewares/checkToken');
 
-router.get("/", checkToken, controller.getUsers);
-router.get("/:id", checkToken, controller.getUser);
-router.put("/:id", checkToken, controller.updateUser);
-router.delete("/:id", checkToken, controller.deleteUser);
+router.use(checkToken); // protect all /api/users routes
+
+router.get('/', UserController.getAll);
+router.get('/:id', UserController.getById);
+router.put('/:id', UserController.update);
+router.delete('/:id', UserController.remove);
 
 module.exports = router;
+

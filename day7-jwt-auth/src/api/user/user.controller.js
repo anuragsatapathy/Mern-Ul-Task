@@ -1,28 +1,45 @@
-const userService = require("./userService");
+const UserService = require('./user.service');
+const { success, error } = require('../../utility/responses');
 
 class UserController {
-  async getUser(req, res) {
+  static async getAll(req, res) {
     try {
-      const user = await userService.findUserById(req.params.id);
-      return res.json(user);
-    } catch (error) {
-      return res.status(error.status || 500).json({
-        message: error.message || "Something went wrong",
-      });
+      const users = await UserService.getAll();
+      return success(res, users);
+    } catch (err) {
+      return error(res, err.message);
     }
   }
 
-  async getAllUsers(req, res) {
+  static async getById(req, res) {
     try {
-      const users = await userService.getAllUsers();
-      return res.json(users);
-    } catch (error) {
-      return res.status(500).json({
-        message: "Something went wrong",
-      });
+      const user = await UserService.getById(req.params.id);
+      if (!user) return error(res, 'User not found', 404);
+      return success(res, user);
+    } catch (err) {
+      return error(res, err.message);
+    }
+  }
+
+  static async update(req, res) {
+    try {
+      const user = await UserService.update(req.params.id, req.body);
+      return success(res, user, 'User updated');
+    } catch (err) {
+      return error(res, err.message);
+    }
+  }
+
+  static async remove(req, res) {
+    try {
+      await UserService.remove(req.params.id);
+      return success(res, {}, 'User removed');
+    } catch (err) {
+      return error(res, err.message);
     }
   }
 }
 
-module.exports = new UserController();
+module.exports = UserController;
+
 

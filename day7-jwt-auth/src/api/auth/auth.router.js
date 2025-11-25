@@ -1,14 +1,34 @@
-const router = require("express").Router();
-const authController = require("./auth.controller");
+const express = require('express');
+const router = express.Router();
+const AuthController = require('./auth.controller');
+const { validateBody } = require('../../middlewares/validateRequest');
+const Joi = require('joi');
 
-// AUTH ROUTES
-router.post("/register", authController.register);
-router.post("/login", authController.login);
+const registerSchema = Joi.object({
+  name: Joi.string().required(),
+  email: Joi.string().email().required(),
+  password: Joi.string().min(6).required(),
+});
 
-// NEW ROUTES (Forgot + Reset Password)
-router.post("/forgot-password", authController.forgotPassword);
-router.post("/reset-password/:token", authController.resetPassword);
+const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().required(),
+});
+
+const forgotSchema = Joi.object({
+  email: Joi.string().email().required(),
+});
+
+const resetSchema = Joi.object({
+  password: Joi.string().min(6).required(),
+});
+
+router.post('/register', validateBody(registerSchema), AuthController.register);
+router.post('/login', validateBody(loginSchema), AuthController.login);
+router.post('/forgot-password', validateBody(forgotSchema), AuthController.forgotPassword);
+router.post('/reset-password/:token', validateBody(resetSchema), AuthController.resetPassword);
 
 module.exports = router;
+
 
 

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema(
   {
@@ -7,4 +7,5 @@ const studentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports.Student = mongoose.model("Student", studentSchema);
+module.exports.Student = mongoose.model('Student', studentSchema);
+

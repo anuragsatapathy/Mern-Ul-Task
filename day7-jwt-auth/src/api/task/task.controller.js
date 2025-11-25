@@ -1,81 +1,71 @@
-const taskService = require("./task.service");
+const TaskService = require('./task.service');
+const { success, error } = require('../../utility/responses');
 
 class TaskController {
-  async create(req, res) {
+  static async create(req, res) {
     try {
-      const task = await taskService.createTask(req.user.id, req.body);
-      res.status(201).json(task);
-    } catch (error) {
-      res
-        .status(error.status || 500)
-        .json({ message: error.message || "Something went wrong" });
+      const task = await TaskService.create(req.body);
+      return success(res, task, 'Task created', 201);
+    } catch (err) {
+      return error(res, err.message || 'Create failed', err.status || 500);
     }
   }
 
-  async getAll(req, res) {
+  static async list(req, res) {
     try {
-      const tasks = await taskService.getTasks(req.user.id);
-      res.json(tasks);
-    } catch (error) {
-      res.status(500).json({ message: "Something went wrong" });
+      const status = req.query.status;
+      const tasks = await TaskService.list(status);
+      return success(res, tasks);
+    } catch (err) {
+      return error(res, err.message);
     }
   }
 
-  async getOne(req, res) {
+  static async getByUser(req, res) {
     try {
-      const task = await taskService.getTaskById(req.params.id);
-      res.json(task);
-    } catch (error) {
-      res
-        .status(error.status || 500)
-        .json({ message: error.message || "Something went wrong" });
+      const tasks = await TaskService.getByUser(req.params.userId);
+      return success(res, tasks);
+    } catch (err) {
+      return error(res, err.message);
     }
   }
 
-  async update(req, res) {
+  static async getById(req, res) {
     try {
-      const task = await taskService.updateTask(req.params.id, req.body);
-      res.json(task);
-    } catch (error) {
-      res
-        .status(error.status || 500)
-        .json({ message: error.message || "Something went wrong" });
+      const task = await TaskService.getById(req.params.id);
+      if (!task) return error(res, 'Task not found', 404);
+      return success(res, task);
+    } catch (err) {
+      return error(res, err.message);
     }
   }
 
-  async delete(req, res) {
+  static async update(req, res) {
     try {
-      const deleted = await taskService.deleteTask(req.params.id);
-      res.json({ message: "Task deleted", deleted });
-    } catch (error) {
-      res
-        .status(error.status || 500)
-        .json({ message: error.message || "Something went wrong" });
+      const task = await TaskService.update(req.params.id, req.body);
+      return success(res, task, 'Task updated');
+    } catch (err) {
+      return error(res, err.message);
     }
   }
 
-  async markComplete(req, res) {
+  static async remove(req, res) {
     try {
-      const updated = await taskService.markComplete(req.params.id);
-      res.json(updated);
-    } catch (error) {
-      res
-        .status(error.status || 500)
-        .json({ message: error.message || "Something went wrong" });
+      await TaskService.remove(req.params.id);
+      return success(res, {}, 'Task removed');
+    } catch (err) {
+      return error(res, err.message);
     }
   }
 
-  async filter(req, res) {
+  static async markComplete(req, res) {
     try {
-      const tasks = await taskService.filterByStatus(
-        req.user.id,
-        req.query.status
-      );
-      res.json(tasks);
-    } catch (error) {
-      res.status(500).json({ message: "Something went wrong" });
+      const task = await TaskService.markComplete(req.params.id);
+      return success(res, task, 'Task marked complete');
+    } catch (err) {
+      return error(res, err.message);
     }
   }
 }
 
-module.exports = new TaskController();
+module.exports = TaskController;

@@ -1,53 +1,97 @@
-const crypto = require("crypto");
-const bcrypt = require("bcryptjs");
-const User = require("../../models/user.model");
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const User = require('../../models/user.model');
+const { sendResetEmail } = require('../../utility/email.util'); // we'll implement a stub
+const saltRounds = 10;
 
-class AuthService {
-  async register(data) {
-    //old register code...
+const createUser = async (payload) => {
+  const user = new User(payload);
+  return await user.save();
+};
+
+const register = async ({ name, email, password }) => {
+  // check existing
+  const existing = await User.findOne({ email });
+  if (existing) {
+    const err = new Error('Email already registered');
+    err.status = 400;
+    throw err;
   }
 
-  async login(data) {
-    //old login code...
+  const hashed = await bcrypt.hash(password, saltRounds);
+  // use service-level createUser
+  const created = await createUser({ name, email, password: hashed });
+  // remove password before returning
+  const obj = created.toObject();
+  delete obj.password;
+  return obj;
+};
+
+const login = async ({ email, password }) => {
+  const user = await User.findOne({ email }).select('+password');
+  if (!user) {
+    const err = new Error('Invalid credentials');
+    err.status = 401;
+    throw err;
   }
 
-  //forgot password
-  async forgotPassword(email) {
-    const user = await User.findOne({ email });
-    if (!user) throw { status: 404, message: "User not found" };
-
-    const resetToken = crypto.randomBytes(32).toString("hex");
-
-    user.resetToken = resetToken;
-    user.resetTokenExpire = Date.now() + 10 * 60 * 1000; // 10 min
-    await user.save();
-
-    return {
-      message: "Reset token generated",
-      resetLink: `http://localhost:4000/api/auth/reset-password/${resetToken}`,
-    };
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) {
+    const err = new Error('Invalid credentials');
+    err.status = 401;
+    throw err;
   }
 
-  //reset password
-  async resetPassword(token, newPassword) {
-    const user = await User.findOne({
-      resetToken: token,
-      resetTokenExpire: { $gt: Date.now() },
-    });
+  const payload = { id: user._id, email: user.email };
+  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
 
-    if (!user) throw { status: 400, message: "Invalid or expired token" };
+  const userObj = user.toObject();
+  delete userObj.password;
 
-    user.password = await bcrypt.hash(newPassword, 10);
-    user.resetToken = undefined;
-    user.resetTokenExpire = undefined;
+  return { token, user: userObj };
+};
 
-    await user.save();
 
-    return { message: "Password reset successful" };
+const forgotPassword = async (email) => {
+  const user = await User.findOne({ email });
+  if (!user) {
+    // Don't reveal whether email exists
+    return;
   }
-}
+  // generate token
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+  // store hash and expiry on user (add fields)
+  user.resetPasswordToken = resetTokenHash;
+  user.resetPasswordExpires = Date.now() + 1000 * 60 * 60; // 1 hour
+  await user.save({ validateBeforeSave: false });
 
-module.exports = new AuthService();
+  const resetUrl = `http://localhost:${process.env.PORT || 5000}/api/auth/reset-password/${resetToken}`;
+  // send email (stub)
+  await sendResetEmail(user.email, resetUrl);
+};
+
+const resetPassword = async (token, newPassword) => {
+  const cryptoHash = crypto.createHash('sha256').update(token).digest('hex');
+  const user = await User.findOne({
+    resetPasswordToken: cryptoHash,
+    resetPasswordExpires: { $gt: Date.now() },
+  });
+  if (!user) {
+    const err = new Error('Invalid or expired password reset token');
+    err.status = 400;
+    throw err;
+  }
+
+  user.password = await bcrypt.hash(newPassword, saltRounds);
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+  await user.save();
+};
+
+module.exports = { register, login, forgotPassword, resetPassword, createUser };
+
 
 
 
