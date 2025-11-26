@@ -42,6 +42,7 @@ const updateTask = async (req, res, next) => {
 const deleteTask = async (req, res, next) => {
   try {
     const task = await taskService.deleteTask(req.params.id);
+    
     return successResponse(res, task, 'Task soft-deleted');
   } catch (err) {
     next(err);
