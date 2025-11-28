@@ -9,25 +9,23 @@ const App = () => {
   const [selectedList, setSelectedList] = useState(null);
 
   return (
-    <div className="app-container">
-      <ToastContainer position="top-right" autoClose={1500} />
-
+    <div>
       {/* Header */}
       <header className="app-header">
-        <h1>TodoApp</h1>
+        <h1>📝 TodoApp</h1>
       </header>
 
-      <div className="main-container">
-        {/* Left: Lists */}
+      {/* Main container */}
+      <div className="app-container">
         <div className="left-section">
           <ListSection onSelectList={setSelectedList} />
         </div>
-
-        {/* Right: Tasks */}
         <div className="right-section">
           <TaskSection selectedList={selectedList} />
         </div>
       </div>
+
+      <ToastContainer position="top-right" autoClose={1500} />
     </div>
   );
 };

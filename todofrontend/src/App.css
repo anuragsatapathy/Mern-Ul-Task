@@ -1,38 +1,130 @@
-.App {
+.app-container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f4ff;
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* Header */
+.app-header {
+  text-align: center;
+  padding: 25px 0;
+  background: linear-gradient(135deg, #ff416c, #ff4b2b); /* gradient pink-red */
+  color: white;
+  box-shadow: 0 5px 12px rgba(0,0,0,0.1);
+}
+
+.app-header h1 {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  margin: 0;
+}
+
+/* Main container */
+.main-container {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  gap: 30px;
+}
+
+/* Left/Right Sections */
+.left-section,
+.right-section {
+  flex: 0 0 400px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+}
+
+/* Section Titles */
+.section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-bottom: 15px;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Inputs & Buttons */
+.input-box {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #bfbfbf;
+  margin-bottom: 10px;
+  outline: none;
+  transition: 0.2s;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.input-box:focus {
+  border-color: #1e3a8a;
+  box-shadow: 0 0 5px rgba(30, 58, 138, 0.3);
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+.add-btn {
+  width: 100%;
+  border: none;
+  background: #1e3a8a;
   color: white;
+  padding: 10px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
-.App-link {
-  color: #61dafb;
+.add-btn:hover {
+  background: #3b82f6;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Cards */
+.card {
+  background: #f0f4ff;
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  border-left: 5px solid #3b82f6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: 0.2s;
+}
+
+.card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.2s;
+  font-weight: 600;
+}
+
+.icon-btn.edit:hover {
+  color: #3b82f6;
+}
+
+.icon-btn.delete:hover {
+  color: #ef4444;
+}
+
+/* Empty text */
+.empty-text {
+  text-align: center;
+  color: #555;
+  margin-top: 20px;
+  font-size: 16px;
 }
