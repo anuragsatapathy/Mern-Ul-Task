@@ -1,23 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 
 export default function ListForm({ onSave, initial = {} }) {
-  const [title, setTitle] = useState(initial.title || '');
-  const [description, setDescription] = useState(initial.description || '');
+  const [title, setTitle] = useState(initial.title || "");
+  const [description, setDescription] = useState(initial.description || "");
+
+  // Update local state if editing a list
+  useEffect(() => {
+    setTitle(initial.title || "");
+    setDescription(initial.description || "");
+  }, [initial.title, initial.description]);
 
   const submit = (e) => {
     e.preventDefault();
-    if (!title.trim()) return alert('Title required');
+    if (!title.trim()) return alert("Title required");
     onSave({ title: title.trim(), description: description.trim() });
-    setTitle(''); setDescription('');
+    setTitle("");
+    setDescription("");
   };
 
   return (
-    <form onSubmit={submit} style={{display:'flex', flexDirection:'column', gap:8}}>
-      <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="List title" style={{padding:8, borderRadius:6, border:'1px solid #ddd'}} />
-      <input value={description} onChange={e=>setDescription(e.target.value)} placeholder="Description" style={{padding:8, borderRadius:6, border:'1px solid #ddd'}} />
-      <div style={{display:'flex', justifyContent:'flex-end'}}>
-        <button type="submit" style={{padding:'8px 12px', background:'#0ea5e9', color:'#fff', border:'none', borderRadius:6}}>Save</button>
+    <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="List title"
+        style={{ padding: 8, borderRadius: 6, border: "1px solid #ddd" }}
+      />
+      <input
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="Description"
+        style={{ padding: 8, borderRadius: 6, border: "1px solid #ddd" }}
+      />
+      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <button
+          type="submit"
+          style={{ padding: "8px 12px", background: "#0ea5e9", color: "#fff", border: "none", borderRadius: 6 }}
+        >
+          Save
+        </button>
       </div>
     </form>
   );
 }
+
+
+
+
+
+
+

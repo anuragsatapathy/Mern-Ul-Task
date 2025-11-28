@@ -1,12 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const ctrl = require('./list.controller');
-const checkToken = require('../../middlewares/checkToken');
+const listController = require('./list.controller');
 
-router.post('/', (req, res) => { checkToken(req, res); return ctrl.createList(req, res); });
-router.get('/', (req, res) => { checkToken(req, res); return ctrl.getLists(req, res); });
-router.get('/:id', (req, res) => { checkToken(req, res); return ctrl.getList(req, res); });
-router.put('/:id', (req, res) => { checkToken(req, res); return ctrl.updateList(req, res); });
-router.delete('/:id', (req, res) => { checkToken(req, res); return ctrl.deleteList(req, res); });
+router.get('/', listController.getAllLists);
+router.post('/', listController.createList);
+router.put('/:id', listController.updateList);
+router.delete('/:id', listController.deleteList);
 
 module.exports = router;
+
+
+
+
+
+

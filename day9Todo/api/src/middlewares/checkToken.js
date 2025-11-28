@@ -1,5 +1,6 @@
-module.exports = function (req, res) {
-
-  return res; // middleware returns
+module.exports = function (req, res, next) {
   
+  next();
 };
+
+

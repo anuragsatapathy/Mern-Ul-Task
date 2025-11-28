@@ -14,7 +14,8 @@ export default function ListPanel({ onSelectList, selectedListId }) {
   const fetchLists = async () => {
     try {
       const res = await api.get('/lists');
-      setLists(res.data.data || []); // <- use res.data.data
+      console.log('frontend connected',res);
+      setLists(res.data.data || []); 
     } catch (err) {
       console.error(err);
       toast.error('Failed to load lists');
@@ -26,8 +27,8 @@ export default function ListPanel({ onSelectList, selectedListId }) {
   const create = async (payload) => {
     try {
       const res = await api.post('/lists', payload);
+      setLists(prev => [res.data.data, ...prev]);
       toast.success('List created');
-      setLists(prev => [res.data.data, ...prev]); // <- use res.data.data
     } catch (err) {
       console.error(err);
       toast.error('Create failed');
@@ -62,42 +63,33 @@ export default function ListPanel({ onSelectList, selectedListId }) {
   };
 
   return (
-    <div style={{ padding: 16, background: '#fff', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-      <h2 style={{ marginTop: 0 }}>Lists</h2>
-      <div style={{ marginBottom: 12 }}>
-        <ListForm onSave={create} />
-      </div>
+    <div style={{ padding: 16, background: '#fff', borderRadius: 8 }}>
+      <h2>Lists</h2>
+      <ListForm onSave={create} />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: '60vh', overflow: 'auto' }}>
-        {lists.map((list) => (
-          <div
-            key={list._id}
-            style={{
-              padding: 12,
-              borderRadius: 8,
-              border: '1px solid #eee',
-              background: selectedListId === list._id ? '#f0f9ff' : '#fff',
-              display: 'flex',
-              justifyContent: 'space-between',
-              gap: 12,
-            }}
-          >
-            <div style={{ cursor: 'pointer' }} onClick={() => onSelectList(list)}>
-              <div style={{ fontWeight: 600 }}>{list.title}</div>
-              <div style={{ fontSize: 13, color: '#555' }}>{list.description}</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: '60vh', overflowY: 'auto' }}>
+        {lists.map(list => (
+          <div key={list._id} style={{
+            padding: 12,
+            border: '1px solid #eee',
+            borderRadius: 8,
+            background: selectedListId === list._id ? '#f0f9ff' : '#fff',
+            display: 'flex', justifyContent: 'space-between'
+          }}>
+            <div onClick={() => onSelectList(list)} style={{ cursor: 'pointer' }}>
+              <strong>{list.title}</strong>
+              <div>{list.description}</div>
               <div style={{ fontSize: 12, color: '#999' }}>Created: {formatDate(list.createdAt)}</div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <button onClick={() => setEditing(list)} style={{ padding: '6px 8px' }}>Edit</button>
-              <button onClick={() => confirmDelete(list)} style={{ padding: '6px 8px', color: '#b91c1c' }}>Delete</button>
+              <button onClick={() => setEditing(list)}>Edit</button>
+              <button onClick={() => confirmDelete(list)} style={{ color: '#b91c1c' }}>Delete</button>
             </div>
 
             {editing && editing._id === list._id && (
-              <div style={{ marginTop: 8, width: '100%' }}>
+              <div style={{ marginTop: 8 }}>
                 <ListForm initial={editing} onSave={saveEdit} />
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-                  <button onClick={() => setEditing(null)} style={{ padding: '6px 10px' }}>Cancel</button>
-                </div>
+                <button onClick={() => setEditing(null)}>Cancel</button>
               </div>
             )}
           </div>
@@ -107,7 +99,7 @@ export default function ListPanel({ onSelectList, selectedListId }) {
       <ConfirmModal
         open={confirmOpen}
         title="Delete list?"
-        message="Deleting this list will remove all tasks under it. Continue?"
+        message="Deleting this list will remove all tasks under it."
         onCancel={() => setConfirmOpen(false)}
         onConfirm={doDelete}
       />

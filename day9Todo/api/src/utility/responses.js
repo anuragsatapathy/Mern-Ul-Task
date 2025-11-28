@@ -6,3 +6,4 @@ const error = (res, message = 'Error', code = 500, data = null) =>
 
 module.exports = { success, error };
 
+

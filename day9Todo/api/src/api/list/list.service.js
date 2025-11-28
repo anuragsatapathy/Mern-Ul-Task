@@ -5,12 +5,21 @@ const createList = async (payload) => {
   return await list.save();
 };
 
-const getAllLists = async () => List.find().sort({ createdAt: -1 });
+const getAllLists = async () => {
+  return await List.find().sort({ createdAt: -1 });
+};
 
-const getListById = async (id) => List.findById(id);
+const getListById = async (id) => {
+  return await List.findById(id);
+};
 
-const updateList = async (id, payload) => List.findByIdAndUpdate(id, payload, { new: true });
+const updateList = async (id, payload) => {
+  return await List.findByIdAndUpdate(id, payload, { new: true });
+};
 
-const deleteList = async (id) => List.findByIdAndDelete(id);
+const deleteList = async (id) => {
+  return await List.findByIdAndDelete(id);
+};
 
 module.exports = { createList, getAllLists, getListById, updateList, deleteList };
+

@@ -1,42 +1,43 @@
-const { success, error } = require('../../utility/responses');
-const listService = require('./list.service');
-const taskService = require('../task/task.service');
+const List = require("./list.model");
 
-const createList = async (req, res) => {
+exports.getAllLists = async (req, res) => {
   try {
-    const created = await listService.createList(req.body);
-    return success(res, 'List created', created, 201);
-  } catch (err) { return error(res, err.message); }
+    console.log('req',req);
+    console.log('req.params',req.params);
+    console.log('req.query',req.query);
+    const lists = await List.find().sort({ createdAt: -1 });
+    return res.json({ isSuccess: true, message: "Lists fetched", data: lists });
+  } catch (err) {
+    return res.status(500).json({ isSuccess: false, message: err.message });
+  }
 };
 
-const getLists = async (req, res) => {
+exports.createList = async (req, res) => {
   try {
-    const lists = await listService.getAllLists();
-    return success(res, 'Lists fetched', lists);
-  } catch (err) { return error(res, err.message); }
+    const list = await List.create(req.body);
+    return res.json({ isSuccess: true, message: "List created", data: list });
+  } catch (err) {
+    return res.status(500).json({ isSuccess: false, message: err.message });
+  }
 };
 
-const getList = async (req, res) => {
+exports.updateList = async (req, res) => {
   try {
-    const list = await listService.getListById(req.params.id);
-    if (!list) return error(res, 'List not found', 404);
-    return success(res, 'List fetched', list);
-  } catch (err) { return error(res, err.message); }
+    const updated = await List.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    return res.json({ isSuccess: true, message: "List updated", data: updated });
+  } catch (err) {
+    return res.status(500).json({ isSuccess: false, message: err.message });
+  }
 };
 
-const updateList = async (req, res) => {
+exports.deleteList = async (req, res) => {
   try {
-    const updated = await listService.updateList(req.params.id, req.body);
-    return success(res, 'List updated', updated);
-  } catch (err) { return error(res, err.message); }
+    await List.findByIdAndDelete(req.params.id);
+    return res.json({ isSuccess: true, message: "List deleted" });
+  } catch (err) {
+    return res.status(500).json({ isSuccess: false, message: err.message });
+  }
 };
 
-const deleteList = async (req, res) => {
-  try {
-    await taskService.deleteTasksByListId(req.params.id);
-    const deleted = await listService.deleteList(req.params.id);
-    return success(res, 'List and tasks deleted', deleted);
-  } catch (err) { return error(res, err.message); }
-};
 
-module.exports = { createList, getLists, getList, updateList, deleteList };
+

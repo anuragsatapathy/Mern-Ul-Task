@@ -5,4 +5,8 @@ const listSchema = new mongoose.Schema({
   description: { type: String }
 }, { timestamps: true });
 
-module.exports = require('mongoose').model('List', listSchema);
+module.exports = mongoose.model('List', listSchema);
+
+
+
+
