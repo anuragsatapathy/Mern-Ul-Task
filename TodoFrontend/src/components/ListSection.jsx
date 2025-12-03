@@ -1,85 +1,166 @@
-import React, { useState, useEffect } from "react";
-import { getLists, createList, updateList, deleteList } from "../api/listService";
+// components/ListSection.jsx
+import React, { useEffect, useState } from "react";
 import ListItem from "./ListItem";
+import ConfirmDialog from "./ConfirmDialog";
+import { getLists, createList, deleteList } from "../api/listService";
 import { toast } from "react-toastify";
 
-const ListSection = ({ onSelectList }) => {
+const ListSection = ({ selectedList, onSelectList }) => {
   const [lists, setLists] = useState([]);
-  const [newTitle, setNewTitle] = useState("");
+  const [newList, setNewList] = useState("");
+  const [showDialog, setShowDialog] = useState(false);
+  const [listToDelete, setListToDelete] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch lists (NO auto-select)
+  const fetchLists = async () => {
+    setLoading(true);
+    try {
+      const data = await getLists();
+      setLists(data || []);
+      // ❌ NO auto select here
+    } catch (err) {
+      console.error("Error fetching lists:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchLists = async () => {
-      try {
-        const res = await getLists();
-        setLists(res.data.data || []);
-      } catch (error) {
-        toast.error("Failed to fetch lists");
-      }
-    };
-
     fetchLists();
   }, []);
 
-  const handleAdd = async () => {
-    if (!newTitle.trim()) return toast.error("Title cannot be empty");
+  // Create list (NO auto-select)
+  const addList = async () => {
+    if (!newList.trim()) return toast.warn("Please enter a list name");
+
     try {
-      const res = await createList(newTitle);
-      setLists([...lists, res.data.data]);
-      setNewTitle("");
-      toast.success("List added!");
-    } catch (error) {
-      toast.error("Failed to add list");
+      const created = await createList({ title: newList.trim() });
+
+      if (created) {
+        toast.success("List created");
+        setLists((prev) => [...prev, created]);
+        setNewList("");
+
+        // ❌ Do NOT select newly created list
+      } else {
+        toast.error("Failed to create list");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error creating list");
     }
   };
 
-  const handleUpdate = async (id, title) => {
+  // Confirm delete
+  const confirmDelete = (id) => {
+    setListToDelete(id);
+    setShowDialog(true);
+  };
+
+  // Delete list
+  const handleDelete = async () => {
     try {
-      await updateList(id, title);
-      setLists(lists.map(l => (l._id === id ? { ...l, title } : l)));
-      toast.success("List updated!");
-    } catch (error) {
-      toast.error("Failed to update list");
+      await deleteList(listToDelete);
+      toast.success("List deleted");
+      setShowDialog(false);
+      setListToDelete(null);
+
+      await fetchLists();
+
+      // ❌ Do NOT auto-select after delete
+      if (selectedList && selectedList._id === listToDelete) {
+        onSelectList(null);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error deleting list");
+      setShowDialog(false);
+      setListToDelete(null);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this list?")) return;
-    try {
-      await deleteList(id);
-      setLists(lists.filter(l => l._id !== id));
-      toast.success("List deleted!");
-    } catch (error) {
-      toast.error("Failed to delete list");
+  // Update list name
+  const handleUpdated = (updatedList) => {
+    setLists((prev) =>
+      prev.map((l) => (l._id === updatedList._id ? updatedList : l))
+    );
+
+    if (selectedList && selectedList._id === updatedList._id) {
+      onSelectList(updatedList);
     }
   };
 
   return (
-    <div className="section-container">
-      <h2 className="section-title">Lists</h2>
-      <input
-        type="text"
-        className="input-box"
-        placeholder="New list..."
-        value={newTitle}
-        onChange={(e) => setNewTitle(e.target.value)}
-      />
-      <button className="add-btn" onClick={handleAdd}>Add List</button>
+    <div className="list-section">
+      <h2>My Lists</h2>
 
-      {lists.length === 0 && <p className="empty-text">No lists yet</p>}
+      {loading ? (
+        <div style={{ padding: 12 }}>Loading...</div>
+      ) : lists.length === 0 ? (
+        <div style={{ padding: 12, color: "#666" }}>
+          <div style={{ marginBottom: 16, fontSize: 16 }}>Please add list</div>
+        </div>
+      ) : (
+        lists.map((list) => (
+          <div key={list._id} className="list-item-container" style={{ marginBottom: 6 }}>
+            <ListItem
+              list={list}
+              selectedList={selectedList}
+              onSelectList={onSelectList}
+              onDelete={confirmDelete}
+              onUpdated={handleUpdated}
+            />
+          </div>
+        ))
+      )}
 
-      {lists.map((list) => (
-        <ListItem
-          key={list._id}
-          list={list}
-          onSelect={onSelectList}
-          onUpdate={handleUpdate}
-          onDelete={handleDelete}
+      {/* NEW LIST */}
+      <div className="new-list" style={{ marginTop: 12 }}>
+        <input
+          placeholder="New list..."
+          value={newList}
+          onChange={(e) => setNewList(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && addList()}
         />
-      ))}
+        <button onClick={addList}>+</button>
+      </div>
+
+      {/* DELETE CONFIRMATION */}
+      <ConfirmDialog
+        show={showDialog}
+        onClose={() => setShowDialog(false)}
+        onConfirm={handleDelete}
+        title="Delete list"
+        text="Delete this list permanently?"
+        confirmLabel="Delete"
+      />
     </div>
   );
 };
 
 export default ListSection;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

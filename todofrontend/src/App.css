@@ -1,130 +1,337 @@
+/* GLOBAL --------------------------------------------------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  background: #f3f6fb;
+  overflow: hidden;
+}
+
+/* APP LAYOUT ------------------------------------------------ */
 .app-container {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #f0f4ff;
-  min-height: 100vh;
-  margin: 0;
-}
-
-/* Header */
-.app-header {
-  text-align: center;
-  padding: 25px 0;
-  background: linear-gradient(135deg, #ff416c, #ff4b2b); /* gradient pink-red */
-  color: white;
-  box-shadow: 0 5px 12px rgba(0,0,0,0.1);
-}
-
-.app-header h1 {
-  font-size: 40px;
-  font-weight: 800;
-  letter-spacing: 3px;
-  margin: 0;
-}
-
-/* Main container */
-.main-container {
+  height: 100vh;
   display: flex;
-  justify-content: center;
-  padding: 20px;
-  gap: 30px;
+  flex-direction: column;
 }
 
-/* Left/Right Sections */
-.left-section,
-.right-section {
-  flex: 0 0 400px;
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.05);
-}
-
-/* Section Titles */
-.section-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: #1e3a8a;
-  margin-bottom: 15px;
-  text-align: center;
-}
-
-/* Inputs & Buttons */
-.input-box {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #bfbfbf;
-  margin-bottom: 10px;
-  outline: none;
-  transition: 0.2s;
-}
-
-.input-box:focus {
-  border-color: #1e3a8a;
-  box-shadow: 0 0 5px rgba(30, 58, 138, 0.3);
-}
-
-.add-btn {
-  width: 100%;
-  border: none;
-  background: #1e3a8a;
+.app-header {
+  padding: 18px 26px;
+  background: #2564cf;
   color: white;
-  padding: 10px;
+  font-size: 22px;
   font-weight: 600;
+}
+
+/* MAIN LAYOUT ---------------------------------------------- */
+.main-layout {
+  flex: 1;
+  display: flex;
+  gap: 16px;
+  padding: 18px;
+  overflow: hidden;
+}
+
+/* LEFT PANEL ------------------------------------------------ */
+.list-panel {
+  width: 280px;
+  background: white;
+  padding: 22px;
+  padding-top: 30px; /* more space under My Lists */
+  border-radius: 12px;
+  overflow-y: auto;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+
+/* RIGHT PANEL ---------------------------------------------- */
+.task-panel {
+  flex: 1;
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  overflow-y: auto;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+
+/* LIST ITEM ------------------------------------------------- */
+.list-item {
+  padding: 12px;
+  margin-bottom: 14px;
   border-radius: 8px;
+  background: #f4f6fa;
   cursor: pointer;
-  transition: 0.2s;
-}
-
-.add-btn:hover {
-  background: #3b82f6;
-}
-
-/* Cards */
-.card {
-  background: #f0f4ff;
-  padding: 14px;
-  border-radius: 10px;
-  margin-bottom: 12px;
-  border-left: 5px solid #3b82f6;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: 0.2s;
+  transition: 0.2s ease;
+  border: 1px solid transparent;
 }
 
-.card:hover {
-  transform: scale(1.02);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+.list-item:hover {
+  background: #e2eaff;
 }
 
-/* Action Buttons */
-.action-buttons {
+.list-item.active {
+  background: #2564cf;
+  color: white;
+}
+
+/* list title container */
+.list-title-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+/* list edit input */
+.list-edit-input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+/* NEW LIST -------------------------------------------------- */
+.new-list {
   display: flex;
   gap: 10px;
-}
-
-.icon-btn {
-  background: transparent;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-  transition: 0.2s;
-  font-weight: 600;
-}
-
-.icon-btn.edit:hover {
-  color: #3b82f6;
-}
-
-.icon-btn.delete:hover {
-  color: #ef4444;
-}
-
-/* Empty text */
-.empty-text {
-  text-align: center;
-  color: #555;
   margin-top: 20px;
-  font-size: 16px;
+}
+
+.new-list input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.new-list button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #2564cf;
+  color: white;
+  border: none;
+}
+
+/* TASK SECTION --------------------------------------------- */
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+/* ADD TASK ROW --------------------------------------------- */
+.add-task {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 28px;
+  width: 100%;
+}
+
+.add-task-title {
+  flex: 3;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+
+.add-task-date {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+
+.add-task-btn {
+  padding: 12px 22px;
+  background: #2564cf;
+  color: white;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.add-task-btn:hover {
+  background: #1e4eb0;
+}
+
+/* TASK ITEM ------------------------------------------------- */
+.task-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background: #f7f8fc;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  gap: 14px;
+  transition: 0.25s ease;
+  border: 1px solid transparent;
+}
+
+.task-item:hover {
+  border: 1px solid #dce6ff;
+}
+
+/* Checkbox */
+.task-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+/* Completed tasks */
+.task-completed {
+  background: #e8f8ea;
+  border-left: 4px solid #4caf50;
+  opacity: 0.9;
+}
+
+.completed-text {
+  text-decoration: line-through;
+  color: #4a4a4a;
+}
+
+.completed-date {
+  font-size: 12px;
+  color: #2e7d32;
+  margin-top: 3px;
+}
+
+/* ICON BUTTONS (EDIT / DELETE) ----------------------------- */
+.icon-btn {
+  background: #eef3ff;
+  border: none;
+  padding: 7px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: 0.2s ease;
+  margin-left: 8px; /* spacing between icons */
+}
+
+.icon-btn:first-child {
+  margin-left: 0;
+}
+
+.icon-btn:hover {
+  background: #dce6ff;
+}
+
+.delete-icon:hover {
+  background: #ffe0e0;
+}
+
+/* LIST EDIT MODE BUTTONS ----------------------------------- */
+.list-actions .save-btn,
+.list-actions .cancel-btn-small {
+  margin-left: 8px;               /* space between Save & Cancel */
+}
+
+/* TASK EDIT MODE ------------------------------------------- */
+.task-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.task-edit-title {
+  flex: 3;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.task-edit-date {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.save-btn {
+  background: #2564cf;
+  color: white;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  transition: 0.2s ease;
+}
+
+.save-btn:hover {
+  background: #1e4eb0;
+}
+
+.cancel-btn-small {
+  background: #bdbdbd;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+}
+
+.cancel-btn-small:hover {
+  background: #a1a1a1;
+}
+
+/* CONFIRM DIALOG ------------------------------------------- */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.confirm-box {
+  background: white;
+  padding: 26px;
+  border-radius: 12px;
+  width: 330px;
+  text-align: center;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.2);
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 18px;
+}
+
+.cancel-btn,
+.delete-btn {
+  padding: 9px 18px;
+  border-radius: 8px;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background: #777;
+}
+
+.delete-btn {
+  background: red;
+}
+
+.list-panel h2 {
+  margin-bottom: 16px;  
+}
+
+.list-panel > h2,
+.list-section-title {
+  margin-bottom: 18px;   
 }

@@ -1,3 +1,4 @@
+// src/middlewares/validation.js
 const Joi = require("joi");
 
 // Validate list creation/update
@@ -25,6 +26,7 @@ const validateTask = (req, res, next) => {
     title: Joi.string().min(1).required(),
     description: Joi.string().allow("").optional(),
     completed: Joi.boolean().optional(),
+    dueDate: Joi.date().optional().allow(null), // 
   });
 
   const { error } = schema.validate(req.body);
@@ -40,3 +42,4 @@ const validateTask = (req, res, next) => {
 };
 
 module.exports = { validateList, validateTask };
+

@@ -5,7 +5,7 @@ const responses = require("../../utility/response");
 const createList = async (req, res) => {
   try {
     const result = await listService.createList(req.body);
-    if (result.status && result.status !== 200) {
+    if (result.status !== 200) {
       return responses.generateResponse(res, false, result.message, result.status);
     }
     return responses.successResponse(res, result.data);
@@ -18,7 +18,7 @@ const createList = async (req, res) => {
 const getLists = async (req, res) => {
   try {
     const result = await listService.getLists();
-    if (result.status && result.status !== 200) {
+    if (result.status !== 200) {
       return responses.generateResponse(res, false, result.message, result.status);
     }
     return responses.successResponse(res, result.data);
@@ -31,7 +31,7 @@ const getLists = async (req, res) => {
 const getListById = async (req, res) => {
   try {
     const result = await listService.getListById(req.params.id);
-    if (result.status && result.status !== 200) {
+    if (result.status !== 200) {
       return responses.generateResponse(res, false, result.message, result.status);
     }
     return responses.successResponse(res, result.data);
@@ -44,7 +44,7 @@ const getListById = async (req, res) => {
 const updateList = async (req, res) => {
   try {
     const result = await listService.updateList(req.params.id, req.body);
-    if (result.status && result.status !== 200) {
+    if (result.status !== 200) {
       return responses.generateResponse(res, false, result.message, result.status);
     }
     return responses.successResponse(res, result.data);
@@ -53,11 +53,11 @@ const updateList = async (req, res) => {
   }
 };
 
-// Delete List
+// SOFT DELETE List
 const deleteList = async (req, res) => {
   try {
     const result = await listService.deleteList(req.params.id);
-    if (result.status && result.status !== 200) {
+    if (result.status !== 200) {
       return responses.generateResponse(res, false, result.message, result.status);
     }
     return responses.successResponse(res, result.data);
@@ -73,4 +73,3 @@ module.exports = {
   updateList,
   deleteList,
 };
-

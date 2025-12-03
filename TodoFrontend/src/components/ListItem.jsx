@@ -1,55 +1,109 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { updateList } from "../api/listService";
+import { toast } from "react-toastify";
 
-const ListItem = ({ list, onUpdate, onDelete, onSelect }) => {
-  const [isEditing, setIsEditing] = useState(false);
+const ListItem = ({ list, selectedList, onSelectList, onDelete, onUpdated }) => {
+  const [editMode, setEditMode] = useState(false);
   const [title, setTitle] = useState(list.title);
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = () => {
-    if (!title.trim()) return;
-    onUpdate(list._id, title);
-    setIsEditing(false);
+  useEffect(() => {
+    setTitle(list.title);
+  }, [list.title]);
+
+  const handleSave = async (e) => {
+    e.stopPropagation();
+    if (!title.trim() || title.trim() === list.title) {
+      setEditMode(false);
+      setTitle(list.title);
+      return;
+    }
+    try {
+      setSaving(true);
+      const updated = await updateList(list._id, { title: title.trim() });
+      if (updated) {
+        toast.success("List updated");
+        setEditMode(false);
+        onUpdated && onUpdated(updated);
+      } else {
+        toast.error("Failed to update list");
+      }
+    } catch (err) {
+      toast.error("Error updating list");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleCancel = () => {
+  const handleCancel = (e) => {
+    e.stopPropagation();
     setTitle(list.title);
-    setIsEditing(false);
+    setEditMode(false);
   };
 
   return (
-    <div className="card">
-      {isEditing ? (
-        <div className="task-edit-container">
+    <div
+      className={`list-item ${selectedList?._id === list._id ? "active" : ""}`}
+      onClick={() => onSelectList(list)}
+      role="button"
+      tabIndex={0}
+    >
+      <div className="list-title-box">
+        {editMode ? (
           <input
-            type="text"
-            className="input-box"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSave(e);
+              if (e.key === "Escape") handleCancel(e);
+            }}
+            className="list-edit-input"
+            autoFocus
+            onClick={(e) => e.stopPropagation()}
           />
-          <div className="action-buttons">
-            <button className="add-btn" onClick={handleSave}>
-              Save
-            </button>
-            <button className="icon-btn delete" onClick={handleCancel}>
-              Cancel
-            </button>
-          </div>
-        </div>
-      ) : (
-        <>
-          <span onClick={() => onSelect(list)}>{list.title}</span>
-          <div className="action-buttons">
-            <button className="icon-btn edit" onClick={() => setIsEditing(true)}>
+        ) : (
+          <span>{list.title}</span>
+        )}
+      </div>
+
+      <div className="list-actions">
+        {editMode ? (
+          <>
+            <button className="save-btn small" onClick={handleSave}>Save</button>
+            <button className="cancel-btn-small small" onClick={handleCancel}>Cancel</button>
+          </>
+        ) : (
+          <>
+            <button
+              className="icon-btn edit-icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditMode(true);
+              }}
+            >
               ✏️
             </button>
-            <button className="icon-btn delete" onClick={() => onDelete(list._id)}>
+
+            <button
+              className="icon-btn delete-icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(list._id);
+              }}
+            >
               🗑️
             </button>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 };
 
 export default ListItem;
+
+
+
+
+
 

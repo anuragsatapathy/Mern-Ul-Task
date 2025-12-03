@@ -1,87 +1,137 @@
-import React, { useState, useEffect } from "react";
-import { getTasks, createTask, updateTask, deleteTask } from "../api/taskService";
+import React, { useEffect, useState } from "react";
 import TaskItem from "./TaskItem";
+import ConfirmDialog from "./ConfirmDialog";
+import { getTasks, createTask, deleteTask } from "../api/taskService";
 import { toast } from "react-toastify";
 
 const TaskSection = ({ selectedList }) => {
   const [tasks, setTasks] = useState([]);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [taskName, setTaskName] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [sortType, setSortType] = useState("newest");
+
+  const [showDialog, setShowDialog] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState(null);
+
+  const fetchTasks = async () => {
+    if (!selectedList) return;
+    const data = await getTasks(selectedList._id);
+    setTasks(data);
+  };
 
   useEffect(() => {
-    if (!selectedList) return;
-
-    const fetchTasks = async () => {
-      try {
-        const res = await getTasks(selectedList._id);
-        setTasks(res.data.data || []);
-      } catch (error) {
-        toast.error("Failed to fetch tasks");
-      }
-    };
-
     fetchTasks();
   }, [selectedList]);
 
-  const handleAdd = async () => {
-    if (!newTaskTitle.trim()) return toast.error("Task title cannot be empty");
-    try {
-      const res = await createTask(selectedList._id, newTaskTitle);
-      setTasks([...tasks, res.data.data]);
-      setNewTaskTitle("");
-      toast.success("Task added!");
-    } catch (error) {
-      toast.error("Failed to add task");
-    }
+  const addTask = async () => {
+    if (!taskName.trim()) return toast.warn("Task title required");
+
+    const created = await createTask(selectedList._id, {
+      title: taskName.trim(),
+      dueDate: dueDate || null,
+    });
+
+    if (!created) return toast.error("Failed to add task");
+
+    toast.success("Task added");
+    setTasks((prev) => [...prev, created]);
+    setTaskName("");
+    setDueDate("");
   };
 
-  const handleUpdate = async (id, title) => {
-    try {
-      await updateTask(id, title);
-      setTasks(tasks.map(t => (t._id === id ? { ...t, title } : t)));
-      toast.success("Task updated!");
-    } catch (error) {
-      toast.error("Failed to update task");
-    }
+  const confirmDelete = (id) => {
+    setTaskToDelete(id);
+    setShowDialog(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this task?")) return;
-    try {
-      await deleteTask(id);
-      setTasks(tasks.filter(t => t._id !== id));
-      toast.success("Task deleted!");
-    } catch (error) {
-      toast.error("Failed to delete task");
-    }
+  const handleDelete = async () => {
+    await deleteTask(taskToDelete);
+    toast.success("Task deleted");
+    setShowDialog(false);
+    fetchTasks();
   };
 
-  if (!selectedList) return <p className="empty-text">Select a list to view tasks</p>;
+  const sortedTasks = [...tasks].sort((a, b) => {
+    if (sortType === "az") return a.title.localeCompare(b.title);
+    if (sortType === "date")
+      return (a.dueDate ? new Date(a.dueDate) : Infinity) -
+             (b.dueDate ? new Date(b.dueDate) : Infinity);
+
+    if (sortType === "current") {
+      const today = new Date();
+      const da = a.dueDate ? Math.abs(today - new Date(a.dueDate)) : Infinity;
+      const db = b.dueDate ? Math.abs(today - new Date(b.dueDate)) : Infinity;
+      return da - db;
+    }
+
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
+  if (!selectedList) return <h3>Select a list</h3>;
 
   return (
-    <div className="section-container">
-      <h2 className="section-title">Tasks for "{selectedList.title}"</h2>
-      <input
-        type="text"
-        className="input-box"
-        placeholder="New task..."
-        value={newTaskTitle}
-        onChange={(e) => setNewTaskTitle(e.target.value)}
-      />
-      <button className="add-btn" onClick={handleAdd}>Add Task</button>
+    <div>
+      <div className="task-header">
+        <h2>{selectedList.title}</h2>
 
-      {tasks.length === 0 && <p className="empty-text">No tasks yet</p>}
+        <select value={sortType} onChange={(e) => setSortType(e.target.value)}>
+          <option value="newest">Newest</option>
+          <option value="az">A - Z</option>
+          <option value="date">Due Date</option>
+          <option value="current">Current</option>
+        </select>
+      </div>
 
-      {tasks.map((task) => (
-        <TaskItem
-          key={task._id}
-          task={task}
-          onUpdate={handleUpdate}
-          onDelete={handleDelete}
+      <div className="add-task">
+        <input
+          className="add-task-title"
+          placeholder="Add task"
+          value={taskName}
+          onChange={(e) => setTaskName(e.target.value)}
         />
+
+        <input
+          className="add-task-date"
+          type="date"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+        />
+
+        <button className="add-task-btn" onClick={addTask}>Add</button>
+      </div>
+
+      {sortedTasks.map((task) => (
+        <TaskItem key={task._id} task={task} onDelete={confirmDelete} refresh={fetchTasks} />
       ))}
+
+      <ConfirmDialog
+        show={showDialog}
+        onClose={() => setShowDialog(false)}
+        onConfirm={handleDelete}
+        text="Delete this task permanently?"
+      />
     </div>
   );
 };
 
 export default TaskSection;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
