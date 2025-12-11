@@ -3,7 +3,6 @@ const responses = require("../../utility/response");
 
 const createGoal = async (req, res) => {
   try {
-    
     console.log("CREATE GOAL BODY", req.body);
 
     const result = await goalService.createGoal(req.body);
@@ -27,7 +26,10 @@ const createGoal = async (req, res) => {
 
 const getGoals = async (req, res) => {
   try {
-    const result = await goalService.getGoals();
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 5;
+
+    const result = await goalService.getGoals(page, limit);
 
     if (result.status !== 200)
       return responses.generateResponse(

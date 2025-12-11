@@ -1,6 +1,6 @@
 const Goal = require("../../models/goalModel");
 
-// helper to compute progress + status safely
+// Helper to compute progress
 const computeProgressAndStatus = (currentValue, targetValue) => {
   const target = Number(targetValue) || 0;
   const current = Number(currentValue) || 0;
@@ -38,32 +38,37 @@ const createGoal = async (data) => {
       data: goal,
     };
   } catch (err) {
-    console.error("MONGO CREATE ERROR ", err.message);
-
-    return {
-      status: 500,
-      message: err.message,
-      data: null,
-    };
+    return { status: 500, message: err.message, data: null };
   }
 };
 
-// GET ALL GOALS
-const getGoals = async () => {
+// UPDATED: GET GOALS WITH PAGINATION + SOFT DELETE
+const getGoals = async (page = 1, limit = 5) => {
   try {
-    const goals = await Goal.find({ isDeleted: false });
+    const skip = (page - 1) * limit;
+
+    const totalGoals = await Goal.countDocuments({ isDeleted: false });
+
+    const goals = await Goal.find({ isDeleted: false })
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const totalPages = Math.ceil(totalGoals / limit);
 
     return {
       status: 200,
       message: "Goals fetched",
-      data: goals,
+      data: {
+        goals,
+        totalGoals,
+        totalPages,
+        page,
+        limit,
+      },
     };
   } catch (err) {
-    return {
-      status: 500,
-      message: err.message,
-      data: null,
-    };
+    return { status: 500, message: err.message, data: null };
   }
 };
 
@@ -89,16 +94,10 @@ const updateGoal = async (id, data) => {
     if (!existing)
       return { status: 404, message: "Goal not found", data: null };
 
-    const newTitle =
-      data.title !== undefined ? data.title : existing.title;
-    const newDescription =
-      data.description !== undefined ? data.description : existing.description;
-    const newTarget =
-      data.targetValue !== undefined ? data.targetValue : existing.targetValue;
-    const newCurrent =
-      data.currentValue !== undefined
-        ? data.currentValue
-        : existing.currentValue;
+    const newTitle = data.title ?? existing.title;
+    const newDescription = data.description ?? existing.description;
+    const newTarget = data.targetValue ?? existing.targetValue;
+    const newCurrent = data.currentValue ?? existing.currentValue;
 
     const { progress, status, current, target } = computeProgressAndStatus(
       newCurrent,
@@ -114,18 +113,13 @@ const updateGoal = async (id, data) => {
 
     await existing.save();
 
-    return {
-      status: 200,
-      message: "Goal updated",
-      data: existing,
-    };
+    return { status: 200, message: "Goal updated", data: existing };
   } catch (err) {
-    console.error("MONGO UPDATE ERROR", err.message);
     return { status: 500, message: err.message, data: null };
   }
 };
 
-// DELETE GOAL (SOFT DELETE)
+// SOFT DELETE
 const deleteGoal = async (id) => {
   try {
     const goal = await Goal.findByIdAndUpdate(
