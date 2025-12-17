@@ -7,13 +7,32 @@ import { Link } from "react-router-dom";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [errors, setErrors] = useState({});
   const dispatch = useDispatch();
 
+  const validate = () => {
+    const newErrors = {};
+
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+      newErrors.email = "Enter a valid email";
+    }
+
+    if (!password.trim()) {
+      newErrors.password = "Password is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const submit = async () => {
+    if (!validate()) return;
+
     try {
       await dispatch(loginUser({ email, password })).unwrap();
-
-    
       window.location.href = "/issues";
     } catch (err) {
       alert("Invalid email or password");
@@ -41,7 +60,12 @@ export default function Login() {
         label="Email"
         margin="normal"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        error={!!errors.email}
+        helperText={errors.email}
+        onChange={(e) => {
+          setEmail(e.target.value);
+          setErrors({ ...errors, email: "" });
+        }}
       />
 
       <TextField
@@ -50,24 +74,21 @@ export default function Login() {
         type="password"
         margin="normal"
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        error={!!errors.password}
+        helperText={errors.password}
+        onChange={(e) => {
+          setPassword(e.target.value);
+          setErrors({ ...errors, password: "" });
+        }}
       />
 
-      <Button
-        fullWidth
-        variant="contained"
-        sx={{ mt: 2 }}
-        onClick={submit}
-      >
+      <Button fullWidth variant="contained" sx={{ mt: 2 }} onClick={submit}>
         Login
       </Button>
 
       <Typography mt={2} fontSize={14}>
         Don’t have an account?{" "}
-        <Link
-          to="/register"
-          style={{ textDecoration: "none", color: "#1976d2" }}
-        >
+        <Link to="/register" style={{ textDecoration: "none", color: "#1976d2" }}>
           Register
         </Link>
       </Typography>

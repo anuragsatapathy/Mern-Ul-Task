@@ -15,6 +15,7 @@ export default function IssueForm() {
   const navigate = useNavigate();
 
   const [users, setUsers] = useState([]);
+  const [errors, setErrors] = useState({});
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -31,14 +32,16 @@ export default function IssueForm() {
   }, [user.role]);
 
   const submit = async () => {
-    // Frontend validation 
+   
     if (!form.title.trim()) {
       toast.error("Title is required");
+      setErrors({ title: "Title is required" });
       return;
     }
 
     if (user.role === "tester" && !form.assignedTo) {
       toast.error("Tester must assign the issue");
+      setErrors({ assignedTo: "Assignment is required" });
       return;
     }
 
@@ -62,9 +65,12 @@ export default function IssueForm() {
         label="Title"
         margin="normal"
         value={form.title}
-        onChange={(e) =>
-          setForm({ ...form, title: e.target.value })
-        }
+        error={!!errors.title}
+        helperText={errors.title}
+        onChange={(e) => {
+          setForm({ ...form, title: e.target.value });
+          setErrors({ ...errors, title: "" });
+        }}
       />
 
       <TextField
@@ -73,6 +79,7 @@ export default function IssueForm() {
         margin="normal"
         multiline
         rows={3}
+        value={form.description}
         onChange={(e) =>
           setForm({ ...form, description: e.target.value })
         }
@@ -100,9 +107,12 @@ export default function IssueForm() {
           label="Assign To"
           margin="normal"
           value={form.assignedTo}
-          onChange={(e) =>
-            setForm({ ...form, assignedTo: e.target.value })
-          }
+          error={!!errors.assignedTo}
+          helperText={errors.assignedTo}
+          onChange={(e) => {
+            setForm({ ...form, assignedTo: e.target.value });
+            setErrors({ ...errors, assignedTo: "" });
+          }}
         >
           <MenuItem value="">Unassigned</MenuItem>
           {users.map((u) => (

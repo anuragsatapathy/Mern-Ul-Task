@@ -19,10 +19,36 @@ export default function Register() {
     role: "developer",
   });
 
+  const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
+  const validate = () => {
+    const newErrors = {};
+
+    if (!form.name.trim()) {
+      newErrors.name = "Name is required";
+    }
+
+    if (!form.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^\S+@\S+\.\S+$/.test(form.email)) {
+      newErrors.email = "Enter a valid email";
+    }
+
+    if (!form.password.trim()) {
+      newErrors.password = "Password is required";
+    } else if (form.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const submit = async () => {
+    if (!validate()) return;
+
     await api.post("/auth/register", form);
     setSuccess(true);
 
@@ -41,14 +67,22 @@ export default function Register() {
         fullWidth
         label="Name"
         margin="normal"
-        onChange={(e) => setForm({ ...form, name: e.target.value })}
+        error={!!errors.name}
+        helperText={errors.name}
+        onChange={(e) =>
+          setForm({ ...form, name: e.target.value })
+        }
       />
 
       <TextField
         fullWidth
         label="Email"
         margin="normal"
-        onChange={(e) => setForm({ ...form, email: e.target.value })}
+        error={!!errors.email}
+        helperText={errors.email}
+        onChange={(e) =>
+          setForm({ ...form, email: e.target.value })
+        }
       />
 
       <TextField
@@ -56,7 +90,11 @@ export default function Register() {
         label="Password"
         type="password"
         margin="normal"
-        onChange={(e) => setForm({ ...form, password: e.target.value })}
+        error={!!errors.password}
+        helperText={errors.password}
+        onChange={(e) =>
+          setForm({ ...form, password: e.target.value })
+        }
       />
 
       <TextField
@@ -65,7 +103,9 @@ export default function Register() {
         label="Register As"
         margin="normal"
         value={form.role}
-        onChange={(e) => setForm({ ...form, role: e.target.value })}
+        onChange={(e) =>
+          setForm({ ...form, role: e.target.value })
+        }
       >
         <MenuItem value="developer">Developer</MenuItem>
         <MenuItem value="tester">Tester</MenuItem>
