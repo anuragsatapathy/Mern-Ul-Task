@@ -5,7 +5,7 @@ const expenseController = require("./expense.controller");
 const upload = require("../../middlewires/upload");
 const auth = require("../../middlewires/auth");
 
-// Create Expense (with bill upload)
+// Create (with bill upload)
 router.post(
   "/",
   auth,
@@ -13,9 +13,26 @@ router.post(
   expenseController.createExpense
 );
 
-router.get("/", auth, expenseController.getExpenses);
-router.put("/:id", auth, expenseController.updateExpense);
-router.delete("/:id", auth, expenseController.deleteExpense);
+// Get 
+router.get(
+  "/",
+  auth,
+  expenseController.getExpenses
+);
+
+// Update 
+router.put(
+  "/:id",
+  auth,
+  expenseController.updateExpense
+);
+
+// Delete 
+router.delete(
+"/:id",
+  auth,
+  expenseController.deleteExpense
+);
 
 module.exports = router;
 

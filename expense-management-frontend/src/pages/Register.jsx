@@ -4,6 +4,8 @@ import {
   TextField,
   Button,
   Typography,
+  AppBar,
+  Toolbar,
   Snackbar,
   Alert,
 } from "@mui/material";
@@ -16,88 +18,101 @@ export default function Register() {
     email: "",
     password: "",
   });
-
-  const [errors, setErrors] = useState({});
-  const [success, setSuccess] = useState(false);
+  const [toast, setToast] = useState({ open: false, msg: "", type: "error" });
   const navigate = useNavigate();
 
-  const validate = () => {
-    const newErrors = {};
-
-    if (!form.name.trim()) newErrors.name = "Name is required";
-
-    if (!form.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^\S+@\S+\.\S+$/.test(form.email)) {
-      newErrors.email = "Enter a valid email";
-    }
-
-    if (!form.password.trim()) {
-      newErrors.password = "Password is required";
-    } else if (form.password.length < 6) {
-      newErrors.password = "Minimum 6 characters";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const submit = async () => {
-    if (!validate()) return;
+    if (!form.name || !form.email || !form.password) {
+      setToast({ open: true, msg: "All fields are required", type: "error" });
+      return;
+    }
 
-    await api.post("/users", form);
-    setSuccess(true);
+    try {
+      await api.post("/users", form);
+      setToast({ open: true, msg: "Registration successful", type: "success" });
 
-    setTimeout(() => {
-      navigate("/");
-    }, 1500);
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
+    } catch (err) {
+      if (err.response && err.response.status === 409) {
+        setToast({
+          open: true,
+          msg: "User already exists. Please login.",
+          type: "error",
+        });
+      } else {
+        setToast({ open: true, msg: "Something went wrong", type: "error" });
+      }
+    }
   };
 
   return (
-    <Box sx={{ width: 340, margin: "120px auto", p: 3, boxShadow: 3 }}>
-      <Typography variant="h5" mb={2}>
-        Register
-      </Typography>
+    <>
+    
+      <AppBar position="fixed">
+        <Toolbar sx={{ justifyContent: "center" }}>
+          <Typography variant="h6">Expense Management System</Typography>
+        </Toolbar>
+      </AppBar>
 
-      <TextField
-        fullWidth
-        label="Name"
-        margin="normal"
-        error={!!errors.name}
-        helperText={errors.name}
-        onChange={(e) => setForm({ ...form, name: e.target.value })}
-      />
+    
+      <Box
+        sx={{
+          width: 380,
+          margin: "120px auto",
+          padding: 3,
+          boxShadow: 3,
+          borderRadius: 2,
+          backgroundColor: "#fff",
+          textAlign: "center",
+        }}
+      >
+        <Typography variant="h5" mb={2}>
+          Register
+        </Typography>
 
-      <TextField
-        fullWidth
-        label="Email"
-        margin="normal"
-        error={!!errors.email}
-        helperText={errors.email}
-        onChange={(e) => setForm({ ...form, email: e.target.value })}
-      />
+        <TextField
+          fullWidth
+          label="Name"
+          margin="normal"
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+        />
 
-      <TextField
-        fullWidth
-        label="Password"
-        type="password"
-        margin="normal"
-        error={!!errors.password}
-        helperText={errors.password}
-        onChange={(e) => setForm({ ...form, password: e.target.value })}
-      />
+        <TextField
+          fullWidth
+          label="Email"
+          margin="normal"
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
+        />
 
-      <Button fullWidth variant="contained" sx={{ mt: 2 }} onClick={submit}>
-        Register
-      </Button>
+        <TextField
+          fullWidth
+          label="Password"
+          type="password"
+          margin="normal"
+          onChange={(e) => setForm({ ...form, password: e.target.value })}
+        />
 
-      <Typography mt={2} fontSize={14}>
-        Already registered? <Link to="/">Login</Link>
-      </Typography>
+        <Button fullWidth variant="contained" sx={{ mt: 2 }} onClick={submit}>
+          Register
+        </Button>
 
-      <Snackbar open={success} autoHideDuration={1500}>
-        <Alert severity="success">Registration successful!</Alert>
+        <Typography mt={2} fontSize={14}>
+          Already registered? <Link to="/">Login</Link>
+        </Typography>
+      </Box>
+
+     
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={3000}
+        onClose={() => setToast({ ...toast, open: false })}
+      >
+        <Alert severity={toast.type} variant="filled">
+          {toast.msg}
+        </Alert>
       </Snackbar>
-    </Box>
+    </>
   );
 }

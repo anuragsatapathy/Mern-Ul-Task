@@ -10,12 +10,19 @@ const createExpense = async (data) => {
   }
 };
 
-const getExpenses = async ({ limit = 10, offset = 0 }) => {
-  const items = await Expense.find({ isDeleted: false })
-    .skip(parseInt(offset))
-    .limit(parseInt(limit));
+const getExpenses = async ({ limit = 10, offset = 0, userId }) => {
+  const query = {
+    userId: userId,
+    isDeleted: false,
+  };
 
-  const total = await Expense.countDocuments({ isDeleted: false });
+  const items = await Expense.find(query)
+    .skip(parseInt(offset))
+    .limit(parseInt(limit))
+    .sort({ createdAt: -1 });
+
+  const total = await Expense.countDocuments(query);
+
   return { status: 200, data: { items, total } };
 };
 
