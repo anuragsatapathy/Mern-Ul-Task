@@ -4,71 +4,44 @@ import {
   TextField,
   Button,
   Typography,
-  AppBar,
-  Toolbar,
   Snackbar,
   Alert,
 } from "@mui/material";
 import api from "../api/api";
 import { Link, useNavigate } from "react-router-dom";
+import AuthNavbar from "../components/AuthNavbar";
 
 export default function Register() {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
-  const [toast, setToast] = useState({ open: false, msg: "", type: "error" });
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [errors, setErrors] = useState({});
+  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
   const submit = async () => {
-    if (!form.name || !form.email || !form.password) {
-      setToast({ open: true, msg: "All fields are required", type: "error" });
-      return;
-    }
+    const err = {};
+    if (!form.name) err.name = "Name required";
+    if (!form.email) err.email = "Email required";
+    if (!form.password) err.password = "Password required";
+    setErrors(err);
+    if (Object.keys(err).length) return;
 
-    try {
-      await api.post("/users", form);
-      setToast({ open: true, msg: "Registration successful", type: "success" });
+    await api.post("/users", form);
 
-      setTimeout(() => {
-        navigate("/");
-      }, 1000);
-    } catch (err) {
-      if (err.response && err.response.status === 409) {
-        setToast({
-          open: true,
-          msg: "User already exists. Please login.",
-          type: "error",
-        });
-      } else {
-        setToast({ open: true, msg: "Something went wrong", type: "error" });
-      }
-    }
+    // show success toast
+    setOpen(true);
+
+    // redirect after short delay
+    setTimeout(() => {
+      navigate("/");
+    }, 1200);
   };
 
   return (
     <>
-    
-      <AppBar position="fixed">
-        <Toolbar sx={{ justifyContent: "center" }}>
-          <Typography variant="h6">Expense Management System</Typography>
-        </Toolbar>
-      </AppBar>
+      <AuthNavbar />
 
-    
-      <Box
-        sx={{
-          width: 380,
-          margin: "120px auto",
-          padding: 3,
-          boxShadow: 3,
-          borderRadius: 2,
-          backgroundColor: "#fff",
-          textAlign: "center",
-        }}
-      >
-        <Typography variant="h5" mb={2}>
+      <Box sx={{ width: 360, mx: "auto", mt: 8 }}>
+        <Typography variant="h5" mb={2} textAlign="center">
           Register
         </Typography>
 
@@ -77,6 +50,8 @@ export default function Register() {
           label="Name"
           margin="normal"
           onChange={(e) => setForm({ ...form, name: e.target.value })}
+          error={!!errors.name}
+          helperText={errors.name}
         />
 
         <TextField
@@ -84,6 +59,8 @@ export default function Register() {
           label="Email"
           margin="normal"
           onChange={(e) => setForm({ ...form, email: e.target.value })}
+          error={!!errors.email}
+          helperText={errors.email}
         />
 
         <TextField
@@ -92,25 +69,28 @@ export default function Register() {
           type="password"
           margin="normal"
           onChange={(e) => setForm({ ...form, password: e.target.value })}
+          error={!!errors.password}
+          helperText={errors.password}
         />
 
         <Button fullWidth variant="contained" sx={{ mt: 2 }} onClick={submit}>
-          Register
+          REGISTER
         </Button>
 
-        <Typography mt={2} fontSize={14}>
+        <Typography mt={2} fontSize={14} textAlign="center">
           Already registered? <Link to="/">Login</Link>
         </Typography>
       </Box>
 
-     
+      {/* Success Toast */}
       <Snackbar
-        open={toast.open}
-        autoHideDuration={3000}
-        onClose={() => setToast({ ...toast, open: false })}
+        open={open}
+        autoHideDuration={2000}
+        onClose={() => setOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert severity={toast.type} variant="filled">
-          {toast.msg}
+        <Alert severity="success" variant="filled">
+          Registration successful
         </Alert>
       </Snackbar>
     </>

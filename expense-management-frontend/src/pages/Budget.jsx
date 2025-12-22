@@ -1,30 +1,26 @@
 import { useEffect, useState } from "react";
 import {
   Box,
+  Typography,
   TextField,
   Button,
-  Typography,
-  Dialog,
-  DialogTitle,
-  DialogActions,
 } from "@mui/material";
+import Navbar, { SIDEBAR_WIDTH } from "../components/Navbar";
 import api from "../api/api";
-import Navbar from "../components/Navbar";
 
 export default function Budget() {
   const [month, setMonth] = useState("");
-  const [limit, setLimit] = useState(0);
+  const [limit, setLimit] = useState("");
   const [spent, setSpent] = useState(0);
-  const [open, setOpen] = useState(false);
 
+  const currentMonth = new Date().toISOString().slice(0, 7);
 
   useEffect(() => {
-    api.get("/budget").then((res) => {
-      if (res.data.data) {
-        setMonth(res.data.data.month);
-        setLimit(res.data.data.limit);
-      }
-    });
+    const saved = JSON.parse(localStorage.getItem("budget"));
+    if (saved) {
+      setMonth(saved.month);
+      setLimit(saved.limit);
+    }
 
     api.get("/expenses").then((res) => {
       const total = res.data.data.items.reduce(
@@ -35,74 +31,97 @@ export default function Budget() {
     });
   }, []);
 
-  const save = async () => {
-    await api.post("/budget", { month, limit });
-    setOpen(true); 
+  const saveBudget = () => {
+    localStorage.setItem(
+      "budget",
+      JSON.stringify({ month, limit })
+    );
   };
 
   const percent = limit ? (spent / limit) * 100 : 0;
+
+  useEffect(() => {
+    let count = 0;
+
+    if (month === currentMonth) {
+      if (percent >= 80) count++;
+      if (percent >= 100) count++;
+    }
+
+    localStorage.setItem("notificationCount", String(count));
+    window.dispatchEvent(new Event("storage"));
+  }, [percent, month]);
 
   return (
     <>
       <Navbar />
 
-      <Box sx={{ width: 420, mx: "auto", mt: 4 }}>
-        <Typography variant="h5" mb={3} textAlign="center">
+      <Box sx={{ ml: `${SIDEBAR_WIDTH}px`, p: 4 }}>
+        <Button onClick={() => window.history.back()}>
+          Back
+        </Button>
+
+        <Typography variant="h5" mb={3}>
           Monthly Budget
         </Typography>
 
-        <TextField
-          fullWidth
-          label="Month (e.g. Dec 2025)"
-          margin="normal"
-          value={month}
-          onChange={(e) => setMonth(e.target.value)}
-        />
-
-        <TextField
-          fullWidth
-          label="Limit"
-          margin="normal"
-          value={limit}
-          onChange={(e) => setLimit(e.target.value)}
-        />
-
-        <Button
-          fullWidth
-          variant="contained"
-          sx={{ mt: 2 }}
-          onClick={save}
+        {/* INPUT ROW */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            mb: 3,
+            maxWidth: 520,
+          }}
         >
-          Save
-        </Button>
+          <TextField
+            type="month"
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            size="small"
+          />
 
-        <Box mt={3}>
-          <Typography>Total Spent: ₹ {spent}</Typography>
-          <Typography>Extra Spent: ₹ {limit - spent}</Typography>
+          <TextField
+            label="Limit"
+            value={limit}
+            onChange={(e) => setLimit(e.target.value)}
+            size="small"
+          />
 
-          {percent >= 80 && percent < 100 && (
-            <Typography color="warning.main">
-              Warning: 80% of budget used
-            </Typography>
-          )}
-
-          {percent >= 100 && (
-            <Typography color="error">
-              Budget exceeded!
-            </Typography>
-          )}
-        </Box>
-      </Box>
-
-    
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>Budget saved successfully</DialogTitle>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)} autoFocus>
-            OK
+          <Button
+            variant="contained"
+            onClick={saveBudget}
+            sx={{ height: 40 }}
+          >
+            Save
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Box>
+
+        {/* SUMMARY */}
+        <Box mb={2}>
+          <Typography>
+            Month: {month}
+          </Typography>
+          <Typography>
+            Limit: ₹ {limit}
+          </Typography>
+          <Typography>
+            Spent: ₹ {spent}
+          </Typography>
+        </Box>
+
+        {/* WARNING */}
+        {month === currentMonth && percent >= 80 && (
+          <Typography
+            color={percent >= 100 ? "error" : "warning.main"}
+          >
+            {percent >= 100
+              ? "Budget exceeded!"
+              : "Warning: 80% of budget used"}
+          </Typography>
+        )}
+      </Box>
     </>
   );
 }

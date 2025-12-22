@@ -1,30 +1,17 @@
-import { Box, Button, Typography } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { Box, Typography } from "@mui/material";
 import Navbar from "../components/Navbar";
 
 export default function Home() {
-  const navigate = useNavigate();
-
   return (
     <>
       <Navbar />
-      <Box sx={{ p: 4, textAlign: "center" }}>
-        <Typography variant="h4" mb={3}>
-          Welcome to Expense Dashboard
+      <Box sx={{ ml: 28, mt: 4 }}>
+        <Typography variant="h4">
+          Welcome to Expense Management
         </Typography>
-
-        <Button sx={{ m: 1 }} variant="contained" onClick={() => navigate("/dashboard")}>
-          Dashboard
-        </Button>
-        <Button sx={{ m: 1 }} variant="outlined" onClick={() => navigate("/add-expense")}>
-          Add Expense
-        </Button>
-        <Button sx={{ m: 1 }} variant="outlined" onClick={() => navigate("/expenses")}>
-          Expenses
-        </Button>
-        <Button sx={{ m: 1 }} variant="outlined" onClick={() => navigate("/budget")}>
-          Budget
-        </Button>
+        <Typography mt={1}>
+          Use the menu to navigate through the app.
+        </Typography>
       </Box>
     </>
   );

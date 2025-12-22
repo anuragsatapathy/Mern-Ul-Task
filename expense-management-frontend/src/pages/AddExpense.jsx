@@ -4,9 +4,8 @@ import {
   TextField,
   Button,
   Typography,
-  Dialog,
-  DialogTitle,
-  DialogActions,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import api from "../api/api";
 import Navbar from "../components/Navbar";
@@ -23,7 +22,10 @@ export default function AddExpense() {
 
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
-  const [open, setOpen] = useState(false);
+
+  // toast state
+  const [toastOpen, setToastOpen] = useState(false);
+
   const navigate = useNavigate();
 
   const validate = (data = form) => {
@@ -54,7 +56,6 @@ export default function AddExpense() {
 
   const submit = async () => {
     setSubmitted(true);
-
     if (!validate()) return;
 
     const data = new FormData();
@@ -63,12 +64,14 @@ export default function AddExpense() {
     });
 
     await api.post("/expenses", data);
-    setOpen(true);
-  };
 
-  const closeDialog = () => {
-    setOpen(false);
-    navigate("/expenses");
+    // show toast
+    setToastOpen(true);
+
+    // redirect after short delay
+    setTimeout(() => {
+      navigate("/expenses");
+    }, 1200);
   };
 
   return (
@@ -145,15 +148,17 @@ export default function AddExpense() {
         </Button>
       </Box>
 
-    
-      <Dialog open={open} onClose={closeDialog}>
-        <DialogTitle>Expense added successfully</DialogTitle>
-        <DialogActions>
-          <Button onClick={closeDialog} autoFocus>
-            OK
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Success Toast */}
+      <Snackbar
+        open={toastOpen}
+        autoHideDuration={2000}
+        onClose={() => setToastOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity="success" variant="filled">
+          Expense added successfully
+        </Alert>
+      </Snackbar>
     </>
   );
 }

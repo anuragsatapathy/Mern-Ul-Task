@@ -1,63 +1,36 @@
-import { useEffect, useState } from "react";
-import {
-  Box,
-  TextField,
-  Button,
-  Typography,
-  AppBar,
-  Toolbar,
-  Snackbar,
-  Alert,
-} from "@mui/material";
+import { useState } from "react";
+import { Box, TextField, Button, Typography } from "@mui/material";
 import api from "../api/api";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import AuthNavbar from "../components/AuthNavbar";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [toast, setToast] = useState({ open: false, msg: "", type: "error" });
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
-  
-  useEffect(() => {
-    if (localStorage.getItem("token")) {
-      navigate("/home");
-    }
-  }, [navigate]);
-
   const submit = async () => {
-    if (!email || !password) {
-      setToast({ open: true, msg: "Email and password required", type: "error" });
-      return;
-    }
+    const err = {};
+    if (!email) err.email = "Email required";
+    if (!password) err.password = "Password required";
+    setErrors(err);
+    if (Object.keys(err).length) return;
 
     try {
       const res = await api.post("/users/login", { email, password });
       localStorage.setItem("token", res.data.data.token);
       navigate("/home");
     } catch {
-      setToast({ open: true, msg: "Invalid credentials", type: "error" });
+      setErrors({ password: "Invalid credentials" });
     }
   };
 
   return (
     <>
-      <AppBar position="fixed">
-        <Toolbar sx={{ justifyContent: "center" }}>
-          <Typography variant="h6">Expense Management System</Typography>
-        </Toolbar>
-      </AppBar>
+      <AuthNavbar />
 
-      <Box
-        sx={{
-          width: 360,
-          margin: "120px auto",
-          padding: 3,
-          boxShadow: 3,
-          borderRadius: 2,
-          backgroundColor: "#fff",
-        }}
-      >
+      <Box sx={{ width: 360, mx: "auto", mt: 8 }}>
         <Typography variant="h5" mb={2} textAlign="center">
           Login
         </Typography>
@@ -68,6 +41,8 @@ export default function Login() {
           margin="normal"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          error={!!errors.email}
+          helperText={errors.email}
         />
 
         <TextField
@@ -77,26 +52,18 @@ export default function Login() {
           margin="normal"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          error={!!errors.password}
+          helperText={errors.password}
         />
 
         <Button fullWidth variant="contained" sx={{ mt: 2 }} onClick={submit}>
-          Login
+          LOGIN
         </Button>
 
         <Typography mt={2} fontSize={14} textAlign="center">
           Don’t have an account? <Link to="/register">Register</Link>
         </Typography>
       </Box>
-
-      <Snackbar
-        open={toast.open}
-        autoHideDuration={3000}
-        onClose={() => setToast({ ...toast, open: false })}
-      >
-        <Alert severity={toast.type} variant="filled">
-          {toast.msg}
-        </Alert>
-      </Snackbar>
     </>
   );
 }

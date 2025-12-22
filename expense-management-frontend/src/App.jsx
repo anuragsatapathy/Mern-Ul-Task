@@ -6,6 +6,7 @@ import AddExpense from "./pages/AddExpense";
 import ExpenseList from "./pages/ExpenseList";
 import Budget from "./pages/Budget";
 import Dashboard from "./pages/Dashboard";
+import Notifications from "./pages/Notifications";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/expenses" element={<ProtectedRoute><ExpenseList /></ProtectedRoute>} />
         <Route path="/budget" element={<ProtectedRoute><Budget /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );
