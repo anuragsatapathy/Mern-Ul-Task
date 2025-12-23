@@ -53,7 +53,7 @@ export default function Login() {
           }}
         >
           <Typography variant="h5" fontWeight={600} textAlign="center" mb={3}>
-            Welcome Back
+            Login
           </Typography>
 
           <TextField
