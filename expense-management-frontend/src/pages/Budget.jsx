@@ -1,30 +1,36 @@
 import { useEffect, useState } from "react";
 import {
-  Box,
   Typography,
   TextField,
   Button,
+  Paper,
+  Alert,
+  Divider,
+  Box,
 } from "@mui/material";
-import Navbar, { SIDEBAR_WIDTH } from "../components/Navbar";
 import api from "../api/api";
+import MainLayout from "../components/MainLayout";
 
 export default function Budget() {
-  const [month, setMonth] = useState("");
+  const currentMonth = new Date().toISOString().slice(0, 7);
+
+  const [month, setMonth] = useState(currentMonth);
   const [limit, setLimit] = useState("");
   const [spent, setSpent] = useState(0);
-
-  const currentMonth = new Date().toISOString().slice(0, 7);
+  const [savedBudget, setSavedBudget] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem("budget"));
     if (saved) {
+      setSavedBudget(saved);
       setMonth(saved.month);
       setLimit(saved.limit);
     }
 
     api.get("/expenses").then((res) => {
       const total = res.data.data.items.reduce(
-        (sum, e) => sum + Number(e.amount),
+        (s, e) => s + Number(e.amount),
         0
       );
       setSpent(total);
@@ -32,96 +38,109 @@ export default function Budget() {
   }, []);
 
   const saveBudget = () => {
-    localStorage.setItem(
-      "budget",
-      JSON.stringify({ month, limit })
-    );
+    if (!limit || Number(limit) <= 0) {
+      setError("Limit must be greater than 0");
+      return;
+    }
+
+    setError("");
+    const data = { month, limit };
+    localStorage.setItem("budget", JSON.stringify(data));
+    setSavedBudget(data);
   };
 
   const percent = limit ? (spent / limit) * 100 : 0;
 
   useEffect(() => {
     let count = 0;
+    let message = "";
 
-    if (month === currentMonth) {
-      if (percent >= 80) count++;
-      if (percent >= 100) count++;
+    if (month === currentMonth && limit) {
+      if (percent >= 80) {
+        count = 1;
+        message = "Warning: 80% of budget used";
+      }
+      if (percent >= 100) {
+        count = 1;
+        message = "Budget exceeded!";
+      }
     }
 
-    localStorage.setItem("notificationCount", String(count));
+    localStorage.setItem("notificationCount", count);
+    localStorage.setItem("notification", message);
     window.dispatchEvent(new Event("storage"));
-  }, [percent, month]);
+  }, [percent, month, limit]);
 
   return (
-    <>
-      <Navbar />
-
-      <Box sx={{ ml: `${SIDEBAR_WIDTH}px`, p: 4 }}>
-        <Button onClick={() => window.history.back()}>
-          Back
-        </Button>
-
-        <Typography variant="h5" mb={3}>
+    <MainLayout>
+      <Paper
+        sx={{
+          maxWidth: 560,
+          mx: "auto",
+          p: 4,
+          borderRadius: 2,
+        }}
+      >
+        <Typography variant="h5" fontWeight={600} mb={3}>
           Monthly Budget
         </Typography>
 
-        {/* INPUT ROW */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-            mb: 3,
-            maxWidth: 520,
-          }}
+        <TextField
+          type="month"
+          fullWidth
+          margin="normal"
+          value={month}
+          onChange={(e) => setMonth(e.target.value)}
+        />
+
+        <TextField
+          label="Budget Limit"
+          fullWidth
+          margin="normal"
+          value={limit}
+          error={!!error}
+          helperText={error}
+          onChange={(e) => setLimit(e.target.value)}
+        />
+
+        <Button
+          fullWidth
+          size="large"
+          variant="contained"
+          sx={{ mt: 3 }}
+          onClick={saveBudget}
         >
-          <TextField
-            type="month"
-            value={month}
-            onChange={(e) => setMonth(e.target.value)}
-            size="small"
-          />
+          Save Budget
+        </Button>
 
-          <TextField
-            label="Limit"
-            value={limit}
-            onChange={(e) => setLimit(e.target.value)}
-            size="small"
-          />
+        {savedBudget && (
+          <>
+            <Divider sx={{ my: 3 }} />
+            <Box>
+              <Typography>
+                <b>Month:</b> {savedBudget.month}
+              </Typography>
+              <Typography>
+                <b>Limit:</b> ₹ {savedBudget.limit}
+              </Typography>
+              <Typography mt={1}>
+                <b>Total Spent:</b> ₹ {spent}
+              </Typography>
+            </Box>
+          </>
+        )}
 
-          <Button
-            variant="contained"
-            onClick={saveBudget}
-            sx={{ height: 40 }}
-          >
-            Save
-          </Button>
-        </Box>
-
-        {/* SUMMARY */}
-        <Box mb={2}>
-          <Typography>
-            Month: {month}
-          </Typography>
-          <Typography>
-            Limit: ₹ {limit}
-          </Typography>
-          <Typography>
-            Spent: ₹ {spent}
-          </Typography>
-        </Box>
-
-        {/* WARNING */}
         {month === currentMonth && percent >= 80 && (
-          <Typography
-            color={percent >= 100 ? "error" : "warning.main"}
+          <Alert
+            severity={percent >= 100 ? "error" : "warning"}
+            sx={{ mt: 3 }}
           >
             {percent >= 100
               ? "Budget exceeded!"
-              : "Warning: 80% of budget used"}
-          </Typography>
+              : "80% of budget used"}
+          </Alert>
         )}
-      </Box>
-    </>
+      </Paper>
+    </MainLayout>
   );
 }

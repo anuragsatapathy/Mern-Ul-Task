@@ -4,96 +4,74 @@ import {
   ListItemButton,
   ListItemText,
   Typography,
-  Badge,
 } from "@mui/material";
-import NotificationsIcon from "@mui/icons-material/Notifications";
-import LogoutIcon from "@mui/icons-material/Logout";
-import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
-export const SIDEBAR_WIDTH = 180;
+export const SIDEBAR_WIDTH = 200;
+const TOPBAR_HEIGHT = 64;
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const [notificationCount, setNotificationCount] = useState(0);
+  const location = useLocation();
 
-  useEffect(() => {
-    const readCount = () => {
-      const value =
-        Number(localStorage.getItem("notificationCount")) || 0;
-      setNotificationCount(value);
-    };
-
-    readCount();
-    window.addEventListener("storage", readCount);
-
-    return () =>
-      window.removeEventListener("storage", readCount);
-  }, []);
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-  };
+  const menu = [
+    { label: "Dashboard", path: "/dashboard" },
+    { label: "Add Expense", path: "/add-expense" },
+    { label: "Expenses", path: "/expenses" },
+    { label: "Budget", path: "/budget" },
+  ];
 
   return (
     <Box
       sx={{
         width: SIDEBAR_WIDTH,
-        height: "100vh",
+        height: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
         position: "fixed",
+        top: `${TOPBAR_HEIGHT}px`,   
         left: 0,
-        top: 0,
-        borderRight: "1px solid #e0e0e0",
-        px: 1.5,
-        py: 2,
-        bgcolor: "#fafafa",
+        bgcolor: "#ffffff",
+        borderRight: "1px solid #e5e7eb",
+
+        px: 2.5,
+        pt: 4,   
+        pb: 4,
       }}
     >
-      <Typography
-        variant="h6"
-        mb={2}
-        sx={{
-          pl: 1,
-          color: "primary.main",
-          fontWeight: 600,
-        }}
+     { /*<Typography
+        variant="subtitle1"
+        fontWeight={700}
+        mb={4}
+        sx={{ color: "#2563eb" }}
       >
-        Expense App
-      </Typography>
+        Expense Manager
+      </Typography>*/}
 
-      <List sx={{ p: 0 }}>
-        {[
-          ["Home", "/home"],
-          ["Dashboard", "/dashboard"],
-          ["Add Expense", "/add-expense"],
-          ["Expenses", "/expenses"],
-          ["Budget", "/budget"],
-        ].map(([label, path]) => (
+      <List disablePadding>
+        {menu.map((item) => (
           <ListItemButton
-            key={label}
-            onClick={() => navigate(path)}
-            sx={{ borderRadius: 1 }}
+            key={item.path}
+            selected={location.pathname === item.path}
+            onClick={() => navigate(item.path)}
+            sx={{
+              borderRadius: 1.5,
+              mb: 1,
+              py: 1.2,
+              "&.Mui-selected": {
+                bgcolor: "#e3f2fd",
+                color: "#2563eb",
+                fontWeight: 600,
+              },
+              "&:hover": {
+                bgcolor: "#f1f5f9",
+              },
+            }}
           >
-            <ListItemText primary={label} />
+            <ListItemText
+              primary={item.label}
+              primaryTypographyProps={{ fontSize: 14 }}
+            />
           </ListItemButton>
         ))}
-
-        <ListItemButton onClick={() => navigate("/notifications")}>
-          <Badge
-            color="error"
-            badgeContent={notificationCount}
-            invisible={notificationCount === 0}
-          >
-            <NotificationsIcon fontSize="small" />
-          </Badge>
-          <ListItemText primary="Notifications" sx={{ ml: 1 }} />
-        </ListItemButton>
-
-        <ListItemButton onClick={logout}>
-          <LogoutIcon fontSize="small" />
-          <ListItemText primary="Logout" sx={{ ml: 1 }} />
-        </ListItemButton>
       </List>
     </Box>
   );

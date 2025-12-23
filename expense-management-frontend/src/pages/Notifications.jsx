@@ -1,25 +1,31 @@
-import { Box, Typography } from "@mui/material";
-import Navbar, { SIDEBAR_WIDTH } from "../components/Navbar";
+import { Typography, Paper, Box } from "@mui/material";
+import MainLayout from "../components/MainLayout";
 
 export default function Notifications() {
   const message = localStorage.getItem("notification");
 
   return (
-    <>
-      <Navbar />
+    <MainLayout>
+      <Typography variant="h5" fontWeight={600} mb={3}>
+        Notifications
+      </Typography>
 
-      <Box sx={{ ml: `${SIDEBAR_WIDTH}px`, p: 4 }}>
-        <Typography variant="h5">
-          Notifications
-        </Typography>
-
-        <Typography
-          mt={2}
-          color={message ? "error" : "text.secondary"}
-        >
-          {message || "No notifications"}
-        </Typography>
-      </Box>
-    </>
+      <Paper
+        sx={{
+          p: 4,
+          maxWidth: 600,
+          borderRadius: 2,
+        }}
+      >
+        <Box textAlign="center">
+          <Typography
+            color={message ? "error.main" : "text.secondary"}
+            fontWeight={message ? 600 : 400}
+          >
+            {message || "You have no new notifications"}
+          </Typography>
+        </Box>
+      </Paper>
+    </MainLayout>
   );
 }

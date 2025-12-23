@@ -1,7 +1,13 @@
 import { useState } from "react";
-import { Box, TextField, Button, Typography } from "@mui/material";
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Paper,
+} from "@mui/material";
 import api from "../api/api";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import AuthNavbar from "../components/AuthNavbar";
 
 export default function Login() {
@@ -20,7 +26,7 @@ export default function Login() {
     try {
       const res = await api.post("/users/login", { email, password });
       localStorage.setItem("token", res.data.data.token);
-      navigate("/home");
+      navigate("/dashboard");
     } catch {
       setErrors({ password: "Invalid credentials" });
     }
@@ -29,40 +35,68 @@ export default function Login() {
   return (
     <>
       <AuthNavbar />
+      <Box
+        sx={{
+          minHeight: "calc(100vh - 64px)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          bgcolor: "#f3f4f6",
+        }}
+      >
+        <Paper
+          elevation={3}
+          sx={{
+            width: 380,
+            p: 4,
+            borderRadius: 2,
+          }}
+        >
+          <Typography variant="h5" fontWeight={600} textAlign="center" mb={3}>
+            Welcome Back
+          </Typography>
 
-      <Box sx={{ width: 360, mx: "auto", mt: 8 }}>
-        <Typography variant="h5" mb={2} textAlign="center">
-          Login
-        </Typography>
+          <TextField
+            fullWidth
+            label="Email"
+            margin="normal"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            error={!!errors.email}
+            helperText={errors.email}
+          />
 
-        <TextField
-          fullWidth
-          label="Email"
-          margin="normal"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          error={!!errors.email}
-          helperText={errors.email}
-        />
+          <TextField
+            fullWidth
+            label="Password"
+            type="password"
+            margin="normal"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            error={!!errors.password}
+            helperText={errors.password}
+          />
 
-        <TextField
-          fullWidth
-          label="Password"
-          type="password"
-          margin="normal"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          error={!!errors.password}
-          helperText={errors.password}
-        />
+          <Button
+            fullWidth
+            size="large"
+            variant="contained"
+            sx={{ mt: 3 }}
+            onClick={submit}
+          >
+            Login
+          </Button>
 
-        <Button fullWidth variant="contained" sx={{ mt: 2 }} onClick={submit}>
-          LOGIN
-        </Button>
-
-        <Typography mt={2} fontSize={14} textAlign="center">
-          Don’t have an account? <Link to="/register">Register</Link>
-        </Typography>
+          <Typography mt={3} textAlign="center" fontSize={14}>
+            Don’t have an account?{" "}
+            <span
+              style={{ color: "#1976d2", cursor: "pointer", fontWeight: 500 }}
+              onClick={() => navigate("/register")}
+            >
+              Register
+            </span>
+          </Typography>
+        </Paper>
       </Box>
     </>
   );

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import {
-  Box,
   Typography,
   Paper,
+  Box,
 } from "@mui/material";
 import {
   PieChart,
@@ -12,9 +12,9 @@ import {
   Legend,
 } from "recharts";
 import api from "../api/api";
-import Navbar from "../components/Navbar";
+import MainLayout from "../components/MainLayout";
 
-const COLORS = ["#1976d2", "#9c27b0", "#ff9800", "#4caf50"];
+const COLORS = ["#2563eb", "#9333ea", "#f59e0b", "#16a34a"];
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
@@ -28,61 +28,77 @@ export default function Dashboard() {
   if (!data) return null;
 
   return (
-    <>
-      <Navbar />
+    <MainLayout>
+      <Typography variant="h4" fontWeight={700} mb={4}>
+        Dashboard
+      </Typography>
 
-      <Box sx={{ maxWidth: 1000, mx: "auto", mt: 4 }}>
-        <Typography variant="h4" mb={3}>
-          Dashboard
+      {/* Total Spent */}
+      <Paper
+        sx={{
+          p: 3,
+          pl: 4,      
+          borderRadius: 2,
+          mb: 4,
+        }}
+      >
+        <Typography color="text.secondary">
+          Total Spent (This Month)
         </Typography>
+        <Typography variant="h5" fontWeight={600} mt={1}>
+          ₹ {data.totalSpending}
+        </Typography>
+      </Paper>
 
-        
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <Paper sx={{ p: 2, flex: 1 }}>
-            <Typography>Total Spent (This Month)</Typography>
-            <Typography variant="h6">
-              ₹ {data.totalSpending}
-            </Typography>
-          </Paper>
-        </Box>
-
-        {/* CATEGORY CHART */}
-        <Typography variant="h6" mt={4}>
+      {/* Category wise */}
+      <Paper
+        sx={{
+          p: 4,
+          pl: 4,      
+          borderRadius: 2,
+          mb: 5,
+        }}
+      >
+        <Typography variant="h6" mb={3}>
           Category-wise Spending
         </Typography>
 
-        <PieChart width={400} height={300}>
-          <Pie
-            data={data.categoryWise}
-            dataKey="total"
-            nameKey="_id"
-            cx="50%"
-            cy="50%"
-            outerRadius={100}
-            label
-          >
-            {data.categoryWise.map((_, index) => (
-              <Cell
-                key={index}
-                fill={COLORS[index % COLORS.length]}
-              />
-            ))}
-          </Pie>
-          <Tooltip />
-          <Legend />
-        </PieChart>
+        <Box display="flex" justifyContent="center">
+          <PieChart width={380} height={250}>
+            <Pie
+              data={data.categoryWise}
+              dataKey="total"
+              nameKey="_id"
+              outerRadius={100}
+            >
+              {data.categoryWise.map((_, i) => (
+                <Cell key={i} fill={COLORS[i % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        </Box>
+      </Paper>
 
-        
-        <Typography variant="h6" mt={4}>
-          Recent Expenses
-        </Typography>
+      {/* Recent expenses */}
+      <Typography variant="h6" mb={2}>
+        Recent Expenses
+      </Typography>
 
-        {data.recentExpenses.map((e) => (
-          <Paper key={e._id} sx={{ p: 2, mt: 1 }}>
-            ₹{e.amount} – {e.category}
-          </Paper>
-        ))}
-      </Box>
-    </>
+      {data.recentExpenses.map((e) => (
+        <Paper
+          key={e._id}
+          sx={{
+            p: 2.5,
+            pl: 4,    
+            mb: 2,
+            borderRadius: 2,
+          }}
+        >
+          ₹ {e.amount} – {e.category}
+        </Paper>
+      ))}
+    </MainLayout>
   );
 }

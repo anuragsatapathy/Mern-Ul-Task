@@ -1,15 +1,16 @@
 import { useState } from "react";
 import {
-  Box,
   TextField,
   Button,
   Typography,
+  Paper,
   Snackbar,
   Alert,
+  Box,
 } from "@mui/material";
 import api from "../api/api";
-import Navbar from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
+import MainLayout from "../components/MainLayout";
 
 export default function AddExpense() {
   const [form, setForm] = useState({
@@ -21,112 +22,75 @@ export default function AddExpense() {
   });
 
   const [errors, setErrors] = useState({});
-  const [submitted, setSubmitted] = useState(false);
-
-  // toast state
   const [toastOpen, setToastOpen] = useState(false);
-
   const navigate = useNavigate();
 
-  const validate = (data = form) => {
-    const newErrors = {};
-
-    if (!data.amount) newErrors.amount = "Amount is required";
-    else if (Number(data.amount) <= 0)
-      newErrors.amount = "Amount must be greater than 0";
-
-    if (!data.category) newErrors.category = "Category is required";
-    if (!data.paymentType)
-      newErrors.paymentType = "Payment type is required";
-    if (!data.date) newErrors.date = "Date is required";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    const updatedForm = { ...form, [name]: value };
-    setForm(updatedForm);
-
-    if (submitted) {
-      validate(updatedForm);
-    }
+  const validate = () => {
+    const err = {};
+    if (!form.amount) err.amount = "Amount is required";
+    if (!form.category) err.category = "Category is required";
+    if (!form.paymentType) err.paymentType = "Payment type is required";
+    if (!form.date) err.date = "Date is required";
+    setErrors(err);
+    return Object.keys(err).length === 0;
   };
 
   const submit = async () => {
-    setSubmitted(true);
     if (!validate()) return;
 
     const data = new FormData();
-    Object.keys(form).forEach((key) => {
-      if (form[key]) data.append(key, form[key]);
+    Object.keys(form).forEach((k) => {
+      if (form[k]) data.append(k, form[k]);
     });
 
     await api.post("/expenses", data);
-
-    // show toast
     setToastOpen(true);
-
-    // redirect after short delay
-    setTimeout(() => {
-      navigate("/expenses");
-    }, 1200);
+    setTimeout(() => navigate("/expenses"), 1200);
   };
 
   return (
-    <>
-      <Navbar />
-
-      <Box sx={{ width: 420, mx: "auto", mt: 4 }}>
-        <Typography variant="h5" mb={3} textAlign="center">
+    <MainLayout>
+      <Paper sx={{ maxWidth: 520, mx: "auto", p: 4, borderRadius: 2 }}>
+        <Typography variant="h5" fontWeight={600} mb={3}>
           Add Expense
         </Typography>
 
         <TextField
           fullWidth
-          name="amount"
           label="Amount"
           type="number"
           margin="normal"
-          value={form.amount}
-          onChange={handleChange}
           error={!!errors.amount}
           helperText={errors.amount}
+          onChange={(e) => setForm({ ...form, amount: e.target.value })}
         />
 
         <TextField
           fullWidth
-          name="category"
           label="Category"
           margin="normal"
-          value={form.category}
-          onChange={handleChange}
           error={!!errors.category}
           helperText={errors.category}
+          onChange={(e) => setForm({ ...form, category: e.target.value })}
         />
 
         <TextField
           fullWidth
-          name="paymentType"
           label="Payment Type"
           margin="normal"
-          value={form.paymentType}
-          onChange={handleChange}
           error={!!errors.paymentType}
           helperText={errors.paymentType}
+          onChange={(e) => setForm({ ...form, paymentType: e.target.value })}
         />
 
         <TextField
           fullWidth
-          name="date"
           type="date"
           margin="normal"
           InputLabelProps={{ shrink: true }}
-          value={form.date}
-          onChange={handleChange}
           error={!!errors.date}
           helperText={errors.date}
+          onChange={(e) => setForm({ ...form, date: e.target.value })}
         />
 
         <Box mt={2}>
@@ -138,27 +102,16 @@ export default function AddExpense() {
           />
         </Box>
 
-        <Button
-          fullWidth
-          variant="contained"
-          sx={{ mt: 3 }}
-          onClick={submit}
-        >
-          Save
+        <Button fullWidth size="large" variant="contained" sx={{ mt: 3 }} onClick={submit}>
+          Save Expense
         </Button>
-      </Box>
+      </Paper>
 
-      {/* Success Toast */}
-      <Snackbar
-        open={toastOpen}
-        autoHideDuration={2000}
-        onClose={() => setToastOpen(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
+      <Snackbar open={toastOpen} autoHideDuration={2000}>
         <Alert severity="success" variant="filled">
           Expense added successfully
         </Alert>
       </Snackbar>
-    </>
+    </MainLayout>
   );
 }

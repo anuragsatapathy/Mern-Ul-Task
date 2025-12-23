@@ -4,34 +4,34 @@ import {
   Typography,
   Button,
   IconButton,
-  TextField,
   Dialog,
   DialogTitle,
   DialogActions,
+  Paper,
   Snackbar,
   Alert,
+  TextField,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useNavigate } from "react-router-dom";
+import ReceiptIcon from "@mui/icons-material/Receipt";
 import api from "../api/api";
-import Navbar, { SIDEBAR_WIDTH } from "../components/Navbar";
+import MainLayout from "../components/MainLayout";
+import { useNavigate } from "react-router-dom";
+
+const ITEMS_PER_PAGE = 10;
 
 export default function ExpenseList() {
   const [expenses, setExpenses] = useState([]);
   const [editId, setEditId] = useState(null);
   const [editData, setEditData] = useState({});
   const [deleteId, setDeleteId] = useState(null);
-
-  // pagination state
   const [page, setPage] = useState(1);
-  const ITEMS_PER_PAGE = 10;
 
-  // toast state
   const [toast, setToast] = useState({
     open: false,
     message: "",
-    type: "success",
+    severity: "success",
   });
 
   const navigate = useNavigate();
@@ -50,172 +50,161 @@ export default function ExpenseList() {
     await api.put(`/expenses/${editId}`, editData);
     setEditId(null);
     loadExpenses();
-
-    // update toast
-    setToast({
-      open: true,
-      message: "Expense updated successfully",
-      type: "success",
-    });
+    setToast({ open: true, message: "Expense updated", severity: "success" });
   };
 
-  const confirmDelete = async () => {
+  const deleteExpense = async () => {
     await api.delete(`/expenses/${deleteId}`);
     setDeleteId(null);
     loadExpenses();
-
-    // delete toast
-    setToast({
-      open: true,
-      message: "Expense deleted successfully",
-      type: "success",
-    });
+    setToast({ open: true, message: "Expense deleted", severity: "success" });
   };
 
-  // pagination calculation
   const totalPages = Math.ceil(expenses.length / ITEMS_PER_PAGE);
-  const startIndex = (page - 1) * ITEMS_PER_PAGE;
-  const currentExpenses = expenses.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE
-  );
+  const start = (page - 1) * ITEMS_PER_PAGE;
+  const currentExpenses = expenses.slice(start, start + ITEMS_PER_PAGE);
 
   return (
-    <>
-      <Navbar />
-      <Box sx={{ ml: `${SIDEBAR_WIDTH}px`, p: 4 }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Typography variant="h5">My Expenses</Typography>
-          <Button variant="contained" onClick={() => navigate("/add-expense")}>
-            Create Expense
-          </Button>
-        </Box>
+    <MainLayout>
+      {/* Header */}
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={4}
+      >
+        <Typography variant="h5" fontWeight={600}>
+          My Expenses
+        </Typography>
 
-
-        {currentExpenses.map((e) => (
-          <Box key={e._id} sx={{ mt: 2, p: 2, boxShadow: 1 }}>
-            {editId === e._id ? (
-              <>
-                <TextField
-                  size="small"
-                  value={editData.amount}
-                  onChange={(ev) =>
-                    setEditData({ ...editData, amount: ev.target.value })
-                  }
-                  sx={{ mr: 1 }}
-                />
-                <TextField
-                  size="small"
-                  value={editData.category}
-                  onChange={(ev) =>
-                    setEditData({ ...editData, category: ev.target.value })
-                  }
-                  sx={{ mr: 1 }}
-                />
-                <Button size="small" onClick={updateExpense}>
-                  Update
-                </Button>
-                <Button size="small" onClick={() => setEditId(null)}>
-                  Cancel
-                </Button>
-              </>
-            ) : (
-              <>
-                <Typography fontWeight="bold">
-                  ₹ {e.amount}
-                </Typography>
-                <Typography>{e.category}</Typography>
-
-                {e.bill && (
-                  <Typography mt={1}>
-                    <a
-                      href={`http://localhost:5000/api/files/${e.bill}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      View Bill
-                    </a>
-                  </Typography>
-                )}
-
-                <IconButton
-                  onClick={() => {
-                    setEditId(e._id);
-                    setEditData({
-                      amount: e.amount,
-                      category: e.category,
-                    });
-                  }}
-                >
-                  <EditIcon />
-                </IconButton>
-
-                <IconButton onClick={() => setDeleteId(e._id)}>
-                  <DeleteIcon color="error" />
-                </IconButton>
-              </>
-            )}
-          </Box>
-        ))}
-
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: 2,
-              mt: 4,
-            }}
-          >
-            <Button
-              variant="outlined"
-              disabled={page === 1}
-              onClick={() => setPage((p) => p - 1)}
-            >
-              Previous
-            </Button>
-
-            <Typography>
-              Page {page} of {totalPages}
-            </Typography>
-
-            <Button
-              variant="outlined"
-              disabled={page === totalPages}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Next
-            </Button>
-          </Box>
-        )}
-
-        {/* Delete Confirmation Dialog */}
-        <Dialog open={Boolean(deleteId)} onClose={() => setDeleteId(null)}>
-          <DialogTitle>
-            Are you sure you want to delete this expense?
-          </DialogTitle>
-          <DialogActions>
-            <Button onClick={() => setDeleteId(null)}>Cancel</Button>
-            <Button color="error" onClick={confirmDelete}>
-              Delete
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <Button
+          variant="contained"
+          onClick={() => navigate("/add-expense")}
+        >
+          Add Expense
+        </Button>
       </Box>
 
-      {/* Toast */}
+      {/* Expense cards */}
+      {currentExpenses.map((e) => (
+        <Paper
+          key={e._id}
+          sx={{
+            p: 3,
+            pl: 4,      
+            mb: 3,
+            borderRadius: 2,
+          }}
+        >
+          <Box display="flex" justifyContent="space-between">
+            <Box>
+              {editId === e._id ? (
+                <>
+                  <TextField
+                    size="small"
+                    type="number"
+                    value={editData.amount}
+                    sx={{ mr: 1 }}
+                    onChange={(ev) =>
+                      setEditData({
+                        ...editData,
+                        amount: ev.target.value,
+                      })
+                    }
+                  />
+                  <TextField
+                    size="small"
+                    value={editData.category}
+                    onChange={(ev) =>
+                      setEditData({
+                        ...editData,
+                        category: ev.target.value,
+                      })
+                    }
+                  />
+                </>
+              ) : (
+                <>
+                  <Typography fontWeight={600}>
+                    ₹ {e.amount}
+                  </Typography>
+                  <Typography color="text.secondary">
+                    {e.category}
+                  </Typography>
+
+                  {e.bill && (
+                    <Button
+                      size="small"
+                      startIcon={<ReceiptIcon />}
+                      href={`http://localhost:5000/api/files/${e.bill}`}
+                      target="_blank"
+                      sx={{ mt: 1 }}
+                    >
+                      View Bill
+                    </Button>
+                  )}
+                </>
+              )}
+            </Box>
+
+            <Box>
+              {editId === e._id ? (
+                <>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    sx={{ mr: 1 }}
+                    onClick={updateExpense}
+                  >
+                    Save
+                  </Button>
+                  <Button size="small" onClick={() => setEditId(null)}>
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <IconButton
+                    onClick={() => {
+                      setEditId(e._id);
+                      setEditData({
+                        amount: e.amount,
+                        category: e.category,
+                      });
+                    }}
+                  >
+                    <EditIcon />
+                  </IconButton>
+
+                  <IconButton onClick={() => setDeleteId(e._id)}>
+                    <DeleteIcon color="error" />
+                  </IconButton>
+                </>
+              )}
+            </Box>
+          </Box>
+        </Paper>
+      ))}
+
+      <Dialog open={Boolean(deleteId)} onClose={() => setDeleteId(null)}>
+        <DialogTitle>Delete this expense?</DialogTitle>
+        <DialogActions>
+          <Button onClick={() => setDeleteId(null)}>Cancel</Button>
+          <Button color="error" onClick={deleteExpense}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Snackbar
         open={toast.open}
         autoHideDuration={2000}
         onClose={() => setToast({ ...toast, open: false })}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert severity={toast.type} variant="filled">
+        <Alert severity={toast.severity} variant="filled">
           {toast.message}
         </Alert>
       </Snackbar>
-    </>
+    </MainLayout>
   );
 }
