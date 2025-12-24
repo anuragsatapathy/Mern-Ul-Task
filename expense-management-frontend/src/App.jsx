@@ -7,7 +7,6 @@ import AddExpense from "./pages/AddExpense";
 import ExpenseList from "./pages/ExpenseList";
 import Budget from "./pages/Budget";
 import Profile from "./pages/Profile";
-import Notifications from "./pages/Notifications";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
@@ -60,15 +59,6 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Profile />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/notifications"
-          element={
-            <ProtectedRoute>
-              <Notifications />
             </ProtectedRoute>
           }
         />

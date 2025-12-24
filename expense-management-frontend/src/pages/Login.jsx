@@ -5,6 +5,8 @@ import {
   Button,
   Typography,
   Paper,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import api from "../api/api";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +16,12 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
   const navigate = useNavigate();
 
   const submit = async () => {
@@ -26,15 +34,31 @@ export default function Login() {
     try {
       const res = await api.post("/users/login", { email, password });
       localStorage.setItem("token", res.data.data.token);
-      navigate("/dashboard");
+
+      setToast({
+        open: true,
+        message: "Login successful",
+        severity: "success",
+      });
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
     } catch {
       setErrors({ password: "Invalid credentials" });
+
+      setToast({
+        open: true,
+        message: "Invalid email or password",
+        severity: "error",
+      });
     }
   };
 
   return (
     <>
       <AuthNavbar />
+
       <Box
         sx={{
           minHeight: "calc(100vh - 64px)",
@@ -98,6 +122,18 @@ export default function Login() {
           </Typography>
         </Paper>
       </Box>
+
+      {/* Toast */}
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={2000}
+        onClose={() => setToast({ ...toast, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity={toast.severity} variant="filled">
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 }

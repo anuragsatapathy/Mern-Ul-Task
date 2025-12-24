@@ -11,8 +11,13 @@ import {
 import api from "../api/api";
 import MainLayout from "../components/MainLayout";
 
+const getCurrentMonth = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+};
+
 export default function Budget() {
-  const currentMonth = new Date().toISOString().slice(0, 7);
+  const currentMonth = getCurrentMonth();
 
   const [month, setMonth] = useState(currentMonth);
   const [limit, setLimit] = useState("");
@@ -37,13 +42,19 @@ export default function Budget() {
     });
   }, []);
 
-  const saveBudget = () => {
+  const saveBudget = async () => {
     if (!limit || Number(limit) <= 0) {
       setError("Limit must be greater than 0");
       return;
     }
 
     setError("");
+
+    // browser permission 
+    if ("Notification" in window && Notification.permission === "default") {
+      await Notification.requestPermission();
+    }
+
     const data = { month, limit };
     localStorage.setItem("budget", JSON.stringify(data));
     setSavedBudget(data);
@@ -52,35 +63,47 @@ export default function Budget() {
   const percent = limit ? (spent / limit) * 100 : 0;
 
   useEffect(() => {
-    let count = 0;
-    let message = "";
-
-    if (month === currentMonth && limit) {
-      if (percent >= 80) {
-        count = 1;
-        message = "Warning: 80% of budget used";
-      }
-      if (percent >= 100) {
-        count = 1;
-        message = "Budget exceeded!";
-      }
+    // NOT current month → clear notification
+    if (month !== currentMonth) {
+      localStorage.setItem("notificationCount", "0");
+      localStorage.removeItem("notification");
+      localStorage.removeItem("notificationMonth");
+      window.dispatchEvent(new Event("storage"));
+      return;
     }
 
-    localStorage.setItem("notificationCount", count);
+    let message = "";
+    let count = 0;
+
+    if (percent >= 100) {
+      message = "Budget exceeded!";
+      count = 1;
+    } else if (percent >= 80) {
+      message = "Warning: 80% of budget used";
+      count = 1;
+    }
+
+    localStorage.setItem("notificationCount", count.toString());
     localStorage.setItem("notification", message);
+    localStorage.setItem("notificationMonth", currentMonth);
     window.dispatchEvent(new Event("storage"));
-  }, [percent, month, limit]);
+
+    //  browser notification
+    if (
+      message &&
+      "Notification" in window &&
+      Notification.permission === "granted"
+    ) {
+      new Notification("Expense Management", {
+        body: message,
+        icon: "/favicon.ico",
+      });
+    }
+  }, [percent, month, limit, currentMonth]);
 
   return (
     <MainLayout>
-      <Paper
-        sx={{
-          maxWidth: 560,
-          mx: "auto",
-          p: 4,
-          borderRadius: 2,
-        }}
-      >
+      <Paper sx={{ maxWidth: 560, mx: "auto", p: 4, borderRadius: 2 }}>
         <Typography variant="h5" fontWeight={600} mb={3}>
           Monthly Budget
         </Typography>
@@ -117,24 +140,15 @@ export default function Budget() {
           <>
             <Divider sx={{ my: 3 }} />
             <Box>
-              <Typography>
-                <b>Month:</b> {savedBudget.month}
-              </Typography>
-              <Typography>
-                <b>Limit:</b> ₹ {savedBudget.limit}
-              </Typography>
-              <Typography mt={1}>
-                <b>Total Spent:</b> ₹ {spent}
-              </Typography>
+              <Typography><b>Month:</b> {savedBudget.month}</Typography>
+              <Typography><b>Limit:</b> ₹ {savedBudget.limit}</Typography>
+              <Typography mt={1}><b>Total Spent:</b> ₹ {spent}</Typography>
             </Box>
           </>
         )}
 
         {month === currentMonth && percent >= 80 && (
-          <Alert
-            severity={percent >= 100 ? "error" : "warning"}
-            sx={{ mt: 3 }}
-          >
+          <Alert severity={percent >= 100 ? "error" : "warning"} sx={{ mt: 3 }}>
             {percent >= 100
               ? "Budget exceeded!"
               : "80% of budget used"}

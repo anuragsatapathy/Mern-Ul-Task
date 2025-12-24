@@ -15,26 +15,61 @@ import AuthNavbar from "../components/AuthNavbar";
 export default function Register() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [errors, setErrors] = useState({});
-  const [open, setOpen] = useState(false);
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
   const navigate = useNavigate();
+
+  // proper email
+  const isValidEmail = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const submit = async () => {
     const err = {};
+
     if (!form.name) err.name = "Name required";
     if (!form.email) err.email = "Email required";
+    else if (!isValidEmail(form.email))
+      err.email = "Enter a valid email address";
+
     if (!form.password) err.password = "Password required";
+
     setErrors(err);
-    if (Object.keys(err).length) return;
+    if (Object.keys(err).length) {
+      setToast({
+        open: true,
+        message: "Please fix the errors above",
+        severity: "error",
+      });
+      return;
+    }
 
-    await api.post("/users", form);
-    setOpen(true);
+    try {
+      await api.post("/users", form);
 
-    setTimeout(() => navigate("/"), 1200);
+      setToast({
+        open: true,
+        message: "Registration successful",
+        severity: "success",
+      });
+
+      setTimeout(() => navigate("/"), 1200);
+    } catch {
+      setToast({
+        open: true,
+        message: "Registration failed. Try again.",
+        severity: "error",
+      });
+    }
   };
 
   return (
     <>
       <AuthNavbar />
+
       <Box
         sx={{
           minHeight: "calc(100vh - 64px)",
@@ -72,12 +107,20 @@ export default function Register() {
             label="Password"
             type="password"
             margin="normal"
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, password: e.target.value })
+            }
             error={!!errors.password}
             helperText={errors.password}
           />
 
-          <Button fullWidth size="large" variant="contained" sx={{ mt: 3 }} onClick={submit}>
+          <Button
+            fullWidth
+            size="large"
+            variant="contained"
+            sx={{ mt: 3 }}
+            onClick={submit}
+          >
             Register
           </Button>
 
@@ -87,9 +130,15 @@ export default function Register() {
         </Paper>
       </Box>
 
-      <Snackbar open={open} autoHideDuration={2000}>
-        <Alert severity="success" variant="filled">
-          Registration successful
+      {/* Toast */}
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={2000}
+        onClose={() => setToast({ ...toast, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity={toast.severity} variant="filled">
+          {toast.message}
         </Alert>
       </Snackbar>
     </>

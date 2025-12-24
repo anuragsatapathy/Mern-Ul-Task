@@ -7,7 +7,9 @@ import {
   Snackbar,
   Alert,
   Box,
+  Divider,
 } from "@mui/material";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import api from "../api/api";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../components/MainLayout";
@@ -50,10 +52,23 @@ export default function AddExpense() {
 
   return (
     <MainLayout>
-      <Paper sx={{ maxWidth: 520, mx: "auto", p: 4, borderRadius: 2 }}>
-        <Typography variant="h5" fontWeight={600} mb={3}>
+      <Paper
+        sx={{
+          maxWidth: 520,
+          mx: "auto",
+          p: 4,
+          borderRadius: 2,
+        }}
+      >
+        <Typography variant="h5" fontWeight={600} mb={1}>
           Add Expense
         </Typography>
+
+        <Typography variant="body2" color="text.secondary" mb={3}>
+          Enter expense details and upload bill if available
+        </Typography>
+
+        <Divider sx={{ mb: 3 }} />
 
         <TextField
           fullWidth
@@ -62,47 +77,85 @@ export default function AddExpense() {
           margin="normal"
           error={!!errors.amount}
           helperText={errors.amount}
-          onChange={(e) => setForm({ ...form, amount: e.target.value })}
+          onChange={(e) =>
+            setForm({ ...form, amount: e.target.value })
+          }
         />
 
         <TextField
           fullWidth
-          label="Category"
+          label="Category (e.g. Food, Travel)"
           margin="normal"
           error={!!errors.category}
           helperText={errors.category}
-          onChange={(e) => setForm({ ...form, category: e.target.value })}
+          onChange={(e) =>
+            setForm({ ...form, category: e.target.value })
+          }
         />
 
         <TextField
           fullWidth
-          label="Payment Type"
+          label="Payment Type (Cash / Card / UPI)"
           margin="normal"
           error={!!errors.paymentType}
           helperText={errors.paymentType}
-          onChange={(e) => setForm({ ...form, paymentType: e.target.value })}
+          onChange={(e) =>
+            setForm({ ...form, paymentType: e.target.value })
+          }
         />
 
         <TextField
           fullWidth
           type="date"
+          label="Expense Date"
           margin="normal"
           InputLabelProps={{ shrink: true }}
           error={!!errors.date}
           helperText={errors.date}
-          onChange={(e) => setForm({ ...form, date: e.target.value })}
+          onChange={(e) =>
+            setForm({ ...form, date: e.target.value })
+          }
         />
 
-        <Box mt={2}>
-          <input
-            type="file"
-            onChange={(e) =>
-              setForm({ ...form, bill: e.target.files[0] })
-            }
-          />
+        {/* File Upload */}
+        <Box mt={3}>
+          <Button
+            variant="outlined"
+            component="label"
+            startIcon={<UploadFileIcon />}
+            sx={{ borderStyle: "dashed" }}
+            fullWidth
+          >
+            {form.bill ? "Change Bill" : "Upload Bill (optional)"}
+            <input
+              hidden
+              type="file"
+              onChange={(e) =>
+                setForm({ ...form, bill: e.target.files[0] })
+              }
+            />
+          </Button>
+
+          {form.bill && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              display="block"
+              mt={1}
+              textAlign="center"
+            >
+              Selected file: {form.bill.name}
+            </Typography>
+          )}
         </Box>
 
-        <Button fullWidth size="large" variant="contained" sx={{ mt: 3 }} onClick={submit}>
+        <Button
+          fullWidth
+          size="large"
+          variant="contained"
+          sx={{ mt: 4 }}
+          onClick={submit}
+        >
           Save Expense
         </Button>
       </Paper>
