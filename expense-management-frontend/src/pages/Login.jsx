@@ -24,16 +24,47 @@ export default function Login() {
 
   const navigate = useNavigate();
 
+  const isValidEmail = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const hasSpecialChar = (password) =>
+    /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
   const submit = async () => {
     const err = {};
+
     if (!email) err.email = "Email required";
     if (!password) err.password = "Password required";
+
     setErrors(err);
     if (Object.keys(err).length) return;
+
+    if (!isValidEmail(email)) {
+      setToast({
+        open: true,
+        message: "Enter a valid email address",
+        severity: "error",
+      });
+      return;
+    }
+
+    if (!hasSpecialChar(password)) {
+      setToast({
+        open: true,
+        message: "Password must contain at least one special character",
+        severity: "error",
+      });
+      return;
+    }
 
     try {
       const res = await api.post("/users/login", { email, password });
       localStorage.setItem("token", res.data.data.token);
+
+      // 🔔 ASK NOTIFICATION PERMISSION AFTER LOGIN
+      if ("Notification" in window && Notification.permission === "default") {
+        await Notification.requestPermission();
+      }
 
       setToast({
         open: true,
@@ -41,12 +72,8 @@ export default function Login() {
         severity: "success",
       });
 
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 1000);
+      setTimeout(() => navigate("/dashboard"), 1000);
     } catch {
-      setErrors({ password: "Invalid credentials" });
-
       setToast({
         open: true,
         message: "Invalid email or password",
@@ -68,14 +95,7 @@ export default function Login() {
           bgcolor: "#f3f4f6",
         }}
       >
-        <Paper
-          elevation={3}
-          sx={{
-            width: 380,
-            p: 4,
-            borderRadius: 2,
-          }}
-        >
+        <Paper elevation={3} sx={{ width: 380, p: 4, borderRadius: 2 }}>
           <Typography variant="h5" fontWeight={600} textAlign="center" mb={3}>
             Login
           </Typography>
@@ -123,12 +143,10 @@ export default function Login() {
         </Paper>
       </Box>
 
-      {/* Toast */}
       <Snackbar
         open={toast.open}
         autoHideDuration={2000}
         onClose={() => setToast({ ...toast, open: false })}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert severity={toast.severity} variant="filled">
           {toast.message}

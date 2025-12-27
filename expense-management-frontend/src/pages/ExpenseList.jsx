@@ -3,99 +3,142 @@ import {
   Box,
   Typography,
   Button,
-  IconButton,
+  Paper,
   Dialog,
   DialogTitle,
+  DialogContent,
   DialogActions,
-  Paper,
+  TextField,
   Snackbar,
   Alert,
-  TextField,
+  IconButton,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ReceiptIcon from "@mui/icons-material/Receipt";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
+
+import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+
 import api from "../api/api";
 import MainLayout from "../components/MainLayout";
-import { useNavigate } from "react-router-dom";
-
-const ITEMS_PER_PAGE = 10;
 
 export default function ExpenseList() {
   const [expenses, setExpenses] = useState([]);
+  const [open, setOpen] = useState(false);
+
   const [editId, setEditId] = useState(null);
   const [editData, setEditData] = useState({});
   const [deleteId, setDeleteId] = useState(null);
-  const [page, setPage] = useState(1);
 
+  const [form, setForm] = useState({
+    amount: "",
+    category: "",
+    paymentType: "",
+    date: null,
+    bill: null,
+  });
+
+  const [errors, setErrors] = useState({});
   const [toast, setToast] = useState({
     open: false,
     message: "",
     severity: "success",
   });
 
-  const navigate = useNavigate();
-
   const loadExpenses = async () => {
     const res = await api.get("/expenses");
     setExpenses(res.data.data.items);
-    setPage(1);
   };
 
   useEffect(() => {
     loadExpenses();
   }, []);
 
+  const submit = async () => {
+    const err = {};
+    if (!form.amount) err.amount = "Required";
+    if (!form.category) err.category = "Required";
+    if (!form.paymentType) err.paymentType = "Required";
+    if (!form.date) err.date = "Required";
+
+    setErrors(err);
+    if (Object.keys(err).length) return;
+
+    try {
+      const data = new FormData();
+      data.append("amount", form.amount);
+      data.append("category", form.category);
+      data.append("paymentType", form.paymentType);
+      data.append("date", form.date.format("YYYY-MM-DD"));
+      if (form.bill) data.append("bill", form.bill);
+
+      await api.post("/expenses", data);
+
+      setToast({
+        open: true,
+        message: "Expense added successfully",
+        severity: "success",
+      });
+
+      setOpen(false);
+      setForm({
+        amount: "",
+        category: "",
+        paymentType: "",
+        date: null,
+        bill: null,
+      });
+
+      loadExpenses();
+    } catch {
+      setToast({
+        open: true,
+        message: "Failed to add expense",
+        severity: "error",
+      });
+    }
+  };
+
   const updateExpense = async () => {
     await api.put(`/expenses/${editId}`, editData);
     setEditId(null);
     loadExpenses();
-    setToast({ open: true, message: "Expense updated", severity: "success" });
+
+    setToast({
+      open: true,
+      message: "Expense updated",
+      severity: "success",
+    });
   };
 
   const deleteExpense = async () => {
     await api.delete(`/expenses/${deleteId}`);
     setDeleteId(null);
     loadExpenses();
-    setToast({ open: true, message: "Expense deleted", severity: "success" });
-  };
 
-  const totalPages = Math.ceil(expenses.length / ITEMS_PER_PAGE);
-  const start = (page - 1) * ITEMS_PER_PAGE;
-  const currentExpenses = expenses.slice(start, start + ITEMS_PER_PAGE);
+    setToast({
+      open: true,
+      message: "Expense deleted",
+      severity: "success",
+    });
+  };
 
   return (
     <MainLayout>
-      {/* Header */}
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={4}
-      >
+      <Box display="flex" justifyContent="space-between" mb={4}>
         <Typography variant="h5" fontWeight={600}>
           My Expenses
         </Typography>
 
-        <Button
-          variant="contained"
-          onClick={() => navigate("/add-expense")}
-        >
+        <Button variant="contained" onClick={() => setOpen(true)}>
           Add Expense
         </Button>
       </Box>
 
-      {/* Expense cards */}
-      {currentExpenses.map((e) => (
-        <Paper
-          key={e._id}
-          sx={{
-            p: 3,
-            pl: 4,      
-            mb: 3,
-            borderRadius: 2,
-          }}
-        >
+      {expenses.map((e) => (
+        <Paper key={e._id} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
           <Box display="flex" justifyContent="space-between">
             <Box>
               {editId === e._id ? (
@@ -103,34 +146,24 @@ export default function ExpenseList() {
                   <TextField
                     size="small"
                     type="number"
-                    value={editData.amount}
                     sx={{ mr: 1 }}
+                    value={editData.amount}
                     onChange={(ev) =>
-                      setEditData({
-                        ...editData,
-                        amount: ev.target.value,
-                      })
+                      setEditData({ ...editData, amount: ev.target.value })
                     }
                   />
                   <TextField
                     size="small"
                     value={editData.category}
                     onChange={(ev) =>
-                      setEditData({
-                        ...editData,
-                        category: ev.target.value,
-                      })
+                      setEditData({ ...editData, category: ev.target.value })
                     }
                   />
                 </>
               ) : (
                 <>
-                  <Typography fontWeight={600}>
-                    ₹ {e.amount}
-                  </Typography>
-                  <Typography color="text.secondary">
-                    {e.category}
-                  </Typography>
+                  <Typography fontWeight={600}>₹ {e.amount}</Typography>
+                  <Typography color="text.secondary">{e.category}</Typography>
 
                   {e.bill && (
                     <Button
@@ -158,7 +191,11 @@ export default function ExpenseList() {
                   >
                     Save
                   </Button>
-                  <Button size="small" onClick={() => setEditId(null)}>
+                  <Button
+                    size="small"
+                    sx={{ ml: 1 }}
+                    onClick={() => setEditId(null)}
+                  >
                     Cancel
                   </Button>
                 </>
@@ -175,7 +212,6 @@ export default function ExpenseList() {
                   >
                     <EditIcon />
                   </IconButton>
-
                   <IconButton onClick={() => setDeleteId(e._id)}>
                     <DeleteIcon color="error" />
                   </IconButton>
@@ -186,12 +222,98 @@ export default function ExpenseList() {
         </Paper>
       ))}
 
+      {/* DELETE CONFIRM */}
       <Dialog open={Boolean(deleteId)} onClose={() => setDeleteId(null)}>
         <DialogTitle>Delete this expense?</DialogTitle>
         <DialogActions>
           <Button onClick={() => setDeleteId(null)}>Cancel</Button>
           <Button color="error" onClick={deleteExpense}>
             Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ADD EXPENSE */}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Add Expense</DialogTitle>
+
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="Amount"
+            type="number"
+            margin="normal"
+            error={!!errors.amount}
+            helperText={errors.amount}
+            onChange={(e) => setForm({ ...form, amount: e.target.value })}
+          />
+
+          <TextField
+            fullWidth
+            label="Category"
+            margin="normal"
+            error={!!errors.category}
+            helperText={errors.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+          />
+
+          <TextField
+            fullWidth
+            label="Payment Type"
+            margin="normal"
+            error={!!errors.paymentType}
+            helperText={errors.paymentType}
+            onChange={(e) => setForm({ ...form, paymentType: e.target.value })}
+          />
+
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label="Expense Date"
+              value={form.date}
+              onChange={(newValue) =>
+                setForm({ ...form, date: newValue })
+              }
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  margin: "normal",
+                  error: !!errors.date,
+                  helperText: errors.date,
+                },
+              }}
+            />
+          </LocalizationProvider>
+
+          <Box mt={3}>
+            <Button
+              variant="outlined"
+              component="label"
+              startIcon={<UploadFileIcon />}
+              fullWidth
+              sx={{ borderStyle: "dashed" }}
+            >
+              {form.bill ? "Change Bill" : "Upload Bill (optional)"}
+              <input
+                hidden
+                type="file"
+                onChange={(e) =>
+                  setForm({ ...form, bill: e.target.files[0] })
+                }
+              />
+            </Button>
+
+            {form.bill && (
+              <Typography variant="caption" display="block" mt={1} textAlign="center">
+                Selected: {form.bill.name}
+              </Typography>
+            )}
+          </Box>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={submit}>
+            Add
           </Button>
         </DialogActions>
       </Dialog>

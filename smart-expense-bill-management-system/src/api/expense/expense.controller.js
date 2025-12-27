@@ -1,7 +1,7 @@
 const expenseService = require("./expense.service");
 const responses = require("../../utility/response");
 
-// Create (with file upload)
+// CREATE (with file upload)
 const createExpense = async (req, res) => {
   try {
     const data = {
@@ -30,7 +30,7 @@ const createExpense = async (req, res) => {
   }
 };
 
-// Get
+// GET (pagination unchanged)
 const getExpenses = async (req, res) => {
   try {
     const result = await expenseService.getExpenses({
@@ -50,12 +50,13 @@ const getExpenses = async (req, res) => {
   }
 };
 
-// Update 
+// UPDATE
 const updateExpense = async (req, res) => {
   try {
     const result = await expenseService.updateExpense(
       req.params.id,
-      req.body
+      req.body,
+      req.user.id   // ✅ REQUIRED for notification
     );
 
     return responses.successResponse(res, result.data);
@@ -64,10 +65,14 @@ const updateExpense = async (req, res) => {
   }
 };
 
-// Delete (soft delete)
+// DELETE (soft delete)
 const deleteExpense = async (req, res) => {
   try {
-    const result = await expenseService.deleteExpense(req.params.id);
+    const result = await expenseService.deleteExpense(
+      req.params.id,
+      req.user.id   // ✅ REQUIRED for notification
+    );
+
     return responses.successResponse(res, result.data);
   } catch (error) {
     return responses.internalFailureResponse(res, error);

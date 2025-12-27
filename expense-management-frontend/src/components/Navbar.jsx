@@ -16,7 +16,6 @@ export default function Navbar() {
 
   const menu = [
     { label: "Dashboard", path: "/dashboard" },
-    { label: "Add Expense", path: "/add-expense" },
     { label: "Expenses", path: "/expenses" },
     { label: "Budget", path: "/budget" },
   ];

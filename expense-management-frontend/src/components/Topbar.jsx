@@ -1,117 +1,136 @@
 import {
   AppBar,
   Toolbar,
-  Typography,
   IconButton,
   Badge,
-  Menu,
-  MenuItem,
+  Popover,
+  Typography,
   Box,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import LogoutIcon from "@mui/icons-material/Logout";
-import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-
-
-const getCurrentMonth = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-};
+import api from "../api/api";
 
 export default function Topbar() {
-  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
-  const [notifOpen, setNotifOpen] = useState(false);
-  const [count, setCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
 
-  const currentMonth = getCurrentMonth();
-
-  useEffect(() => {
-    const read = () => {
-      const notifMonth = localStorage.getItem("notificationMonth");
-      const storedCount =
-        Number(localStorage.getItem("notificationCount")) || 0;
-
-      setCount(
-        notifMonth === currentMonth ? storedCount : 0
-      );
-    };
-
-    read();
-    window.addEventListener("storage", read);
-    return () => window.removeEventListener("storage", read);
-  }, [currentMonth]);
-
-  const openNotifications = () => {
-    setNotifOpen(true);
-
-    if (localStorage.getItem("notificationMonth") === currentMonth) {
-      localStorage.setItem("notificationCount", "0");
-      window.dispatchEvent(new Event("storage"));
+  // fetch notifications from backend
+  const loadNotifications = async () => {
+    try {
+      const res = await api.get("/notifications");
+      setNotifications(res.data.data || []);
+    } catch (err) {
+      console.error("Failed to load notifications");
     }
   };
 
-  const logout = () => {
-    localStorage.clear();
-    navigate("/");
+  // load once on mount
+  useEffect(() => {
+    loadNotifications();
+  }, []);
+
+  // unread count ALWAYS derived from backend data
+  const unreadCount = notifications.filter(
+    (n) => n.isRead === false
+  ).length;
+
+  // open notification panel
+  const openNotifications = async (e) => {
+    setAnchorEl(e.currentTarget);
+
+    try {
+      // mark all as read in backend
+      await api.post("/notifications/read");
+
+      // refetch so unreadCount becomes 0
+      await loadNotifications();
+    } catch (err) {
+      console.error("Failed to mark notifications as read");
+    }
   };
 
-  const message =
-    localStorage.getItem("notificationMonth") === currentMonth
-      ? localStorage.getItem("notification")
-      : null;
+  const closeNotifications = () => {
+    setAnchorEl(null);
+  };
 
   return (
     <>
-      <AppBar position="fixed" elevation={0}>
-        <Toolbar sx={{ px: 4 }}>
-          <Box onClick={() => navigate("/dashboard")} sx={{ cursor: "pointer" }}>
-            <Typography fontWeight={700}>Expense Management</Typography>
-          </Box>
+      <AppBar position="fixed">
+        <Toolbar>
+          <Typography fontWeight={600}>
+            Expense Management
+          </Typography>
 
           <Box flexGrow={1} />
 
+          {/* NOTIFICATION ICON */}
           <IconButton onClick={openNotifications}>
-            <Badge badgeContent={count} color="error">
+            <Badge
+              badgeContent={unreadCount}
+              color="error"
+              invisible={unreadCount === 0}   // 🔥 IMPORTANT
+            >
               <NotificationsIcon />
             </Badge>
           </IconButton>
 
-          <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+          <IconButton>
             <AccountCircleIcon />
           </IconButton>
-
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={() => setAnchorEl(null)}
-          >
-            <MenuItem onClick={() => navigate("/profile")}>Profile</MenuItem>
-            <MenuItem onClick={logout} sx={{ color: "error.main" }}>
-              <LogoutIcon fontSize="small" sx={{ mr: 1 }} /> Logout
-            </MenuItem>
-          </Menu>
         </Toolbar>
       </AppBar>
 
-      <Dialog open={notifOpen} onClose={() => setNotifOpen(false)}>
-        <DialogTitle>Notifications</DialogTitle>
-        <DialogContent>
-          <Typography color={message ? "error.main" : "text.secondary"}>
-            {message || "You have no new notifications"}
+      {/* NOTIFICATION POPOVER */}
+      <Popover
+        open={Boolean(anchorEl)}
+        anchorEl={anchorEl}
+        onClose={closeNotifications}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        PaperProps={{
+          sx: {
+            width: 320,
+            maxHeight: 320,
+            p: 2,
+          },
+        }}
+      >
+        <Typography fontWeight={600} mb={1}>
+          Notifications
+        </Typography>
+
+        {notifications.length === 0 ? (
+          <Typography color="text.secondary">
+            No notifications
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setNotifOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+        ) : (
+          notifications.map((n) => (
+            <Box key={n._id} mb={1.5}>
+              <Typography fontWeight={600}>
+                {n.title}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {n.message}
+              </Typography>
+            </Box>
+          ))
+        )}
+
+        <Box textAlign="right" mt={1}>
+          <Button size="small" onClick={closeNotifications}>
+            Close
+          </Button>
+        </Box>
+      </Popover>
     </>
   );
 }

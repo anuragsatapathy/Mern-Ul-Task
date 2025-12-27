@@ -13,7 +13,12 @@ import { Link, useNavigate } from "react-router-dom";
 import AuthNavbar from "../components/AuthNavbar";
 
 export default function Register() {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+
   const [errors, setErrors] = useState({});
   const [toast, setToast] = useState({
     open: false,
@@ -23,25 +28,39 @@ export default function Register() {
 
   const navigate = useNavigate();
 
-  // proper email
+  // email validation
   const isValidEmail = (email) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  // password must contain special character
+  const hasSpecialChar = (password) =>
+    /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
   const submit = async () => {
     const err = {};
 
+    // inline validation ONLY for empty fields
     if (!form.name) err.name = "Name required";
     if (!form.email) err.email = "Email required";
-    else if (!isValidEmail(form.email))
-      err.email = "Enter a valid email address";
-
     if (!form.password) err.password = "Password required";
 
     setErrors(err);
-    if (Object.keys(err).length) {
+    if (Object.keys(err).length) return;
+
+    // toast validation for format
+    if (!isValidEmail(form.email)) {
       setToast({
         open: true,
-        message: "Please fix the errors above",
+        message: "Enter a valid email address",
+        severity: "error",
+      });
+      return;
+    }
+
+    if (!hasSpecialChar(form.password)) {
+      setToast({
+        open: true,
+        message: "Password must contain at least one special character",
         severity: "error",
       });
       return;
@@ -56,11 +75,14 @@ export default function Register() {
         severity: "success",
       });
 
-      setTimeout(() => navigate("/"), 1200);
-    } catch {
+      setTimeout(() => {
+        navigate("/");
+      }, 1200);
+    } catch (err) {
       setToast({
         open: true,
-        message: "Registration failed. Try again.",
+        message:
+          err.response?.data?.message || "Registration failed",
         severity: "error",
       });
     }
@@ -88,7 +110,10 @@ export default function Register() {
             fullWidth
             label="Name"
             margin="normal"
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            value={form.name}
+            onChange={(e) =>
+              setForm({ ...form, name: e.target.value })
+            }
             error={!!errors.name}
             helperText={errors.name}
           />
@@ -97,7 +122,10 @@ export default function Register() {
             fullWidth
             label="Email"
             margin="normal"
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            value={form.email}
+            onChange={(e) =>
+              setForm({ ...form, email: e.target.value })
+            }
             error={!!errors.email}
             helperText={errors.email}
           />
@@ -107,6 +135,7 @@ export default function Register() {
             label="Password"
             type="password"
             margin="normal"
+            value={form.password}
             onChange={(e) =>
               setForm({ ...form, password: e.target.value })
             }
@@ -134,7 +163,9 @@ export default function Register() {
       <Snackbar
         open={toast.open}
         autoHideDuration={2000}
-        onClose={() => setToast({ ...toast, open: false })}
+        onClose={() =>
+          setToast({ ...toast, open: false })
+        }
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert severity={toast.severity} variant="filled">

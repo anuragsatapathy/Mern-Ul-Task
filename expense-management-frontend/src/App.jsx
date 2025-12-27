@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
-import AddExpense from "./pages/AddExpense";
 import ExpenseList from "./pages/ExpenseList";
 import Budget from "./pages/Budget";
 import Profile from "./pages/Profile";
@@ -23,15 +22,6 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/add-expense"
-          element={
-            <ProtectedRoute>
-              <AddExpense />
             </ProtectedRoute>
           }
         />
