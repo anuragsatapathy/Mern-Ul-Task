@@ -27,12 +27,12 @@ export default function Topbar() {
     }
   };
 
-  // load once on mount
+ 
   useEffect(() => {
     loadNotifications();
   }, []);
 
-  // unread count ALWAYS derived from backend data
+ 
   const unreadCount = notifications.filter(
     (n) => n.isRead === false
   ).length;
@@ -42,10 +42,10 @@ export default function Topbar() {
     setAnchorEl(e.currentTarget);
 
     try {
-      // mark all as read in backend
+    
       await api.post("/notifications/read");
 
-      // refetch so unreadCount becomes 0
+     
       await loadNotifications();
     } catch (err) {
       console.error("Failed to mark notifications as read");
@@ -71,7 +71,7 @@ export default function Topbar() {
             <Badge
               badgeContent={unreadCount}
               color="error"
-              invisible={unreadCount === 0}   // 🔥 IMPORTANT
+              invisible={unreadCount === 0}   
             >
               <NotificationsIcon />
             </Badge>
@@ -83,7 +83,6 @@ export default function Topbar() {
         </Toolbar>
       </AppBar>
 
-      {/* NOTIFICATION POPOVER */}
       <Popover
         open={Boolean(anchorEl)}
         anchorEl={anchorEl}

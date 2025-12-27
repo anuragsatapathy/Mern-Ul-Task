@@ -61,7 +61,7 @@ export default function Login() {
       const res = await api.post("/users/login", { email, password });
       localStorage.setItem("token", res.data.data.token);
 
-      // 🔔 ASK NOTIFICATION PERMISSION AFTER LOGIN
+      
       if ("Notification" in window && Notification.permission === "default") {
         await Notification.requestPermission();
       }

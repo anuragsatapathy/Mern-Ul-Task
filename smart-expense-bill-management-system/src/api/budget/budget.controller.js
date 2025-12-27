@@ -12,7 +12,7 @@ const setBudget = async (req, res) => {
 
     const result = await budgetService.setBudget(data);
 
-    // return budget + spent + percent (from service)
+    // return budget + spent + percent 
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);

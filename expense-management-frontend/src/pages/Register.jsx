@@ -39,7 +39,7 @@ export default function Register() {
   const submit = async () => {
     const err = {};
 
-    // inline validation ONLY for empty fields
+   
     if (!form.name) err.name = "Name required";
     if (!form.email) err.email = "Email required";
     if (!form.password) err.password = "Password required";
@@ -47,7 +47,7 @@ export default function Register() {
     setErrors(err);
     if (Object.keys(err).length) return;
 
-    // toast validation for format
+  
     if (!isValidEmail(form.email)) {
       setToast({
         open: true,

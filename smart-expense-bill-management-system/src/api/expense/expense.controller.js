@@ -30,7 +30,7 @@ const createExpense = async (req, res) => {
   }
 };
 
-// GET (pagination unchanged)
+// GET 
 const getExpenses = async (req, res) => {
   try {
     const result = await expenseService.getExpenses({
@@ -56,7 +56,7 @@ const updateExpense = async (req, res) => {
     const result = await expenseService.updateExpense(
       req.params.id,
       req.body,
-      req.user.id   // ✅ REQUIRED for notification
+      req.user.id   
     );
 
     return responses.successResponse(res, result.data);
@@ -70,7 +70,7 @@ const deleteExpense = async (req, res) => {
   try {
     const result = await expenseService.deleteExpense(
       req.params.id,
-      req.user.id   // ✅ REQUIRED for notification
+      req.user.id   
     );
 
     return responses.successResponse(res, result.data);

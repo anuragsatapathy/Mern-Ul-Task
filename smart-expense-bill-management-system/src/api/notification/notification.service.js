@@ -1,6 +1,6 @@
 const Notification = require("../../models/notificationModel");
 
-// create notification (deduplicated)
+// create notification 
 const createNotification = async ({ userId, title, message }) => {
   const exists = await Notification.findOne({
     userId,
@@ -9,7 +9,7 @@ const createNotification = async ({ userId, title, message }) => {
     isRead: false,
   });
 
-  // 🚫 prevent duplicate unread notifications
+
   if (exists) return;
 
   return Notification.create({
