@@ -1,17 +1,6 @@
 const Notification = require("../../models/notificationModel");
 
-// create notification 
 const createNotification = async ({ userId, title, message }) => {
-  const exists = await Notification.findOne({
-    userId,
-    title,
-    message,
-    isRead: false,
-  });
-
-
-  if (exists) return;
-
   return Notification.create({
     userId,
     title,

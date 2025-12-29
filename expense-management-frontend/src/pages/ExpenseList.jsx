@@ -76,6 +76,9 @@ export default function ExpenseList() {
 
       await api.post("/expenses", data);
 
+    
+      window.dispatchEvent(new Event("refresh-notifications"));
+
       setToast({
         open: true,
         message: "Expense added successfully",
@@ -103,6 +106,10 @@ export default function ExpenseList() {
 
   const updateExpense = async () => {
     await api.put(`/expenses/${editId}`, editData);
+
+  
+    window.dispatchEvent(new Event("refresh-notifications"));
+
     setEditId(null);
     loadExpenses();
 
@@ -115,6 +122,10 @@ export default function ExpenseList() {
 
   const deleteExpense = async () => {
     await api.delete(`/expenses/${deleteId}`);
+
+    
+    window.dispatchEvent(new Event("refresh-notifications"));
+
     setDeleteId(null);
     loadExpenses();
 
@@ -303,7 +314,12 @@ export default function ExpenseList() {
             </Button>
 
             {form.bill && (
-              <Typography variant="caption" display="block" mt={1} textAlign="center">
+              <Typography
+                variant="caption"
+                display="block"
+                mt={1}
+                textAlign="center"
+              >
                 Selected: {form.bill.name}
               </Typography>
             )}

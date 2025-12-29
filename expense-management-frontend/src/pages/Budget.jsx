@@ -7,122 +7,105 @@ import {
   Alert,
   Divider,
   Box,
+  Snackbar,
 } from "@mui/material";
+import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
 import api from "../api/api";
 import MainLayout from "../components/MainLayout";
 
-const getCurrentMonth = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-};
+const getCurrentMonth = () => dayjs().format("YYYY-MM");
 
 export default function Budget() {
-  const currentMonth = getCurrentMonth();
+  
+  const [month, setMonth] = useState(null);
 
-  const [month, setMonth] = useState(currentMonth);
   const [limit, setLimit] = useState("");
   const [spent, setSpent] = useState(0);
   const [savedBudget, setSavedBudget] = useState(null);
-  const [error, setError] = useState("");
+  const [toast, setToast] = useState(false);
 
+  const currentMonth = getCurrentMonth();
+
+  /* LOAD BUDGET + EXPENSES */
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("budget"));
-    if (saved) {
-      setSavedBudget(saved);
-      setMonth(saved.month);
-      setLimit(saved.limit);
-    }
+    api.get("/budget").then((res) => {
+      if (res.data.data) {
+        setSavedBudget(res.data.data);
+        setLimit(res.data.data.limit);
+
+       
+        setMonth(dayjs(res.data.data.month));
+      }
+    });
 
     api.get("/expenses").then((res) => {
       const total = res.data.data.items.reduce(
-        (s, e) => s + Number(e.amount),
+        (sum, e) => sum + Number(e.amount),
         0
       );
       setSpent(total);
     });
   }, []);
 
+  /* SAVE BUDGET */
   const saveBudget = async () => {
-    if (!limit || Number(limit) <= 0) {
-      setError("Limit must be greater than 0");
-      return;
-    }
+    const payload = {
+      month: month.format("YYYY-MM"),
+      limit: Number(limit),
+    };
 
-    setError("");
+    const res = await api.post("/budget", payload);
 
-    // browser permission 
-    if ("Notification" in window && Notification.permission === "default") {
-      await Notification.requestPermission();
-    }
+    setSavedBudget(res.data.data);
+    setToast(true);
 
-    const data = { month, limit };
-    localStorage.setItem("budget", JSON.stringify(data));
-    setSavedBudget(data);
+    
+    window.dispatchEvent(new Event("refresh-notifications"));
   };
 
   const percent = limit ? (spent / limit) * 100 : 0;
 
-  useEffect(() => {
-    // NOT current month → clear notification
-    if (month !== currentMonth) {
-      localStorage.setItem("notificationCount", "0");
-      localStorage.removeItem("notification");
-      localStorage.removeItem("notificationMonth");
-      window.dispatchEvent(new Event("storage"));
-      return;
-    }
-
-    let message = "";
-    let count = 0;
-
-    if (percent >= 100) {
-      message = "Budget exceeded!";
-      count = 1;
-    } else if (percent >= 80) {
-      message = "Warning: 80% of budget used";
-      count = 1;
-    }
-
-    localStorage.setItem("notificationCount", count.toString());
-    localStorage.setItem("notification", message);
-    localStorage.setItem("notificationMonth", currentMonth);
-    window.dispatchEvent(new Event("storage"));
-
-    //  browser notification
-    if (
-      message &&
-      "Notification" in window &&
-      Notification.permission === "granted"
-    ) {
-      new Notification("Expense Management", {
-        body: message,
-        icon: "/favicon.ico",
-      });
-    }
-  }, [percent, month, limit, currentMonth]);
-
   return (
     <MainLayout>
-      <Paper sx={{ maxWidth: 560, mx: "auto", p: 4, borderRadius: 2 }}>
+      <Paper
+        sx={{
+          maxWidth: 560,
+          mx: "auto",
+          p: 4,
+          borderRadius: 2,
+        }}
+      >
         <Typography variant="h5" fontWeight={600} mb={3}>
           Monthly Budget
         </Typography>
 
-        <TextField
-          type="month"
-          fullWidth
-          margin="normal"
-          value={month}
-          onChange={(e) => setMonth(e.target.value)}
-        />
+       
+        {month && (
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              views={["month"]}
+              value={month}
+              onChange={setMonth}
+              minDate={dayjs().startOf("year")}
+              maxDate={dayjs().endOf("year")}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  margin: "normal",
+                },
+              }}
+            />
+          </LocalizationProvider>
+        )}
 
         <TextField
           label="Budget Limit"
           fullWidth
           margin="normal"
+          type="number"
           value={limit}
-          error={!!error}
-          helperText={error}
           onChange={(e) => setLimit(e.target.value)}
         />
 
@@ -136,25 +119,47 @@ export default function Budget() {
           Save Budget
         </Button>
 
+        {/* SAVED DETAILS */}
         {savedBudget && (
           <>
             <Divider sx={{ my: 3 }} />
             <Box>
-              <Typography><b>Month:</b> {savedBudget.month}</Typography>
-              <Typography><b>Limit:</b> ₹ {savedBudget.limit}</Typography>
-              <Typography mt={1}><b>Total Spent:</b> ₹ {spent}</Typography>
+              <Typography>
+                <b>Month:</b> {savedBudget.month}
+              </Typography>
+              <Typography>
+                <b>Limit:</b> ₹{savedBudget.limit}
+              </Typography>
+              <Typography>
+                <b>Total Spent:</b> ₹{spent}
+              </Typography>
             </Box>
           </>
         )}
 
-        {month === currentMonth && percent >= 80 && (
-          <Alert severity={percent >= 100 ? "error" : "warning"} sx={{ mt: 3 }}>
+       
+        {savedBudget?.month === currentMonth && percent >= 80 && (
+          <Alert
+            severity={percent >= 100 ? "error" : "warning"}
+            sx={{ mt: 3 }}
+          >
             {percent >= 100
               ? "Budget exceeded!"
-              : "80% of budget used"}
+              : "You have used more than 80% of your budget"}
           </Alert>
         )}
       </Paper>
+
+      {/* TOAST */}
+      <Snackbar
+        open={toast}
+        autoHideDuration={2000}
+        onClose={() => setToast(false)}
+      >
+        <Alert severity="success" variant="filled">
+          Budget saved successfully
+        </Alert>
+      </Snackbar>
     </MainLayout>
   );
 }

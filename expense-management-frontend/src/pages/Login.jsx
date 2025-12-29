@@ -7,6 +7,10 @@ import {
   Paper,
   Snackbar,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import api from "../api/api";
 import { useNavigate } from "react-router-dom";
@@ -21,34 +25,30 @@ export default function Login() {
     message: "",
     severity: "success",
   });
+  const [notifDialog, setNotifDialog] = useState(false);
 
   const navigate = useNavigate();
 
-  const isValidEmail = (email) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-  const hasSpecialChar = (password) =>
-    /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
   const submit = async () => {
     const err = {};
-
     if (!email) err.email = "Email required";
     if (!password) err.password = "Password required";
-
     setErrors(err);
     if (Object.keys(err).length) return;
 
-    if (!isValidEmail(email)) {
+   
+    const emailRegex =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       setToast({
         open: true,
-        message: "Enter a valid email address",
+        message: "Please enter a valid email address",
         severity: "error",
       });
       return;
     }
 
-    if (!hasSpecialChar(password)) {
+    if (!/[!@#$%^&*]/.test(password)) {
       setToast({
         open: true,
         message: "Password must contain at least one special character",
@@ -61,18 +61,13 @@ export default function Login() {
       const res = await api.post("/users/login", { email, password });
       localStorage.setItem("token", res.data.data.token);
 
-      
-      if ("Notification" in window && Notification.permission === "default") {
-        await Notification.requestPermission();
-      }
-
       setToast({
         open: true,
         message: "Login successful",
         severity: "success",
       });
 
-      setTimeout(() => navigate("/dashboard"), 1000);
+      setNotifDialog(true);
     } catch {
       setToast({
         open: true,
@@ -80,6 +75,16 @@ export default function Login() {
         severity: "error",
       });
     }
+  };
+
+  const proceed = async (allow) => {
+    setNotifDialog(false);
+
+    if (allow && "Notification" in window) {
+      await Notification.requestPermission();
+    }
+
+    navigate("/dashboard");
   };
 
   return (
@@ -95,8 +100,13 @@ export default function Login() {
           bgcolor: "#f3f4f6",
         }}
       >
-        <Paper elevation={3} sx={{ width: 380, p: 4, borderRadius: 2 }}>
-          <Typography variant="h5" fontWeight={600} textAlign="center" mb={3}>
+        <Paper sx={{ width: 380, p: 4, borderRadius: 2 }}>
+          <Typography
+            variant="h5"
+            fontWeight={600}
+            textAlign="center"
+            mb={3}
+          >
             Login
           </Typography>
 
@@ -104,10 +114,9 @@ export default function Login() {
             fullWidth
             label="Email"
             margin="normal"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             error={!!errors.email}
             helperText={errors.email}
+            onChange={(e) => setEmail(e.target.value)}
           />
 
           <TextField
@@ -115,10 +124,9 @@ export default function Login() {
             label="Password"
             type="password"
             margin="normal"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             error={!!errors.password}
             helperText={errors.password}
+            onChange={(e) => setPassword(e.target.value)}
           />
 
           <Button
@@ -131,10 +139,10 @@ export default function Login() {
             Login
           </Button>
 
-          <Typography mt={3} textAlign="center" fontSize={14}>
+          <Typography mt={2} textAlign="center">
             Don’t have an account?{" "}
             <span
-              style={{ color: "#1976d2", cursor: "pointer", fontWeight: 500 }}
+              style={{ color: "#1976d2", cursor: "pointer" }}
               onClick={() => navigate("/register")}
             >
               Register
@@ -143,11 +151,20 @@ export default function Login() {
         </Paper>
       </Box>
 
-      <Snackbar
-        open={toast.open}
-        autoHideDuration={2000}
-        onClose={() => setToast({ ...toast, open: false })}
-      >
+      <Dialog open={notifDialog}>
+        <DialogTitle>Enable Notifications?</DialogTitle>
+        <DialogContent>
+          You will receive alerts for all important updates (budget warnings and more).
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => proceed(false)}>Close</Button>
+          <Button variant="contained" onClick={() => proceed(true)}>
+            Allow
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar open={toast.open} autoHideDuration={2000}>
         <Alert severity={toast.severity} variant="filled">
           {toast.message}
         </Alert>
