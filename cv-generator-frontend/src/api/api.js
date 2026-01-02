@@ -11,10 +11,22 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
+<<<<<<< HEAD
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem("token");
+=======
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      console.warn("Unauthorized – token invalid or expired");
+
+      //clear token
+      localStorage.removeItem("token");
+
+      //redirect to login
+>>>>>>> c22e6c5983dbd5d9b3c8c016494601816801d841
       window.location.href = "/login";
     }
     return Promise.reject(err);
