@@ -1,32 +1,96 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./auth/Login";
-import Register from "./auth/Register";
-import Dashboard from "./pages/Dashboard";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+import Education from "./pages/Education";
+import Experience from "./pages/Experience";
+import Skill from "./pages/Skill";
+import CVPreview from "./pages/CVPreview";
+import ResetPassword from "./pages/ResetPassword";
 
-const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
-  return token ? children : <Navigate to="/login" />;
-};
+import ProtectedRoute from "./components/ProtectedRoute";
+import MainLayout from "./components/MainLayout";
 
-function App() {
+const App = () => {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
+        {/* Protected routes */}
         <Route
-          path="/"
+          path="/profile"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <MainLayout>
+                <Profile />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/education"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Education />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/experience"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Experience />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/skills"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Skill />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/cv"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <CVPreview />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* RESET PASSWORD ROUTE */}
+        <Route
+          path="/reset-password"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ResetPassword />
+              </MainLayout>
             </ProtectedRoute>
           }
         />
       </Routes>
     </BrowserRouter>
   );
-}
+};
 
 export default App;

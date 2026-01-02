@@ -3,68 +3,51 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const createUser = async (data) => {
-  try {
-    
-    const existingUser = await User.findOne({ email: data.email });
-    if (existingUser) {
-      return {
-        status: 409,
-        message: "User already exists",
-        data: null,
-      };
-    }
-
-    const user = new User(data);
-    user.password = await bcrypt.hash(user.password, 10);
-
-    await user.save();
-
-    return {
-      status: 200,
-      message: "User created successfully!",
-      data: user,
-    };
-  } catch (error) {
-    return { status: 500, message: error.message, data: null };
+  const exists = await User.findOne({ email: data.email });
+  if (exists) {
+    return { status: 409, message: "User already exists" };
   }
+
+  data.password = await bcrypt.hash(data.password, 10);
+  const user = await User.create(data);
+
+  return { status: 200, data: user };
 };
 
 const loginUser = async (data) => {
-  try {
-    const user = await User.findOne({ email: data.email });
-    if (!user) {
-      return {
-        status: 401,
-        message: "Invalid credentials",
-        data: null,
-      };
-    }
+  const user = await User.findOne({ email: data.email });
+  if (!user) return { status: 401, message: "Invalid credentials" };
 
-    const isMatch = await bcrypt.compare(data.password, user.password);
-    if (!isMatch) {
-      return {
-        status: 401,
-        message: "Invalid credentials",
-        data: null,
-      };
-    }
+  const match = await bcrypt.compare(data.password, user.password);
+  if (!match) return { status: 401, message: "Invalid credentials" };
 
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET
-    );
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
 
+  return { status: 200, data: { token } };
+};
+
+const getMe = async (userId) => {
+  const user = await User.findById(userId).select("name email");
+  return { status: 200, data: user };
+};
+
+const resetPassword = async (userId, password) => {
+  if (!/[!@#$%^&*]/.test(password)) {
     return {
-      status: 200,
-      message: "Login successful",
-      data: { token },
+      status: 400,
+      message: "Password must contain a special character",
     };
-  } catch (error) {
-    return { status: 500, message: error.message, data: null };
   }
+
+  const hashed = await bcrypt.hash(password, 10);
+  await User.findByIdAndUpdate(userId, { password: hashed });
+
+  return { status: 200, message: "Password reset successful" };
 };
 
 module.exports = {
   createUser,
   loginUser,
+  getMe,
+  resetPassword,
 };

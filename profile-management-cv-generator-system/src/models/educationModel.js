@@ -4,7 +4,9 @@ const educationSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     degree: String,
+    branch: String, 
     institution: String,
+    cgpa: String,
     startYear: String,
     endYear: String,
     description: String,
