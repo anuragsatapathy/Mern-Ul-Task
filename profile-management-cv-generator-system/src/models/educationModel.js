@@ -3,12 +3,16 @@ const mongoose = require("mongoose");
 const educationSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+
     degree: String,
-    branch: String, 
+    branch: String,
+    university: String,
     institution: String,
     cgpa: String,
-    startYear: String,
-    endYear: String,
+
+    startDate: Date,
+    endDate: Date,
+
     description: String,
     isDeleted: { type: Boolean, default: false },
   },

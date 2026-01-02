@@ -1,289 +1,282 @@
+import { useEffect, useState } from "react";
 import {
-  Card,
-  TextField,
-  Button,
+  Box,
   Typography,
-  IconButton,
-  Snackbar,
-  Alert,
+  Button,
+  Card,
   Dialog,
   DialogTitle,
+  DialogContent,
   DialogActions,
+  TextField,
   Stack,
-  Box,
+  IconButton,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import api from "../api/api";
+import EmptyState from "../components/EmptyState";
 
 const Education = () => {
   const [list, setList] = useState([]);
-  const [editId, setEditId] = useState(null);
+  const [open, setOpen] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
-  const [toast, setToast] = useState({
-    open: false,
-    msg: "",
-    type: "success",
-  });
-
+  const [editId, setEditId] = useState(null);
   const [errors, setErrors] = useState({});
+
   const [form, setForm] = useState({
     degree: "",
     branch: "",
+    university: "",
     institution: "",
     cgpa: "",
-    startYear: null,
-    endYear: null,
+    startDate: null,
+    endDate: null,
   });
 
-  const load = async () => {
+  const fetchData = async () => {
     const res = await api.get("/education?offset=0&limit=10");
-    setList(res.data.data.items);
+    const items = res?.data?.data?.items || [];
+    setList(items);
   };
 
   useEffect(() => {
-    load();
+    fetchData();
   }, []);
 
   const validate = () => {
-    const err = {};
-    if (!form.degree) err.degree = true;
-    if (!form.branch) err.branch = true;
-    if (!form.institution) err.institution = true;
-    if (!form.cgpa) err.cgpa = true;
-    if (!form.startYear) err.startYear = true;
-    if (!form.endYear) err.endYear = true;
-
-    setErrors(err);
-    return Object.keys(err).length === 0;
+    const e = {};
+    if (!form.degree) e.degree = "Required";
+    if (!form.branch) e.branch = "Required";
+    if (!form.university) e.university = "Required";
+    if (!form.institution) e.institution = "Required";
+    if (!form.cgpa) e.cgpa = "Required";
+    if (!form.startDate) e.startDate = "Required";
+    if (!form.endDate) e.endDate = "Required";
+    setErrors(e);
+    if (Object.keys(e).length) {
+      toast.error("Please fill all required fields");
+      return false;
+    }
+    return true;
   };
 
-  const submit = async () => {
-    if (!validate()) {
-      setToast({
-        open: true,
-        msg: "Please fill all required fields",
-        type: "error",
-      });
-      return;
-    }
+  const save = async () => {
+    if (!validate()) return;
 
     const payload = {
-      degree: form.degree,
-      branch: form.branch,
-      institution: form.institution,
-      cgpa: form.cgpa,
-      startYear: form.startYear.year(),
-      endYear: form.endYear.year(),
+      ...form,
+      startDate: dayjs(form.startDate).format("DD/MM/YYYY"),
+      endDate: dayjs(form.endDate).format("DD/MM/YYYY"),
     };
 
     if (editId) {
       await api.put(`/education/${editId}`, payload);
+      toast.success("Education updated");
     } else {
       await api.post("/education", payload);
+      toast.success("Education added");
     }
 
+    setOpen(false);
     setEditId(null);
+    setErrors({});
     setForm({
       degree: "",
       branch: "",
+      university: "",
       institution: "",
       cgpa: "",
-      startYear: null,
-      endYear: null,
+      startDate: null,
+      endDate: null,
     });
-    setErrors({});
-    load();
+    fetchData();
+  };
 
-    setToast({
-      open: true,
-      msg: "Education saved successfully",
-      type: "success",
-    });
+  const remove = async () => {
+    await api.delete(`/education/${confirmId}`);
+    toast.success("Education deleted");
+    setConfirmId(null);
+    fetchData();
   };
 
   return (
-    <>
-      <Typography variant="h4" gutterBottom>
+    <Box>
+      <Typography variant="h4" mb={2}>
         Education
       </Typography>
 
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Card sx={{ maxWidth: 900, p: 3 }}>
-          <TextField
-            label="Degree"
-            fullWidth
-            margin="normal"
-            value={form.degree}
-            error={errors.degree}
-            onChange={(e) =>
-              setForm({ ...form, degree: e.target.value })
-            }
-          />
+      <Button variant="contained" onClick={() => setOpen(true)}>
+        ADD EDUCATION
+      </Button>
 
-          <TextField
-            label="Branch / Stream"
-            fullWidth
-            margin="normal"
-            value={form.branch}
-            error={errors.branch}
-            onChange={(e) =>
-              setForm({ ...form, branch: e.target.value })
-            }
-          />
+      {list.length === 0 ? (
+        <EmptyState text="No education added yet." />
+      ) : (
+        <Stack spacing={2} mt={2}>
+          {list.map((e) => (
+            <Card
+              key={e._id}
+              sx={{ p: 2, bgcolor: "#E3F2FD", position: "relative" }}
+            >
+              <Box position="absolute" top={6} right={6}>
+                <IconButton
+                  onClick={() => {
+                    setEditId(e._id);
+                    setForm({
+                      ...e,
+                      startDate: dayjs(e.startDate, "DD/MM/YYYY"),
+                      endDate: dayjs(e.endDate, "DD/MM/YYYY"),
+                    });
+                    setOpen(true);
+                  }}
+                >
+                  <EditIcon />
+                </IconButton>
+                <IconButton color="error" onClick={() => setConfirmId(e._id)}>
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
 
-          <TextField
-            label="Institution"
-            fullWidth
-            margin="normal"
-            value={form.institution}
-            error={errors.institution}
-            onChange={(e) =>
-              setForm({ ...form, institution: e.target.value })
-            }
-          />
-
-          <TextField
-            label="CGPA / Percentage"
-            fullWidth
-            margin="normal"
-            value={form.cgpa}
-            error={errors.cgpa}
-            onChange={(e) =>
-              setForm({ ...form, cgpa: e.target.value })
-            }
-          />
-
-          <Stack direction="row" spacing={2} mt={2}>
-            <DatePicker
-              views={["year"]}
-              label="Start Year"
-              value={form.startYear}
-              onChange={(v) =>
-                setForm({ ...form, startYear: v })
-              }
-            />
-            <DatePicker
-              views={["year"]}
-              label="End Year"
-              value={form.endYear}
-              onChange={(v) =>
-                setForm({ ...form, endYear: v })
-              }
-            />
-          </Stack>
-
-          <Stack direction="row" spacing={2} mt={3}>
-            <Button variant="contained" onClick={submit}>
-              {editId ? "Update" : "Add"}
-            </Button>
-
-            {editId && (
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  setEditId(null);
-                  setForm({
-                    degree: "",
-                    branch: "",
-                    institution: "",
-                    cgpa: "",
-                    startYear: null,
-                    endYear: null,
-                  });
-                  setErrors({});
-                }}
-              >
-                Cancel
-              </Button>
-            )}
-          </Stack>
-        </Card>
-      </LocalizationProvider>
-
-      {list.map((e) => (
-        <Card key={e._id} sx={{ maxWidth: 917, p: 2, mt: 2 }}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Box>
-              <Typography fontWeight={600}>
+              <Typography fontWeight="bold">
                 {e.degree} ({e.branch})
               </Typography>
+              <Typography>{e.university}</Typography>
               <Typography>{e.institution}</Typography>
-              <Typography>CGPA / %: {e.cgpa}</Typography>
-              <Typography variant="body2">
-                {e.startYear} – {e.endYear}
+              <Typography>CGPA: {e.cgpa}</Typography>
+              <Typography fontSize={13}>
+                {dayjs(e.startDate).format("DD/MM/YYYY")} –{" "}
+                {dayjs(e.endDate).format("DD/MM/YYYY")}
               </Typography>
-            </Box>
+            </Card>
+          ))}
+        </Stack>
+      )}
 
-            <Stack direction="row">
-              <IconButton
-                color="primary"
-                onClick={() => {
-                  setEditId(e._id);
-                  setForm({
-                    degree: e.degree,
-                    branch: e.branch,
-                    institution: e.institution,
-                    cgpa: e.cgpa,
-                    startYear: dayjs().year(e.startYear),
-                    endYear: dayjs().year(e.endYear),
-                  });
-                }}
-              >
-                <EditIcon />
-              </IconButton>
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>{editId ? "Edit Education" : "Add Education"}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} mt={1}>
+          
+            <Stack direction="row" spacing={2}>
+              <TextField
+                label="DEGREE"
+                sx={{ width: "40%" }}
+                value={form.degree}
+                error={!!errors.degree}
+                helperText={errors.degree}
+                onChange={(e) =>
+                  setForm({ ...form, degree: e.target.value })
+                }
+              />
 
-              <IconButton
-                color="error"
-                onClick={() => setConfirmId(e._id)}
-              >
-                <DeleteIcon />
-              </IconButton>
+              <TextField
+                label="BRANCH"
+                sx={{ width: "40%" }}
+                value={form.branch}
+                error={!!errors.branch}
+                helperText={errors.branch}
+                onChange={(e) =>
+                  setForm({ ...form, branch: e.target.value })
+                }
+              />
+            </Stack>
+
+           
+            <TextField
+              label="UNIVERSITY"
+              fullWidth
+              value={form.university}
+              error={!!errors.university}
+              helperText={errors.university}
+              onChange={(e) =>
+                setForm({ ...form, university: e.target.value })
+              }
+            />
+
+            <TextField
+              label="INSTITUTION"
+              fullWidth
+              value={form.institution}
+              error={!!errors.institution}
+              helperText={errors.institution}
+              onChange={(e) =>
+                setForm({ ...form, institution: e.target.value })
+              }
+            />
+
+         
+            <Stack direction="row" spacing={2}>
+              <TextField
+                label="CGPA"
+                sx={{ width: "25%" }}
+                value={form.cgpa}
+                error={!!errors.cgpa}
+                helperText={errors.cgpa}
+                onChange={(e) =>
+                  setForm({ ...form, cgpa: e.target.value })
+                }
+              />
+
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label="Start Date"
+                  format="DD/MM/YYYY"
+                  value={form.startDate}
+                  onChange={(v) =>
+                    setForm({ ...form, startDate: v })
+                  }
+                  slotProps={{
+                    textField: {
+                      sx: { width: "30%" },
+                      error: !!errors.startDate,
+                      helperText: errors.startDate,
+                    },
+                  }}
+                />
+
+                <DatePicker
+                  label="End Date"
+                  format="DD/MM/YYYY"
+                  value={form.endDate}
+                  onChange={(v) =>
+                    setForm({ ...form, endDate: v })
+                  }
+                  slotProps={{
+                    textField: {
+                      sx: { width: "30%" },
+                      error: !!errors.endDate,
+                      helperText: errors.endDate,
+                    },
+                  }}
+                />
+              </LocalizationProvider>
             </Stack>
           </Stack>
-        </Card>
-      ))}
+        </DialogContent>
 
-      <Dialog open={!!confirmId}>
-        <DialogTitle>Delete this education?</DialogTitle>
         <DialogActions>
-          <Button onClick={() => setConfirmId(null)}>
-            Cancel
-          </Button>
-          <Button
-            color="error"
-            onClick={async () => {
-              await api.delete(`/education/${confirmId}`);
-              setConfirmId(null);
-              load();
-              setToast({
-                open: true,
-                msg: "Education deleted successfully",
-                type: "success",
-              });
-            }}
-          >
-            Delete
+          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={save}>
+            Save
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Snackbar
-        open={toast.open}
-        autoHideDuration={3000}
-        onClose={() => setToast({ ...toast, open: false })}
-      >
-        <Alert severity={toast.type}>{toast.msg}</Alert>
-      </Snackbar>
-    </>
+      <Dialog open={!!confirmId} onClose={() => setConfirmId(null)}>
+        <DialogTitle>Delete education?</DialogTitle>
+        <DialogActions>
+          <Button onClick={() => setConfirmId(null)}>Cancel</Button>
+          <Button color="error" onClick={remove}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 

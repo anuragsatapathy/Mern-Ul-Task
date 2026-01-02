@@ -18,4 +18,14 @@ const getProfile = async (userId) => {
   return { data: profile };
 };
 
-module.exports = { saveProfile, getProfile };
+const deleteProfile = async (userId) => {
+  const profile = await Profile.findOneAndDelete({ userId });
+  return { data: profile };
+};
+
+module.exports = {
+  saveProfile,
+  getProfile,
+  deleteProfile,
+};
+

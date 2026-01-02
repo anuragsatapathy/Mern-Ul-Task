@@ -1,197 +1,209 @@
+import { useEffect, useState } from "react";
 import {
-  Card,
-  TextField,
-  Button,
+  Box,
   Typography,
-  IconButton,
-  Snackbar,
-  Alert,
+  Button,
+  Card,
+  Grid,
   Dialog,
   DialogTitle,
+  DialogContent,
   DialogActions,
+  TextField,
   MenuItem,
-  Stack,
+  IconButton,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import api from "../api/api";
+import EmptyState from "../components/EmptyState";
 
 const Skill = () => {
   const [list, setList] = useState([]);
+  const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [confirmId, setConfirmId] = useState(null);
-
-  const [toast, setToast] = useState({
-    open: false,
-    msg: "",
-    type: "success",
-  });
+  const [deleteId, setDeleteId] = useState(null);
+  const [errors, setErrors] = useState({});
 
   const [form, setForm] = useState({
+    title: "",
     name: "",
     level: "",
   });
 
-  const load = async () => {
-    const res = await api.get("/skills?offset=0&limit=10");
-    setList(res.data.data.items);
+
+  const fetchData = async () => {
+    const res = await api.get("/skills");
+    const items = res?.data?.data?.items ?? res?.data?.data ?? [];
+    setList(Array.isArray(items) ? items : []);
   };
 
   useEffect(() => {
-    load();
+    fetchData();
   }, []);
 
-  const submit = async () => {
-    if (!form.name || !form.level) {
-      setToast({
-        open: true,
-        msg: "All fields are required",
-        type: "error",
-      });
-      return;
+  const validate = () => {
+    const e = {};
+    if (!form.title) e.title = "Required";
+    if (!form.name) e.name = "Required";
+    if (!form.level) e.level = "Required";
+    setErrors(e);
+
+    if (Object.keys(e).length) {
+      toast.error("Please fill all required fields");
+      return false;
     }
+    return true;
+  };
+
+  const save = async () => {
+    if (!validate()) return;
 
     if (editId) {
       await api.put(`/skills/${editId}`, form);
+      toast.success("Skill updated");
     } else {
       await api.post("/skills", form);
+      toast.success("Skill added");
     }
 
+    setOpen(false);
     setEditId(null);
-    setForm({ name: "", level: "" });
-    load();
+    setForm({ title: "", name: "", level: "" });
+    setErrors({});
+    fetchData();
+  };
 
-    setToast({
-      open: true,
-      msg: "Skill saved successfully",
-      type: "success",
-    });
+  const confirmDelete = async () => {
+    await api.delete(`/skills/${deleteId}`);
+    toast.success("Skill deleted");
+    setDeleteId(null);
+    fetchData();
   };
 
   return (
-    <>
-      <Typography variant="h4" gutterBottom>
-        Skills
-      </Typography>
+    <Box>
+      <Typography variant="h4" mb={2}>Skills</Typography>
 
-      <Card sx={{ maxWidth: 880, p: 3 }}>
-        <TextField
-          label="Skill"
-          fullWidth
-          margin="normal"
-          value={form.name}
-          onChange={(e) =>
-            setForm({ ...form, name: e.target.value })
-          }
-        />
+      <Button variant="contained" onClick={() => setOpen(true)}>
+        ADD SKILL
+      </Button>
 
-        <TextField
-          select
-          label="Level"
-          fullWidth
-          margin="normal"
-          value={form.level}
-          onChange={(e) =>
-            setForm({ ...form, level: e.target.value })
-          }
-        >
-          <MenuItem value="Beginner">Beginner</MenuItem>
-          <MenuItem value="Intermediate">Intermediate</MenuItem>
-          <MenuItem value="Advanced">Advanced</MenuItem>
-        </TextField>
-
-        <Stack direction="row" spacing={2} mt={2}>
-          <Button variant="contained" onClick={submit}>
-            {editId ? "Update" : "Add"}
-          </Button>
-
-          {editId && (
-            <Button
-              variant="outlined"
-              onClick={() => {
-                setEditId(null);
-                setForm({ name: "", level: "" });
-              }}
-            >
-              Cancel
-            </Button>
-          )}
-        </Stack>
-      </Card>
-
-      {list.map((s) => (
-        <Card key={s._id} sx={{ maxWidth: 900, p: 2, mt: 2 }}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Typography>
-              {s.name} - {s.level}
-            </Typography>
-
-            <Stack direction="row">
-              <IconButton
-                color="primary"
-                onClick={() => {
-                  setEditId(s._id);
-                  setForm({
-                    name: s.name,
-                    level: s.level,
-                  });
+      {list.length === 0 ? (
+        <EmptyState text="No skills added yet." />
+      ) : (
+        <Grid container spacing={2} mt={1}>
+          {list.map((s) => (
+            <Grid item xs={12} md={4} key={s._id}>
+              <Card
+                sx={{
+                  p: 1.5,
+                  bgcolor: "#F3E5F5",
+                  position: "relative",
+                  pr: 6, 
                 }}
               >
-                <EditIcon />
-              </IconButton>
+            
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 6,
+                    right: 6,
+                    display: "flex",
+                    gap: 0.5,
+                  }}
+                >
+                  <IconButton
+                    size="small"
+                    onClick={() => {
+                      setEditId(s._id);
+                      setForm({
+                        title: s.title,
+                        name: s.name,
+                        level: s.level,
+                      });
+                      setOpen(true);
+                    }}
+                  >
+                    <EditIcon fontSize="small" />
+                  </IconButton>
 
-              <IconButton
-                color="error"
-                onClick={() => setConfirmId(s._id)}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Stack>
-          </Stack>
-        </Card>
-      ))}
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={() => setDeleteId(s._id)}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Box>
 
-      <Dialog open={!!confirmId}>
-        <DialogTitle>Delete this skill?</DialogTitle>
-        <DialogActions>
-          <Button onClick={() => setConfirmId(null)}>
-            Cancel
-          </Button>
-          <Button
-            color="error"
-            onClick={async () => {
-              await api.delete(`/skills/${confirmId}`);
-              setConfirmId(null);
-              load();
-              setToast({
-                open: true,
-                msg: "Skill deleted successfully",
-                type: "success",
-              });
-            }}
+                <Typography fontWeight={600} fontSize={14}>
+                  {s.title}
+                </Typography>
+                <Typography fontSize={13}>
+                  {s.name} ({s.level})
+                </Typography>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
+
+   
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>{editId ? "Edit Skill" : "Add Skill"}</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="Title"
+            margin="dense"
+            value={form.title}
+            error={!!errors.title}
+            helperText={errors.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+          />
+          <TextField
+            fullWidth
+            label="Skill"
+            margin="dense"
+            value={form.name}
+            error={!!errors.name}
+            helperText={errors.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+          <TextField
+            fullWidth
+            select
+            label="Level"
+            margin="dense"
+            value={form.level}
+            error={!!errors.level}
+            helperText={errors.level}
+            onChange={(e) => setForm({ ...form, level: e.target.value })}
           >
+            <MenuItem value="Beginner">Beginner</MenuItem>
+            <MenuItem value="Intermediate">Intermediate</MenuItem>
+            <MenuItem value="Advanced">Advanced</MenuItem>
+          </TextField>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={save}>Save</Button>
+        </DialogActions>
+      </Dialog>
+
+     
+      <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
+        <DialogTitle>Delete skill?</DialogTitle>
+        <DialogActions>
+          <Button onClick={() => setDeleteId(null)}>Cancel</Button>
+          <Button color="error" onClick={confirmDelete}>
             Delete
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={toast.open}
-        autoHideDuration={3000}
-        onClose={() =>
-          setToast({ ...toast, open: false })
-        }
-      >
-        <Alert severity={toast.type}>
-          {toast.msg}
-        </Alert>
-      </Snackbar>
-    </>
+    </Box>
   );
 };
 

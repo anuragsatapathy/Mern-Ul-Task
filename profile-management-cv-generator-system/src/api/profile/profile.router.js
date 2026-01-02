@@ -7,4 +7,7 @@ const jwtValidation = require("../../middlewares/jwtValidation");
 router.post("/", jwtValidation, profileController.saveProfile);
 router.get("/", jwtValidation, profileController.getProfile);
 
+
+router.delete("/", jwtValidation, profileController.deleteProfile);
+
 module.exports = router;

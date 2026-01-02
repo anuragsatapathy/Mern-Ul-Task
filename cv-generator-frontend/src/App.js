@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -12,85 +14,46 @@ import ResetPassword from "./pages/ResetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./components/MainLayout";
 
-const App = () => {
+export default function App() {
   return (
     <BrowserRouter>
+      {/* GLOBAL TOAST */}
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+      />
+
       <Routes>
-        {/* Public routes */}
+        {/* PUBLIC ROUTES */}
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Protected routes */}
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Profile />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/education"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Education />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/experience"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Experience />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/skills"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <Skill />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/cv"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <CVPreview />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        {/* RESET PASSWORD ROUTE */}
-        <Route
-          path="/reset-password"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <ResetPassword />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
+        {/* PROTECTED ROUTES */}
+        {[
+          ["/profile", <Profile />],
+          ["/education", <Education />],
+          ["/experience", <Experience />],
+          ["/skills", <Skill />],
+          ["/cv", <CVPreview />],
+          ["/reset-password", <ResetPassword />],
+        ].map(([path, element]) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <ProtectedRoute>
+                <MainLayout>{element}</MainLayout>
+              </ProtectedRoute>
+            }
+          />
+        ))}
       </Routes>
     </BrowserRouter>
   );
-};
-
-export default App;
+}

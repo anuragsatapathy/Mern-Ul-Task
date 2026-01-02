@@ -41,7 +41,7 @@ const ResetPassword = () => {
       });
   }, []);
 
-  // INLINE VALIDATION
+ 
   const validate = () => {
     const err = {};
 
@@ -61,7 +61,7 @@ const ResetPassword = () => {
     return Object.keys(err).length === 0;
   };
 
-  // SUBMIT
+ 
   const submit = async () => {
     if (!validate()) {
       setToast({
@@ -109,7 +109,7 @@ const ResetPassword = () => {
         Reset Password
       </Typography>
 
-      {/* USER INFO */}
+     
       <Card sx={{ maxWidth: 600, p: 3, mb: 3 }}>
         <Typography fontWeight={600}>Name</Typography>
         <Typography mb={2}>{user.name}</Typography>
@@ -118,7 +118,7 @@ const ResetPassword = () => {
         <Typography>{user.email}</Typography>
       </Card>
 
-      {/* RESET FORM */}
+   
       <Card sx={{ maxWidth: 600, p: 3 }}>
         <TextField
           label="New Password"
@@ -162,7 +162,7 @@ const ResetPassword = () => {
         </Stack>
       </Card>
 
-      {/* TOAST */}
+   
       <Snackbar
         open={toast.open}
         autoHideDuration={3000}
