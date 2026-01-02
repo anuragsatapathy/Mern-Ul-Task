@@ -23,10 +23,10 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       console.warn("Unauthorized – token invalid or expired");
 
-      // 🔴 clear token
+      //clear token
       localStorage.removeItem("token");
 
-      // 🔴 redirect to login
+      //redirect to login
       window.location.href = "/login";
     }
 
