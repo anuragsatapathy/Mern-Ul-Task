@@ -4,10 +4,12 @@ import {
   TextField,
   Button,
   Typography,
-  Paper,
   Snackbar,
   Alert,
+  InputAdornment,
 } from "@mui/material";
+import EmailIcon from "@mui/icons-material/Email";
+import LockIcon from "@mui/icons-material/Lock";
 import api from "../api/api";
 import { useNavigate } from "react-router-dom";
 import AuthNavbar from "../components/AuthNavbar";
@@ -24,12 +26,23 @@ export default function Login() {
 
   const navigate = useNavigate();
 
-  const submit = async () => {
+  const submit = async (e) => {
+    e.preventDefault();
+
     const err = {};
     if (!email) err.email = "Email required";
     if (!password) err.password = "Password required";
     setErrors(err);
-    if (Object.keys(err).length) return;
+
+   
+    if (Object.keys(err).length) {
+      setToast({
+        open: true,
+        message: "Please fill all required fields",
+        severity: "error",
+      });
+      return;
+    }
 
     // email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -62,11 +75,9 @@ export default function Login() {
         severity: "success",
       });
 
-      
-      setTimeout(() => {
-        navigate("/profile");
-      }, 800);
+      setTimeout(() => navigate("/profile"), 800);
     } catch {
+    
       setToast({
         open: true,
         message: "Invalid email or password",
@@ -79,72 +90,107 @@ export default function Login() {
     <>
       <AuthNavbar />
 
-      <Box
-        sx={{
-          minHeight: "calc(100vh - 64px)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          bgcolor: "#f3f4f6",
-        }}
-      >
-        <Paper sx={{ width: 380, p: 4, borderRadius: 2 }}>
-          <Typography
-            variant="h5"
-            fontWeight={600}
-            textAlign="center"
-            mb={3}
+      <Box sx={{ minHeight: "calc(100vh - 64px)", display: "flex" }}>
+        {/* LEFT */}
+        <Box
+          sx={{
+            flex: 1,
+            bgcolor: "#1e88e5",
+            color: "#fff",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            borderTopRightRadius: "100% 80%",
+          }}
+        >
+          <Typography variant="h4" fontWeight={700}>
+            New here ?
+          </Typography>
+          <Typography mt={1}>Then Sign Up and Create Account!</Typography>
+          <Button
+            variant="outlined"
+            sx={{
+              mt: 3,
+              color: "#fff",
+              borderColor: "#fff",
+              borderRadius: 20,
+              px: 4,
+            }}
+            onClick={() => navigate("/register")}
           >
-            Login
+            SIGN UP
+          </Button>
+        </Box>
+
+        {/* RIGHT */}
+        <Box
+          component="form"
+          onSubmit={submit}
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="h4" mb={4}>
+            Sign in
           </Typography>
 
           <TextField
-            fullWidth
-            label="Email"
-            margin="normal"
+            placeholder="Email"
+            sx={{ width: 320, mb: 2 }}
+            value={email}
             error={!!errors.email}
             helperText={errors.email}
             onChange={(e) => setEmail(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <EmailIcon color="disabled" />
+                </InputAdornment>
+              ),
+              sx: { borderRadius: 50, bgcolor: "#f2f2f2" },
+            }}
           />
 
           <TextField
-            fullWidth
-            label="Password"
+            placeholder="Password"
             type="password"
-            margin="normal"
+            sx={{ width: 320, mb: 3 }}
+            value={password}
             error={!!errors.password}
             helperText={errors.password}
             onChange={(e) => setPassword(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LockIcon color="disabled" />
+                </InputAdornment>
+              ),
+              sx: { borderRadius: 50, bgcolor: "#f2f2f2" },
+            }}
           />
 
           <Button
-            fullWidth
-            size="large"
-            variant="contained"
+            type="submit"
             sx={{
-              mt: 3,
-              backgroundColor: "#ffb74d",
-              color: "#000",
+              width: 200,
+              borderRadius: 20,
+              bgcolor: "#5c9dff",
+              color: "#fff",
               fontWeight: 600,
-              "&:hover": { backgroundColor: "#ffa726" },
+              "&:hover": { bgcolor: "#4a8bf0" },
             }}
-            onClick={submit}
           >
-            Login
+            LOGIN
           </Button>
-
-          <Typography mt={2} textAlign="center">
-            Don’t have an account?{" "}
-            <span
-              style={{ color: "#1976d2", cursor: "pointer" }}
-              onClick={() => navigate("/register")}
-            >
-              Register
-            </span>
-          </Typography>
-        </Paper>
+        </Box>
       </Box>
 
+      {/* TOAST */}
       <Snackbar
         open={toast.open}
         autoHideDuration={2000}

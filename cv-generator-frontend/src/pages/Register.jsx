@@ -6,10 +6,13 @@ import {
   Typography,
   Snackbar,
   Alert,
-  Paper,
+  InputAdornment,
 } from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
+import EmailIcon from "@mui/icons-material/Email";
+import LockIcon from "@mui/icons-material/Lock";
 import api from "../api/api";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import AuthNavbar from "../components/AuthNavbar";
 
 export default function Register() {
@@ -28,35 +31,42 @@ export default function Register() {
 
   const navigate = useNavigate();
 
-  // email validation
+ 
   const isValidEmail = (email) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  // password must contain special character
   const hasSpecialChar = (password) =>
     /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
-  const submit = async () => {
-    const err = {};
+  const submit = async (e) => {
+    e.preventDefault(); 
 
-   
+    const err = {};
     if (!form.name) err.name = "Name required";
     if (!form.email) err.email = "Email required";
     if (!form.password) err.password = "Password required";
-
     setErrors(err);
-    if (Object.keys(err).length) return;
 
-  
-    if (!isValidEmail(form.email)) {
+    if (Object.keys(err).length) {
       setToast({
         open: true,
-        message: "Enter a valid email address",
+        message: "Please fill all required fields",
         severity: "error",
       });
       return;
     }
 
+    // email validation
+    if (!isValidEmail(form.email)) {
+      setToast({
+        open: true,
+        message: "Please enter a valid email address",
+        severity: "error",
+      });
+      return;
+    }
+
+    // password validation
     if (!hasSpecialChar(form.password)) {
       setToast({
         open: true,
@@ -75,14 +85,11 @@ export default function Register() {
         severity: "success",
       });
 
-      setTimeout(() => {
-        navigate("/");
-      }, 1200);
+      setTimeout(() => navigate("/"), 1200);
     } catch (err) {
       setToast({
         open: true,
-        message:
-          err.response?.data?.message || "Registration failed",
+        message: err.response?.data?.message || "Registration failed",
         severity: "error",
       });
     }
@@ -92,88 +99,135 @@ export default function Register() {
     <>
       <AuthNavbar />
 
-      <Box
-        sx={{
-          minHeight: "calc(100vh - 64px)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          bgcolor: "#f3f4f6",
-        }}
-      >
-        <Paper sx={{ width: 380, p: 4, borderRadius: 2 }}>
-          <Typography variant="h5" fontWeight={600} textAlign="center" mb={3}>
-            Create Account
+      <Box sx={{ minHeight: "calc(100vh - 64px)", display: "flex" }}>
+        {/* LEFT PANEL */}
+        <Box
+          sx={{
+            flex: 1,
+            bgcolor: "#1e88e5",
+            color: "#fff",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            borderTopRightRadius: "100% 80%",
+          }}
+        >
+          <Typography variant="h4" fontWeight={700}>
+            Already have an account?
+          </Typography>
+          <Typography mt={1}>Sign in to continue</Typography>
+
+          <Button
+            variant="outlined"
+            sx={{
+              mt: 3,
+              color: "#fff",
+              borderColor: "#fff",
+              borderRadius: 20,
+              px: 4,
+            }}
+            onClick={() => navigate("/")}
+          >
+            LOGIN
+          </Button>
+        </Box>
+
+        {/* RIGHT FORM */}
+        <Box
+          component="form"
+          onSubmit={submit}
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="h4" mb={4}>
+            Sign up
           </Typography>
 
           <TextField
-            fullWidth
-            label="Name"
-            margin="normal"
+            placeholder="Name"
+            sx={{ width: 320, mb: 2 }}
             value={form.name}
+            error={!!errors.name}
+            helperText={errors.name}
             onChange={(e) =>
               setForm({ ...form, name: e.target.value })
             }
-            error={!!errors.name}
-            helperText={errors.name}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PersonIcon color="disabled" />
+                </InputAdornment>
+              ),
+              sx: { borderRadius: 50, bgcolor: "#f2f2f2" },
+            }}
           />
 
           <TextField
-            fullWidth
-            label="Email"
-            margin="normal"
+            placeholder="Email"
+            sx={{ width: 320, mb: 2 }}
             value={form.email}
+            error={!!errors.email}
+            helperText={errors.email}
             onChange={(e) =>
               setForm({ ...form, email: e.target.value })
             }
-            error={!!errors.email}
-            helperText={errors.email}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <EmailIcon color="disabled" />
+                </InputAdornment>
+              ),
+              sx: { borderRadius: 50, bgcolor: "#f2f2f2" },
+            }}
           />
 
           <TextField
-            fullWidth
-            label="Password"
+            placeholder="Password"
             type="password"
-            margin="normal"
+            sx={{ width: 320, mb: 3 }}
             value={form.password}
+            error={!!errors.password}
+            helperText={errors.password}
             onChange={(e) =>
               setForm({ ...form, password: e.target.value })
             }
-            error={!!errors.password}
-            helperText={errors.password}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LockIcon color="disabled" />
+                </InputAdornment>
+              ),
+              sx: { borderRadius: 50, bgcolor: "#f2f2f2" },
+            }}
           />
 
-         <Button
-          fullWidth
-          size="large"
-          variant="contained"
-          sx={{
-            mt: 3,
-            backgroundColor: "#ffb74d",
-            color: "#000",
-            fontWeight: 600,
-            "&:hover": { backgroundColor: "#ffa726" },
-          }}
-          onClick={submit}
-        >
-          Register
-        </Button>
-
-
-          <Typography mt={3} fontSize={14} textAlign="center">
-            Already registered? <Link to="/">Login</Link>
-          </Typography>
-        </Paper>
+          <Button
+            type="submit"
+            sx={{
+              width: 200,
+              borderRadius: 20,
+              bgcolor: "#5c9dff",
+              color: "#fff",
+              fontWeight: 600,
+              "&:hover": { bgcolor: "#4a8bf0" },
+            }}
+          >
+            REGISTER
+          </Button>
+        </Box>
       </Box>
 
-      {/* Toast */}
+      {/* TOAST */}
       <Snackbar
         open={toast.open}
-        autoHideDuration={2000}
-        onClose={() =>
-          setToast({ ...toast, open: false })
-        }
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        autoHideDuration={2500}
+        onClose={() => setToast({ ...toast, open: false })}
       >
         <Alert severity={toast.severity} variant="filled">
           {toast.message}
@@ -182,3 +236,4 @@ export default function Register() {
     </>
   );
 }
+
