@@ -4,6 +4,14 @@ const Education = require("../../models/educationModel");
 const Experience = require("../../models/experienceModel");
 const Skill = require("../../models/skillModel");
 
+// convert <p> from Quill into <li>
+const quillToBullets = (html = "") => {
+  return html
+    .replace(/<p><br><\/p>/g, "") // remove empty lines
+    .replace(/<p>/g, "<li>")
+    .replace(/<\/p>/g, "</li>");
+};
+
 const buildHTML = ({ profile, education, experience, skills }) => `
 <!DOCTYPE html>
 <html>
@@ -16,34 +24,68 @@ const buildHTML = ({ profile, education, experience, skills }) => `
     color: #111;
     line-height: 1.5;
   }
+
   h1 {
     text-align: center;
     font-size: 28px;
     margin-bottom: 6px;
   }
+
   .contact {
     text-align: center;
     font-size: 13px;
     margin-bottom: 18px;
   }
+
   .contact span {
     margin: 0 6px;
   }
+
   h2 {
     font-size: 15px;
     border-bottom: 1px solid #333;
     margin-top: 22px;
     padding-bottom: 3px;
   }
-  .item {
-    margin-bottom: 12px;
-  }
+
+ .item {
+  margin-bottom: 14px;
+}
+
+/* Prevent headings from breaking */
+h2 {
+  page-break-after: avoid;
+}
+
+/* Keep bullet lists readable across pages */
+ul {
+  margin: 6px 0 0 18px;
+  padding-left: 14px;
+}
+
+li {
+  margin-bottom: 6px;
+  page-break-inside: auto;
+}
+
   .right {
     float: right;
     font-size: 13px;
   }
+
   ul {
     margin: 6px 0 0 18px;
+    padding-left: 14px;
+  }
+
+  li {
+    margin-bottom: 6px;
+  }
+
+  /* Page handling */
+  @page {
+    size: A4;
+    margin: 40px;
   }
 </style>
 </head>
@@ -52,54 +94,85 @@ const buildHTML = ({ profile, education, experience, skills }) => `
 <h1>${profile?.fullName || ""}</h1>
 
 <div class="contact">
-<span>📍 ${profile?.address || ""}</span>
-<span>✉️ ${profile?.email || ""}</span>
-<span>📞 ${profile?.phone || ""}</span>
-<span>🔗 ${profile?.linkedinId || ""}</span>
+  <span>📍 ${profile?.address || ""}</span>
+  <span>✉️ ${profile?.email || ""}</span>
+  <span>📞 ${profile?.phone || ""}</span>
+  <span>🔗 ${profile?.linkedinId || ""}</span>
 </div>
 
 <h2>SUMMARY</h2>
 <p>${profile?.summary || ""}</p>
 
 <h2>EXPERIENCE</h2>
-${experience.map(x => `
+${experience
+  .map(
+    (x) => `
 <div class="item">
-<b>${x.role}</b> – ${x.company}, ${x.location}
-<span class="right">
-${new Date(x.fromDate).toLocaleDateString("en-US",{month:"short",year:"numeric"})}
- -
-${x.currentlyWorking ? "Current" : new Date(x.toDate).toLocaleDateString("en-US",{month:"short",year:"numeric"})}
-</span>
-<ul>
-<li>${x.description || ""}</li>
-</ul>
+  <b>${x.role}</b> – ${x.company}, ${x.location}
+  <span class="right">
+    ${new Date(x.fromDate).toLocaleDateString("en-US", {
+      month: "short",
+      year: "numeric",
+    })}
+    -
+    ${
+      x.currentlyWorking
+        ? "Current"
+        : new Date(x.toDate).toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          })
+    }
+  </span>
+
+  <ul>
+    ${quillToBullets(x.description)}
+  </ul>
 </div>
-`).join("")}
+`
+  )
+  .join("")}
 
 <h2>EDUCATION</h2>
-${education.map(e => `
+${education
+  .map(
+    (e) => `
 <div class="item">
-<b>${e.degree}, ${e.branch}</b><br/>
-${e.university} – ${e.institution}
-<span class="right">
-${new Date(e.startDate).toLocaleDateString("en-US",{month:"short",year:"numeric"})}
- -
-${new Date(e.endDate).toLocaleDateString("en-US",{month:"short",year:"numeric"})}
-</span>
+  <b>${e.degree}, ${e.branch}</b><br/>
+  ${e.university} – ${e.institution}
+  <span class="right">
+    ${new Date(e.startDate).toLocaleDateString("en-US", {
+      month: "short",
+      year: "numeric",
+    })}
+    -
+    ${new Date(e.endDate).toLocaleDateString("en-US", {
+      month: "short",
+      year: "numeric",
+    })}
+  </span>
 </div>
-`).join("")}
+`
+  )
+  .join("")}
 
 <h2>SKILLS</h2>
 ${Object.entries(
-  skills.reduce((acc,s)=>{
-    acc[s.title]=acc[s.title]||[];
+  skills.reduce((acc, s) => {
+    acc[s.title] = acc[s.title] || [];
     acc[s.title].push(`${s.name} (${s.level})`);
     return acc;
-  },{})
-).map(([title,items])=>`
+  }, {})
+)
+  .map(
+    ([title, items]) => `
 <b>${title}</b>
-<ul>${items.map(i=>`<li>${i}</li>`).join("")}</ul>
-`).join("")}
+<ul>
+  ${items.map((i) => `<li>${i}</li>`).join("")}
+</ul>
+`
+  )
+  .join("")}
 
 </body>
 </html>
@@ -121,7 +194,11 @@ const generateCV = async (userId) => {
   const page = await browser.newPage();
   await page.setContent(html, { waitUntil: "networkidle0" });
 
-  const pdf = await page.pdf({ format: "A4", printBackground: true });
+  const pdf = await page.pdf({
+    format: "A4",
+    printBackground: true,
+  });
+
   await browser.close();
   return pdf;
 };

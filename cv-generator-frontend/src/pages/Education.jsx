@@ -11,9 +11,11 @@ import {
   TextField,
   Stack,
   IconButton,
+  Divider,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import SchoolIcon from "@mui/icons-material/School";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
@@ -21,22 +23,23 @@ import { toast } from "react-toastify";
 import api from "../api/api";
 import EmptyState from "../components/EmptyState";
 
+const emptyForm = {
+  degree: "",
+  branch: "",
+  university: "",
+  institution: "",
+  cgpa: "",
+  startDate: null,
+  endDate: null,
+};
+
 const Education = () => {
   const [list, setList] = useState([]);
   const [open, setOpen] = useState(false);
   const [confirmId, setConfirmId] = useState(null);
   const [editId, setEditId] = useState(null);
   const [errors, setErrors] = useState({});
-
-  const [form, setForm] = useState({
-    degree: "",
-    branch: "",
-    university: "",
-    institution: "",
-    cgpa: "",
-    startDate: null,
-    endDate: null,
-  });
+  const [form, setForm] = useState(emptyForm);
 
   const fetchData = async () => {
     const res = await api.get("/education?offset=0&limit=10");
@@ -58,6 +61,7 @@ const Education = () => {
     if (!form.startDate) e.startDate = "Required";
     if (!form.endDate) e.endDate = "Required";
     setErrors(e);
+
     if (Object.keys(e).length) {
       toast.error("Please fill all required fields");
       return false;
@@ -65,43 +69,65 @@ const Education = () => {
     return true;
   };
 
+  const openAddDialog = () => {
+    setEditId(null);          
+    setForm(emptyForm);       
+    setErrors({});
+    setOpen(true);
+  };
+
+  const openEditDialog = (e) => {
+    setEditId(e._id);
+    setForm({
+      ...e,
+      startDate: dayjs(e.startDate),
+      endDate: dayjs(e.endDate),
+    });
+    setErrors({});
+    setOpen(true);
+  };
+
+  const closeDialog = () => {
+    setOpen(false);
+    setEditId(null);          
+    setErrors({});
+    setForm(emptyForm);
+  };
+
   const save = async () => {
     if (!validate()) return;
 
     const payload = {
       ...form,
-      startDate: dayjs(form.startDate).format("DD/MM/YYYY"),
-      endDate: dayjs(form.endDate).format("DD/MM/YYYY"),
+      startDate: dayjs(form.startDate).toDate(),
+      endDate: dayjs(form.endDate).toDate(),
     };
 
-    if (editId) {
-      await api.put(`/education/${editId}`, payload);
-      toast.success("Education updated");
-    } else {
-      await api.post("/education", payload);
-      toast.success("Education added");
-    }
+    try {
+      if (editId) {
+        await api.put(`/education/${editId}`, payload);
+        toast.success("Education updated");
+      } else {
+        await api.post("/education", payload);
+        toast.success("Education added");
+      }
 
-    setOpen(false);
-    setEditId(null);
-    setErrors({});
-    setForm({
-      degree: "",
-      branch: "",
-      university: "",
-      institution: "",
-      cgpa: "",
-      startDate: null,
-      endDate: null,
-    });
-    fetchData();
+      closeDialog();
+      fetchData();
+    } catch {
+      toast.error("Failed to save education");
+    }
   };
 
   const remove = async () => {
-    await api.delete(`/education/${confirmId}`);
-    toast.success("Education deleted");
-    setConfirmId(null);
-    fetchData();
+    try {
+      await api.delete(`/education/${confirmId}`);
+      toast.success("Education deleted");
+      setConfirmId(null);
+      fetchData();
+    } catch {
+      toast.error("Failed to delete education");
+    }
   };
 
   return (
@@ -110,58 +136,85 @@ const Education = () => {
         Education
       </Typography>
 
-      <Button variant="contained" onClick={() => setOpen(true)}>
+      <Button variant="contained" onClick={openAddDialog}>
         ADD EDUCATION
       </Button>
 
       {list.length === 0 ? (
         <EmptyState text="No education added yet." />
       ) : (
-        <Stack spacing={2} mt={2}>
-          {list.map((e) => (
-            <Card
-              key={e._id}
-              sx={{ p: 2, bgcolor: "#E3F2FD", position: "relative" }}
-            >
-              <Box position="absolute" top={6} right={6}>
-                <IconButton
-                  onClick={() => {
-                    setEditId(e._id);
-                    setForm({
-                      ...e,
-                      startDate: dayjs(e.startDate, "DD/MM/YYYY"),
-                      endDate: dayjs(e.endDate, "DD/MM/YYYY"),
-                    });
-                    setOpen(true);
-                  }}
-                >
-                  <EditIcon />
-                </IconButton>
-                <IconButton color="error" onClick={() => setConfirmId(e._id)}>
-                  <DeleteIcon />
-                </IconButton>
-              </Box>
+        <Box mt={3}>
+          <Stack spacing={3} alignItems="center">
+            {list.map((e) => (
+              <Card
+                key={e._id}
+                sx={{
+                  width: "100%",
+                  maxWidth: 850,
+                  p: 3,
+                  borderRadius: 4,
+                  position: "relative",
+                  
+                  background:
+                    "linear-gradient(135deg, #E8F5E9 0%, #E0F2F1 100%)",
+                  boxShadow: "0 10px 28px rgba(0,0,0,0.12)",
+                  transition: "0.3s",
+                  "&:hover": {
+                    transform: "translateY(-6px)",
+                    boxShadow: "0 16px 36px rgba(0,0,0,0.18)",
+                  },
 
-              <Typography fontWeight="bold">
-                {e.degree} ({e.branch})
-              </Typography>
-              <Typography>{e.university}</Typography>
-              <Typography>{e.institution}</Typography>
-              <Typography>CGPA: {e.cgpa}</Typography>
-              <Typography fontSize={13}>
-                {dayjs(e.startDate).format("DD/MM/YYYY")} –{" "}
-                {dayjs(e.endDate).format("DD/MM/YYYY")}
-              </Typography>
-            </Card>
-          ))}
-        </Stack>
+                }}
+              >
+                <Box position="absolute" top={12} right={12}>
+                  <IconButton onClick={() => openEditDialog(e)}>
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton
+                    color="error"
+                    onClick={() => setConfirmId(e._id)}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
+
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <SchoolIcon color="success" />
+                  <Typography fontWeight={700}>
+                    {e.degree} ({e.branch})
+                  </Typography>
+                </Stack>
+
+                <Typography mt={0.5}>{e.university}</Typography>
+                <Typography color="text.secondary">
+                  {e.institution}
+                </Typography>
+
+                <Divider sx={{ my: 1.5 }} />
+
+                <Stack direction="row" spacing={3} flexWrap="wrap">
+                  <Typography fontWeight={600}>
+                    CGPA: {e.cgpa}
+                  </Typography>
+                  <Typography fontSize={13} color="text.secondary">
+                    {dayjs(e.startDate).format("DD/MM/YYYY")} –{" "}
+                    {dayjs(e.endDate).format("DD/MM/YYYY")}
+                  </Typography>
+                </Stack>
+              </Card>
+            ))}
+          </Stack>
+        </Box>
       )}
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>{editId ? "Edit Education" : "Add Education"}</DialogTitle>
+      {/* ADD / EDIT DIALOG */}
+      <Dialog open={open} onClose={closeDialog} fullWidth maxWidth="sm">
+        <DialogTitle>
+          {editId ? "Edit Education" : "Add Education"}
+        </DialogTitle>
+
         <DialogContent>
           <Stack spacing={2} mt={1}>
-          
             <Stack direction="row" spacing={2}>
               <TextField
                 label="DEGREE"
@@ -186,7 +239,6 @@ const Education = () => {
               />
             </Stack>
 
-           
             <TextField
               label="UNIVERSITY"
               fullWidth
@@ -209,7 +261,6 @@ const Education = () => {
               }
             />
 
-         
             <Stack direction="row" spacing={2}>
               <TextField
                 label="CGPA"
@@ -260,13 +311,14 @@ const Education = () => {
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={closeDialog}>Cancel</Button>
           <Button variant="contained" onClick={save}>
             Save
           </Button>
         </DialogActions>
       </Dialog>
 
+      {/* DELETE CONFIRM */}
       <Dialog open={!!confirmId} onClose={() => setConfirmId(null)}>
         <DialogTitle>Delete education?</DialogTitle>
         <DialogActions>

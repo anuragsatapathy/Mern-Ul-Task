@@ -11,9 +11,14 @@ import {
   TextField,
   IconButton,
   Stack,
+  Divider,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EmailIcon from "@mui/icons-material/Email";
+import PhoneIcon from "@mui/icons-material/Phone";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import { toast } from "react-toastify";
 import api from "../api/api";
 import EmptyState from "../components/EmptyState";
@@ -62,17 +67,11 @@ const Profile = () => {
 
     if (!form.fullName) e.fullName = "Full name is required";
 
-    if (!form.email) {
-      e.email = "Email is required";
-    } else if (!emailRegex.test(form.email)) {
-      e.email = "Enter a valid email";
-    }
+    if (!form.email) e.email = "Email is required";
+    else if (!emailRegex.test(form.email)) e.email = "Enter a valid email";
 
-    if (!form.phone) {
-      e.phone = "Phone is required";
-    } else if (!phoneRegex.test(form.phone)) {
-      e.phone = "Phone must be 10 digits";
-    }
+    if (!form.phone) e.phone = "Phone is required";
+    else if (!phoneRegex.test(form.phone)) e.phone = "Phone must be 10 digits";
 
     if (!form.address) e.address = "Address is required";
     if (!form.linkedinId) e.linkedinId = "LinkedIn is required";
@@ -129,36 +128,79 @@ const Profile = () => {
       )}
 
       {profile && (
-        <Card
-          sx={{
-            mt: 2,
-            p: 2,
-            bgcolor: "#E3F2FD", 
-            position: "relative",
-            maxWidth: 1200,
-          }}
-        >
-          <Box position="absolute" top={6} right={6}>
-            <IconButton onClick={() => setOpen(true)}>
-              <EditIcon />
-            </IconButton>
-            <IconButton color="error" onClick={() => setConfirmOpen(true)}>
-              <DeleteIcon />
-            </IconButton>
-          </Box>
+        <Box display="flex" justifyContent="center">
+          <Card
+            sx={{
+              mt: 3,
+              p: 3,
+              width: "100%",
+              maxWidth: 850,
+              minHeight: 420,
+              borderRadius: 4,
+              position: "relative",
+              background:
+                "linear-gradient(135deg, #E3F2FD 0%, #FCE4EC 100%)",
+              boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+              transition: "0.3s",
+              "&:hover": {
+                transform: "translateY(-4px)",
+                boxShadow: "0 18px 40px rgba(0,0,0,0.18)",
+              },
+            }}
+          >
+            {/* ACTIONS */}
+            <Box position="absolute" top={12} right={12}>
+              <IconButton onClick={() => setOpen(true)}>
+                <EditIcon />
+              </IconButton>
+              <IconButton color="error" onClick={() => setConfirmOpen(true)}>
+                <DeleteIcon />
+              </IconButton>
+            </Box>
 
-          <Stack spacing={0.5}>
-            <Typography fontWeight={600}>{profile.fullName}</Typography>
-            <Typography>{profile.email}</Typography>
-            <Typography>{profile.phone}</Typography>
-            <Typography>{profile.address}</Typography>
-            <Typography color="primary">{profile.linkedinId}</Typography>
-            <Typography mt={1}>{profile.summary}</Typography>
-          </Stack>
-        </Card>
+            {/* HEADER */}
+            <Typography variant="h5" fontWeight={700}>
+              {profile.fullName}
+            </Typography>
+
+            <Stack direction="row" spacing={3} mt={1} flexWrap="wrap">
+              <Stack direction="row" spacing={1} alignItems="center">
+                <EmailIcon fontSize="small" />
+                <Typography>{profile.email}</Typography>
+              </Stack>
+
+              <Stack direction="row" spacing={1} alignItems="center">
+                <PhoneIcon fontSize="small" />
+                <Typography>{profile.phone}</Typography>
+              </Stack>
+            </Stack>
+
+            <Stack direction="row" spacing={1} mt={1} alignItems="center">
+              <LocationOnIcon fontSize="small" />
+              <Typography>{profile.address}</Typography>
+            </Stack>
+
+            <Stack direction="row" spacing={1} mt={1} alignItems="center">
+              <LinkedInIcon fontSize="small" color="primary" />
+              <Typography color="primary">
+                {profile.linkedinId}
+              </Typography>
+            </Stack>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* SUMMARY */}
+            <Typography fontWeight={600} mb={0.5}>
+              Professional Summary
+            </Typography>
+            <Typography color="text.secondary">
+              {profile.summary}
+            </Typography>
+          </Card>
+        </Box>
       )}
 
-   
+      {/* ADD / EDIT */}
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>{profile ? "Edit Profile" : "Add Profile"}</DialogTitle>
         <DialogContent>
@@ -256,5 +298,3 @@ const Profile = () => {
 };
 
 export default Profile;
-
-

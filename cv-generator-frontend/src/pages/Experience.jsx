@@ -13,15 +13,20 @@ import {
   Checkbox,
   FormControlLabel,
   IconButton,
+  Divider,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import WorkIcon from "@mui/icons-material/Work";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import api from "../api/api";
 import EmptyState from "../components/EmptyState";
+
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 const Experience = () => {
   const [list, setList] = useState([]);
@@ -30,7 +35,7 @@ const Experience = () => {
   const [editId, setEditId] = useState(null);
   const [errors, setErrors] = useState({});
 
-  const [form, setForm] = useState({
+  const emptyForm = {
     company: "",
     location: "",
     role: "",
@@ -38,7 +43,9 @@ const Experience = () => {
     from: null,
     to: null,
     currentlyWorking: false,
-  });
+  };
+
+  const [form, setForm] = useState(emptyForm);
 
   // FETCH
   const fetchData = async () => {
@@ -51,10 +58,8 @@ const Experience = () => {
     fetchData();
   }, []);
 
- 
   const validate = () => {
     const e = {};
-
     if (!form.company.trim()) e.company = "Company is required";
     if (!form.location.trim()) e.location = "Location is required";
     if (!form.role.trim()) e.role = "Role is required";
@@ -72,7 +77,35 @@ const Experience = () => {
     return true;
   };
 
-  
+  const openAddDialog = () => {
+    setEditId(null);          
+    setForm(emptyForm);       
+    setErrors({});
+    setOpen(true);
+  };
+
+  const openEditDialog = (x) => {
+    setEditId(x._id);
+    setForm({
+      company: x.company,
+      location: x.location,
+      role: x.role,
+      description: x.description,
+      from: dayjs(x.fromDate),
+      to: x.toDate ? dayjs(x.toDate) : null,
+      currentlyWorking: x.currentlyWorking,
+    });
+    setErrors({});
+    setOpen(true);
+  };
+
+  const closeDialog = () => {
+    setOpen(false);
+    setEditId(null);          
+    setErrors({});
+    setForm(emptyForm);
+  };
+
   const save = async () => {
     if (!validate()) return;
 
@@ -95,18 +128,7 @@ const Experience = () => {
         toast.success("Experience added");
       }
 
-      setOpen(false);
-      setEditId(null);
-      setErrors({});
-      setForm({
-        company: "",
-        location: "",
-        role: "",
-        description: "",
-        from: null,
-        to: null,
-        currentlyWorking: false,
-      });
+      closeDialog();
       fetchData();
     } catch {
       toast.error("Something went wrong");
@@ -125,66 +147,89 @@ const Experience = () => {
   };
 
   return (
-    <Box>
-      <Typography variant="h4" mb={2}>Experience</Typography>
+    <Box width="100%">
+      <Typography variant="h4" mb={2}>
+        Experience
+      </Typography>
 
-      <Button variant="contained" onClick={() => setOpen(true)}>
+      <Button variant="contained" onClick={openAddDialog}>
         ADD EXPERIENCE
       </Button>
 
       {list.length === 0 ? (
         <EmptyState text="No experience added yet." />
       ) : (
-        <Stack spacing={2} mt={2}>
-          {list.map((x) => (
-            <Card
-              key={x._id}
-              sx={{ p: 2, bgcolor: "#E8F5E9", position: "relative" }}
-            >
-              <Box position="absolute" top={6} right={6}>
-                <IconButton
-                  onClick={() => {
-                    setEditId(x._id);
-                    setForm({
-                      company: x.company,
-                      location: x.location,
-                      role: x.role,
-                      description: x.description,
-                      from: dayjs(x.fromDate),
-                      to: x.toDate ? dayjs(x.toDate) : null,
-                      currentlyWorking: x.currentlyWorking,
-                    });
-                    setOpen(true);
-                  }}
-                >
-                  <EditIcon />
-                </IconButton>
-                <IconButton color="error" onClick={() => setConfirmId(x._id)}>
-                  <DeleteIcon />
-                </IconButton>
-              </Box>
+        <Box mt={3} width="100%">
+          <Stack spacing={3}>
+            {list.map((x) => (
+              <Card
+                key={x._id}
+                sx={{
+                  width: "94%",
+                  p: 5,
+                  borderRadius: 4,
+                  position: "relative",
+                  background:
+                    "linear-gradient(135deg, #EDE7F6 0%, #E8EAF6 100%)",
+                  boxShadow: "0 10px 28px rgba(0,0,0,0.12)",
+                  transition: "0.3s",
+                  "&:hover": {
+                    transform: "translateY(-6px)",
+                    boxShadow: "0 16px 36px rgba(0,0,0,0.18)",
+                  },
 
-              <Typography fontWeight="bold">
-                {x.role} @ {x.company}
-              </Typography>
-              <Typography>{x.location}</Typography>
+                }}
+              >
+                {/* ACTIONS */}
+                <Box position="absolute" top={12} right={12}>
+                  <IconButton onClick={() => openEditDialog(x)}>
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton
+                    color="error"
+                    onClick={() => setConfirmId(x._id)}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
 
-              <Typography fontSize={13}>
-                {x.toDate
-                  ? `${dayjs(x.fromDate).format("DD/MM/YYYY")} – ${dayjs(
-                      x.toDate
-                    ).format("DD/MM/YYYY")}`
-                  : dayjs(x.fromDate).format("DD/MM/YYYY")}
-              </Typography>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <WorkIcon color="primary" />
+                  <Typography fontWeight={700}>
+                    {x.role} @ {x.company}
+                  </Typography>
+                </Stack>
 
-              <Typography mt={1}>{x.description}</Typography>
-            </Card>
-          ))}
-        </Stack>
+                <Typography color="text.secondary">
+                  {x.location}
+                </Typography>
+
+                <Typography fontSize={13} color="text.secondary">
+                  {x.toDate
+                    ? `${dayjs(x.fromDate).format("DD/MM/YYYY")} – ${dayjs(
+                        x.toDate
+                      ).format("DD/MM/YYYY")}`
+                    : dayjs(x.fromDate).format("DD/MM/YYYY")}
+                </Typography>
+
+                <Divider sx={{ my: 1.5 }} />
+
+                <Box
+                  sx={{ "& p": { marginBottom: "8px" } }}
+                  dangerouslySetInnerHTML={{ __html: x.description }}
+                />
+              </Card>
+            ))}
+          </Stack>
+        </Box>
       )}
 
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>{editId ? "Edit Experience" : "Add Experience"}</DialogTitle>
+      {/* ADD / EDIT DIALOG */}
+      <Dialog open={open} onClose={closeDialog} fullWidth maxWidth="sm">
+        <DialogTitle>
+          {editId ? "Edit Experience" : "Add Experience"}
+        </DialogTitle>
+
         <DialogContent>
           <Stack spacing={2} mt={1}>
             <TextField
@@ -193,7 +238,9 @@ const Experience = () => {
               value={form.company}
               error={!!errors.company}
               helperText={errors.company}
-              onChange={(e) => setForm({ ...form, company: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, company: e.target.value })
+              }
             />
 
             <TextField
@@ -202,7 +249,9 @@ const Experience = () => {
               value={form.location}
               error={!!errors.location}
               helperText={errors.location}
-              onChange={(e) => setForm({ ...form, location: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, location: e.target.value })
+              }
             />
 
             <TextField
@@ -211,21 +260,28 @@ const Experience = () => {
               value={form.role}
               error={!!errors.role}
               helperText={errors.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value })}
-            />
-
-            <TextField
-              label="Description"
-              fullWidth
-              multiline
-              rows={3}
-              value={form.description}
-              error={!!errors.description}
-              helperText={errors.description}
               onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
+                setForm({ ...form, role: e.target.value })
               }
             />
+
+            <Box>
+              <Typography variant="body2" mb={0.5}>
+                Description
+              </Typography>
+              <ReactQuill
+                theme="snow"
+                value={form.description}
+                onChange={(value) =>
+                  setForm({ ...form, description: value })
+                }
+              />
+              {errors.description && (
+                <Typography color="error" fontSize={12} mt={0.5}>
+                  {errors.description}
+                </Typography>
+              )}
+            </Box>
 
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <Stack direction="row" spacing={2}>
@@ -233,7 +289,9 @@ const Experience = () => {
                   label="From"
                   format="DD/MM/YYYY"
                   value={form.from}
-                  onChange={(v) => setForm({ ...form, from: v })}
+                  onChange={(v) =>
+                    setForm({ ...form, from: v })
+                  }
                   slotProps={{
                     textField: {
                       sx: { width: "35%" },
@@ -248,7 +306,9 @@ const Experience = () => {
                     label="To"
                     format="DD/MM/YYYY"
                     value={form.to}
-                    onChange={(v) => setForm({ ...form, to: v })}
+                    onChange={(v) =>
+                      setForm({ ...form, to: v })
+                    }
                     slotProps={{
                       textField: {
                         sx: { width: "35%" },
@@ -279,17 +339,21 @@ const Experience = () => {
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={save}>Save</Button>
+          <Button onClick={closeDialog}>Cancel</Button>
+          <Button variant="contained" onClick={save}>
+            Save
+          </Button>
         </DialogActions>
       </Dialog>
 
-     
+      {/* DELETE CONFIRM */}
       <Dialog open={!!confirmId} onClose={() => setConfirmId(null)}>
         <DialogTitle>Delete experience?</DialogTitle>
         <DialogActions>
           <Button onClick={() => setConfirmId(null)}>Cancel</Button>
-          <Button color="error" onClick={remove}>Delete</Button>
+          <Button color="error" onClick={remove}>
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
@@ -297,3 +361,4 @@ const Experience = () => {
 };
 
 export default Experience;
+

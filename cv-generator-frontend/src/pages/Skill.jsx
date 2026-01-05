@@ -32,7 +32,6 @@ const Skill = () => {
     level: "",
   });
 
-
   const fetchData = async () => {
     const res = await api.get("/skills");
     const items = res?.data?.data?.items ?? res?.data?.data ?? [];
@@ -57,6 +56,31 @@ const Skill = () => {
     return true;
   };
 
+  const openAddDialog = () => {
+    setEditId(null); 
+    setForm({ title: "", name: "", level: "" });
+    setErrors({});
+    setOpen(true);
+  };
+
+  const openEditDialog = (s) => {
+    setEditId(s._id);
+    setForm({
+      title: s.title,
+      name: s.name,
+      level: s.level,
+    });
+    setErrors({});
+    setOpen(true);
+  };
+
+  const closeDialog = () => {
+    setOpen(false);
+    setEditId(null); 
+    setForm({ title: "", name: "", level: "" });
+    setErrors({});
+  };
+
   const save = async () => {
     if (!validate()) return;
 
@@ -68,10 +92,7 @@ const Skill = () => {
       toast.success("Skill added");
     }
 
-    setOpen(false);
-    setEditId(null);
-    setForm({ title: "", name: "", level: "" });
-    setErrors({});
+    closeDialog();
     fetchData();
   };
 
@@ -84,16 +105,18 @@ const Skill = () => {
 
   return (
     <Box>
-      <Typography variant="h4" mb={2}>Skills</Typography>
+      <Typography variant="h4" mb={2}>
+        Skills
+      </Typography>
 
-      <Button variant="contained" onClick={() => setOpen(true)}>
+      <Button variant="contained" onClick={openAddDialog}>
         ADD SKILL
       </Button>
 
       {list.length === 0 ? (
         <EmptyState text="No skills added yet." />
       ) : (
-        <Grid container spacing={2} mt={1}>
+        <Grid container spacing={2} mt={2}>
           {list.map((s) => (
             <Grid item xs={12} md={4} key={s._id}>
               <Card
@@ -101,10 +124,15 @@ const Skill = () => {
                   p: 1.5,
                   bgcolor: "#F3E5F5",
                   position: "relative",
-                  pr: 6, 
+                  borderRadius: 4,
+                  pr: 6,
+                  transition: "0.3s",
+                  "&:hover": {
+                    transform: "translateY(-6px)",
+                    boxShadow: "0 16px 36px rgba(0,0,0,0.18)",
+                  },
                 }}
               >
-            
                 <Box
                   sx={{
                     position: "absolute",
@@ -116,15 +144,7 @@ const Skill = () => {
                 >
                   <IconButton
                     size="small"
-                    onClick={() => {
-                      setEditId(s._id);
-                      setForm({
-                        title: s.title,
-                        name: s.name,
-                        level: s.level,
-                      });
-                      setOpen(true);
-                    }}
+                    onClick={() => openEditDialog(s)}
                   >
                     <EditIcon fontSize="small" />
                   </IconButton>
@@ -150,9 +170,10 @@ const Skill = () => {
         </Grid>
       )}
 
-   
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>{editId ? "Edit Skill" : "Add Skill"}</DialogTitle>
+      <Dialog open={open} onClose={closeDialog} fullWidth maxWidth="sm">
+        <DialogTitle>
+          {editId ? "Edit Skill" : "Add Skill"}
+        </DialogTitle>
         <DialogContent>
           <TextField
             fullWidth
@@ -161,7 +182,9 @@ const Skill = () => {
             value={form.title}
             error={!!errors.title}
             helperText={errors.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, title: e.target.value })
+            }
           />
           <TextField
             fullWidth
@@ -170,7 +193,9 @@ const Skill = () => {
             value={form.name}
             error={!!errors.name}
             helperText={errors.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, name: e.target.value })
+            }
           />
           <TextField
             fullWidth
@@ -180,7 +205,9 @@ const Skill = () => {
             value={form.level}
             error={!!errors.level}
             helperText={errors.level}
-            onChange={(e) => setForm({ ...form, level: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, level: e.target.value })
+            }
           >
             <MenuItem value="Beginner">Beginner</MenuItem>
             <MenuItem value="Intermediate">Intermediate</MenuItem>
@@ -188,12 +215,13 @@ const Skill = () => {
           </TextField>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={save}>Save</Button>
+          <Button onClick={closeDialog}>Cancel</Button>
+          <Button variant="contained" onClick={save}>
+            Save
+          </Button>
         </DialogActions>
       </Dialog>
 
-     
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
         <DialogTitle>Delete skill?</DialogTitle>
         <DialogActions>
