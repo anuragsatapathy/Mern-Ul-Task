@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");          // ✅ ADD THIS
+
 require("dotenv").config();
 
 const apiRouter = require("./src/api/api.router");
@@ -9,6 +11,9 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// ✅ ADD THIS — serve uploaded images
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 connectDB();
 

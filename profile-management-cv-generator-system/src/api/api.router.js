@@ -8,6 +8,7 @@ const experienceRouter = require("./experience/experience.router");
 const skillRouter = require("./skill/skill.router");
 const cvRouter = require("./cv/cv.router");
 
+// MODULE ROUTES
 router.use("/users", userRouter);
 router.use("/profile", profileRouter);
 router.use("/education", educationRouter);

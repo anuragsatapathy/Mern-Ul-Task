@@ -3,7 +3,11 @@ const responses = require("../../utility/response");
 
 const saveProfile = async (req, res) => {
   try {
-    const result = await profileService.saveProfile(req.user.id, req.body);
+    const result = await profileService.saveProfile(
+      req.user.id,
+      req.body,
+      req.file
+    );
 
     if (result.status && result.status !== 200) {
       return responses.generateResponse(
@@ -24,14 +28,8 @@ const getProfile = async (req, res) => {
   try {
     const result = await profileService.getProfile(req.user.id);
 
-    
     if (!result.data) {
-      return responses.generateResponse(
-        res,
-        false,
-        "Profile not found",
-        404
-      );
+      return responses.generateResponse(res, false, "Profile not found", 404);
     }
 
     return responses.successResponse(res, result.data);
@@ -45,12 +43,7 @@ const deleteProfile = async (req, res) => {
     const result = await profileService.deleteProfile(req.user.id);
 
     if (!result.data) {
-      return responses.generateResponse(
-        res,
-        false,
-        "Profile not found",
-        404
-      );
+      return responses.generateResponse(res, false, "Profile not found", 404);
     }
 
     return responses.successResponse(res, "Profile deleted successfully");

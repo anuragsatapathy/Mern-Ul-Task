@@ -3,7 +3,8 @@ const responses = require("../../utility/response");
 
 const previewCV = async (req, res) => {
   try {
-    const html = await cvService.buildCVHTML(req.user.id);
+    const template = req.query.template || "template1";
+    const html = await cvService.buildCVHTML(req.user.id, template);
     return res.send(html);
   } catch (err) {
     return responses.internalFailureResponse(res, err);
@@ -12,7 +13,8 @@ const previewCV = async (req, res) => {
 
 const generateCV = async (req, res) => {
   try {
-    const pdfBuffer = await cvService.generateCV(req.user.id);
+    const template = req.query.template || "template1";
+    const pdfBuffer = await cvService.generateCV(req.user.id, template);
 
     res.set({
       "Content-Type": "application/pdf",
