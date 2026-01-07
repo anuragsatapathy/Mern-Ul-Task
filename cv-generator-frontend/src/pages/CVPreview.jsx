@@ -71,7 +71,7 @@ const CVPreview = () => {
             }}
           >
             <Typography align="center">
-              {t === "template1" ? "Classic CV" : "Modern CV"}
+              {t === "template1" ? "Cv 1" : "Cv 2"}
             </Typography>
           </Card>
         ))}

@@ -2,8 +2,8 @@ import { Box, Card, Typography } from "@mui/material";
 
 const CVTemplateSelector = ({ selected, onSelect }) => {
   const templates = [
-    { id: "template1", name: "Classic" },
-    { id: "template2", name: "Modern" },
+    { id: "template1", name: "Cv 1" },
+    { id: "template2", name: "Cv 2" },
   ];
 
   return (

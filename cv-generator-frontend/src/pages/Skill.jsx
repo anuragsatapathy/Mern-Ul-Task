@@ -57,7 +57,7 @@ const Skill = () => {
   };
 
   const openAddDialog = () => {
-    setEditId(null); 
+    setEditId(null);
     setForm({ title: "", name: "", level: "" });
     setErrors({});
     setOpen(true);
@@ -76,7 +76,7 @@ const Skill = () => {
 
   const closeDialog = () => {
     setOpen(false);
-    setEditId(null); 
+    setEditId(null);
     setForm({ title: "", name: "", level: "" });
     setErrors({});
   };
@@ -105,18 +105,26 @@ const Skill = () => {
 
   return (
     <Box>
-      <Typography variant="h4" mb={2}>
-        Skills
-      </Typography>
+  
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          mb: 2,
+        }}
+      >
+        <Typography variant="h4">Skills</Typography>
 
-      <Button variant="contained" onClick={openAddDialog}>
-        ADD SKILL
-      </Button>
+        <Button variant="contained" onClick={openAddDialog}>
+          ADD SKILL
+        </Button>
+      </Box>
 
       {list.length === 0 ? (
         <EmptyState text="No skills added yet." />
       ) : (
-        <Grid container spacing={2} mt={2}>
+        <Grid container spacing={2}>
           {list.map((s) => (
             <Grid item xs={12} md={4} key={s._id}>
               <Card
@@ -170,6 +178,7 @@ const Skill = () => {
         </Grid>
       )}
 
+      {/*  ADD / EDIT DIALOG */}
       <Dialog open={open} onClose={closeDialog} fullWidth maxWidth="sm">
         <DialogTitle>
           {editId ? "Edit Skill" : "Add Skill"}
@@ -222,6 +231,7 @@ const Skill = () => {
         </DialogActions>
       </Dialog>
 
+      {/* DELETE CONFIRMATION  */}
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
         <DialogTitle>Delete skill?</DialogTitle>
         <DialogActions>

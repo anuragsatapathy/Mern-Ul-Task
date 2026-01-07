@@ -132,13 +132,23 @@ const Education = () => {
 
   return (
     <Box>
-      <Typography variant="h4" mb={2}>
-        Education
-      </Typography>
+      
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          mb: 2,
+        }}
+      >
+        <Typography variant="h4">
+          Education
+        </Typography>
 
-      <Button variant="contained" onClick={openAddDialog}>
-        ADD EDUCATION
-      </Button>
+        <Button variant="contained" onClick={openAddDialog}>
+          ADD EDUCATION
+        </Button>
+      </Box>
 
       {list.length === 0 ? (
         <EmptyState text="No education added yet." />
@@ -163,7 +173,6 @@ const Education = () => {
                     transform: "translateY(-6px)",
                     boxShadow: "0 16px 36px rgba(0,0,0,0.18)",
                   },
-
                 }}
               >
                 <Box position="absolute" top={12} right={12}>

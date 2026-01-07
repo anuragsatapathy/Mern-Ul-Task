@@ -148,13 +148,23 @@ const Experience = () => {
 
   return (
     <Box width="100%">
-      <Typography variant="h4" mb={2}>
-        Experience
-      </Typography>
+      
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          mb: 2,
+        }}
+      >
+        <Typography variant="h4">
+          Experience
+        </Typography>
 
-      <Button variant="contained" onClick={openAddDialog}>
-        ADD EXPERIENCE
-      </Button>
+        <Button variant="contained" onClick={openAddDialog}>
+          ADD EXPERIENCE
+        </Button>
+      </Box>
 
       {list.length === 0 ? (
         <EmptyState text="No experience added yet." />
@@ -177,7 +187,6 @@ const Experience = () => {
                     transform: "translateY(-6px)",
                     boxShadow: "0 16px 36px rgba(0,0,0,0.18)",
                   },
-
                 }}
               >
                 {/* ACTIONS */}
@@ -361,4 +370,3 @@ const Experience = () => {
 };
 
 export default Experience;
-

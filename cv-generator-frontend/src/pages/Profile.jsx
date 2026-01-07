@@ -26,7 +26,7 @@ import EmptyState from "../components/EmptyState";
 
 /* DOT RATING  */
 const DotRating = ({ value = 0, onChange, readOnly = false }) => (
-  <Box display="flex" gap={1}>
+  <Box display="flex" gap={0.5}>
     {[1, 2, 3, 4, 5].map((n) => (
       <Box
         key={n}
@@ -54,7 +54,7 @@ const emptyForm = {
 
   profileImage: null,
   profileImagePreview: null,
-  profileImageName: "", 
+  profileImageName: "",
 
   // strengths
   strengthTitle: "",
@@ -65,7 +65,7 @@ const emptyForm = {
   // languages
   languageName: "",
   languageLevel: "Native",
-  languageRating: 0,
+  languageRating: 5, 
   languages: [],
   editLanguageIndex: null,
 };
@@ -80,13 +80,26 @@ const Profile = () => {
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
+  /* AUTO-RATING LOGIC */
+  useEffect(() => {
+    const levelRatings = {
+      Native: 5,
+      Advanced: 4,
+      Intermediate: 3,
+      Beginner: 1,
+    };
+    setForm((prev) => ({
+      ...prev,
+      languageRating: levelRatings[prev.languageLevel] || 0,
+    }));
+  }, [form.languageLevel]);
+
   /* FETCH  */
   const fetchProfile = async () => {
     try {
       const res = await api.get("/profile");
       if (res.data.data) {
         const data = res.data.data;
-
         setProfile(data);
         setForm({
           ...emptyForm,
@@ -101,7 +114,7 @@ const Profile = () => {
             : null,
           profileImageName: data.profileImage
             ? data.profileImage.split("/").pop()
-            : "", 
+            : "",
         });
       } else {
         setProfile(null);
@@ -117,7 +130,7 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
-  /*  VALIDATION */
+  /* VALIDATION */
   const validate = () => {
     const e = {};
     if (!form.fullName) e.fullName = "Full name is required";
@@ -144,20 +157,13 @@ const Profile = () => {
       toast.error("Enter strength title and description");
       return;
     }
-
     let updated = [...form.strengths];
-
-    const obj = {
-      title: form.strengthTitle,
-      description: form.strengthDesc,
-    };
-
+    const obj = { title: form.strengthTitle, description: form.strengthDesc };
     if (form.editStrengthIndex !== null) {
       updated[form.editStrengthIndex] = obj;
     } else {
       updated.push(obj);
     }
-
     setForm({
       ...form,
       strengths: updated,
@@ -183,33 +189,29 @@ const Profile = () => {
     });
   };
 
-  /*  LANGUAGE  */
+  /* LANGUAGE  */
   const addOrUpdateLanguage = () => {
-    if (!form.languageName || !form.languageRating) {
-      toast.error("Enter language and select rating");
+    if (!form.languageName) {
+      toast.error("Enter language");
       return;
     }
-
     let updated = [...form.languages];
-
     const obj = {
       name: form.languageName,
       level: form.languageLevel,
       rating: Number(form.languageRating),
     };
-
     if (form.editLanguageIndex !== null) {
-      updated[form.editLanguageIndex] = obj; 
+      updated[form.editLanguageIndex] = obj;
     } else {
       updated.push(obj);
     }
-
     setForm({
       ...form,
       languages: updated,
       languageName: "",
       languageLevel: "Native",
-      languageRating: 0,
+      languageRating: 5,
       editLanguageIndex: null,
     });
   };
@@ -220,7 +222,7 @@ const Profile = () => {
       languageName: l.name,
       languageLevel: l.level,
       languageRating: Number(l.rating),
-      editLanguageIndex: i, 
+      editLanguageIndex: i,
     });
   };
 
@@ -233,7 +235,6 @@ const Profile = () => {
 
   const save = async () => {
     if (!validate()) return;
-
     try {
       const fd = new FormData();
       fd.append("fullName", form.fullName);
@@ -243,27 +244,16 @@ const Profile = () => {
       fd.append("linkedinId", form.linkedinId);
       fd.append("summary", form.summary);
       fd.append("headline", form.headline);
-
       if (form.profileImage) fd.append("profileImage", form.profileImage);
-
       fd.append("strengths", JSON.stringify(form.strengths));
-      fd.append(
-        "languages",
-        JSON.stringify(
-          form.languages.map((l) => ({
-            ...l,
-            rating: Number(l.rating),
-          }))
-        )
-      );
+      fd.append("languages", JSON.stringify(form.languages));
 
       await api.post("/profile", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
       toast.success("Profile saved successfully");
       setOpen(false);
-      fetchProfile(); 
+      fetchProfile();
     } catch {
       toast.error("Failed to save profile");
     }
@@ -281,16 +271,13 @@ const Profile = () => {
     }
   };
 
-  
   return (
     <Box>
       <Typography variant="h4" mb={2}>Profile</Typography>
 
       {!profile && (
         <>
-          <Button variant="contained" onClick={() => setOpen(true)}>
-            ADD PROFILE
-          </Button>
+          <Button variant="contained" onClick={() => setOpen(true)}>ADD PROFILE</Button>
           <EmptyState text="No profile data added yet." />
         </>
       )}
@@ -299,77 +286,50 @@ const Profile = () => {
         <Box display="flex" justifyContent="center">
           <Card
             sx={{
-              mt: 3,
-              p: 3,
-              width: "100%",
-              maxWidth: 850,
-              minHeight: 420,
-              borderRadius: 4,
-              position: "relative",
-              background:
-                "linear-gradient(135deg, #E3F2FD 0%, #FCE4EC 100%)",
+              mt: 3, p: 3, width: "100%", maxWidth: 850, minHeight: 420, borderRadius: 4, position: "relative",
+              background: "linear-gradient(135deg, #E3F2FD 0%, #FCE4EC 100%)",
               boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-              transition: "0.3s",
-              "&:hover": {
-                transform: "translateY(-4px)",
-                boxShadow: "0 18px 40px rgba(0,0,0,0.18)",
-              },
+              transition: "0.3s", "&:hover": { transform: "translateY(-4px)", boxShadow: "0 18px 40px rgba(0,0,0,0.18)" },
             }}
           >
             <Box position="absolute" top={12} right={12}>
               <IconButton onClick={() => setOpen(true)}><EditIcon /></IconButton>
-              <IconButton color="error" onClick={() => setConfirmOpen(true)}>
-                <DeleteIcon />
-              </IconButton>
+              <IconButton color="error" onClick={() => setConfirmOpen(true)}><DeleteIcon /></IconButton>
             </Box>
 
             {profile.profileImage && (
-              <img
-                src={`http://localhost:5000${profile.profileImage}`}
-                alt="profile"
-                style={{ width: 80, height: 80, borderRadius: "50%" }}
-              />
+              <img src={`http://localhost:5000${profile.profileImage}`} alt="profile" style={{ width: 80, height: 80, borderRadius: "50%", marginBottom: 8 }} />
             )}
 
-            <Typography variant="h5" fontWeight={700}>
-              {profile.fullName}
-            </Typography>
-            <Typography color="primary" fontWeight={600}>
-              {profile.headline}
-            </Typography>
+            <Typography variant="h5" fontWeight={700}>{profile.fullName}</Typography>
+            <Typography color="primary" fontWeight={600} mb={1}>{profile.headline}</Typography>
 
-            <Stack direction="row" alignItems="center" spacing={1.2}>
-              <EmailIcon fontSize="small" sx={{ color: "#000" }} />
-              <Typography>{profile.email}</Typography>
-              <PhoneIcon fontSize="small" sx={{ color: "#000" }} />
-              <Typography>{profile.phone}</Typography>
-            </Stack>
-
-            <Stack direction="row" alignItems="center" spacing={1.2}>
-              <LocationOnIcon fontSize="small" sx={{ color: "#000" }} />
-              <Typography>{profile.address}</Typography>
-            </Stack>
-
-            <Stack direction="row" alignItems="center" spacing={1.2}>
-              <LinkedInIcon fontSize="small" sx={{ color: "#1976d2" }} />
-              <Typography color="primary">
-                {profile.linkedinId}
-              </Typography>
+            <Stack spacing={0.5} mb={2}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <EmailIcon fontSize="small" /> <Typography variant="body2">{profile.email}</Typography>
+                <PhoneIcon fontSize="small" sx={{ ml: 1 }} /> <Typography variant="body2">{profile.phone}</Typography>
+              </Stack>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <LocationOnIcon fontSize="small" /> <Typography variant="body2">{profile.address}</Typography>
+              </Stack>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <LinkedInIcon fontSize="small" sx={{ color: "#1976d2" }} />
+                <Typography variant="body2" color="primary">{profile.linkedinId}</Typography>
+              </Stack>
             </Stack>
 
             <Divider sx={{ my: 2 }} />
-
-            <Typography fontWeight={600}>Professional Summary</Typography>
-            <Typography>{profile.summary}</Typography>
+            <Typography fontWeight={600} gutterBottom>Professional Summary</Typography>
+            <Typography variant="body2" color="text.secondary">{profile.summary}</Typography>
 
             {profile.strengths?.length > 0 && (
               <>
                 <Divider sx={{ my: 2 }} />
-                <Typography fontWeight={600}>Strengths</Typography>
+                <Typography fontWeight={600} mb={1}>Strengths</Typography>
                 {profile.strengths.map((s, i) => (
-                  <Box key={i}>
-                    <Typography fontWeight={600}>{s.title}</Typography>
-                    <Typography>{s.description}</Typography>
+                  <Box key={i} mb={1.5}>
+                    <Typography fontWeight={600} variant="body2">{s.title}</Typography>
+                    <Typography variant="body2" color="text.secondary">{s.description}</Typography>
                   </Box>
                 ))}
               </>
@@ -378,10 +338,10 @@ const Profile = () => {
             {profile.languages?.length > 0 && (
               <>
                 <Divider sx={{ my: 2 }} />
-                <Typography fontWeight={600}>Languages</Typography>
+                <Typography fontWeight={600} mb={1}>Languages</Typography>
                 {profile.languages.map((l, i) => (
-                  <Stack key={i} direction="row" justifyContent="space-between">
-                    <Typography>{l.name} – {l.level}</Typography>
+                  <Stack key={i} direction="row" justifyContent="space-between" alignItems="center" mb={0.5}>
+                    <Typography variant="body2">{l.name} – {l.level}</Typography>
                     <DotRating value={Number(l.rating)} readOnly />
                   </Stack>
                 ))}
@@ -394,122 +354,92 @@ const Profile = () => {
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>{profile ? "Edit Profile" : "Add Profile"}</DialogTitle>
         <DialogContent>
-          <Stack spacing={2}>
-            <TextField label="Full Name" value={form.fullName}
-              onChange={(e)=>setForm({...form,fullName:e.target.value})} />
-            <TextField label="Email" value={form.email}
-              onChange={(e)=>setForm({...form,email:e.target.value})} />
-            <TextField label="Phone" value={form.phone}
-              onChange={(e)=>setForm({...form,phone:e.target.value})} />
-            <TextField label="Address" value={form.address}
-              onChange={(e)=>setForm({...form,address:e.target.value})} />
-            <TextField label="LinkedIn" value={form.linkedinId}
-              onChange={(e)=>setForm({...form,linkedinId:e.target.value})} />
-            <TextField label="Summary" multiline rows={3}
-              value={form.summary}
-              onChange={(e)=>setForm({...form,summary:e.target.value})} />
-            <TextField label="Headline"
-              value={form.headline}
-              onChange={(e)=>setForm({...form,headline:e.target.value})} />
+          <Stack spacing={2} pt={1}>
+            <TextField label="Full Name" fullWidth value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
+            <Stack direction="row" spacing={2}>
+              <TextField label="Email" fullWidth value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <TextField label="Phone" fullWidth value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            </Stack>
+            <TextField label="Address" fullWidth value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            <TextField label="LinkedIn" fullWidth value={form.linkedinId} onChange={(e) => setForm({ ...form, linkedinId: e.target.value })} />
+            <TextField label="Summary" multiline rows={3} fullWidth value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} />
+            <TextField label="Headline" fullWidth value={form.headline} onChange={(e) => setForm({ ...form, headline: e.target.value })} />
 
-            {/* IMAGE */}
             <Button component="label" variant="outlined">
               Upload Profile Image
               {(form.profileImage?.name || form.profileImageName) && (
-                <Typography variant="caption" sx={{ ml: 1 }}>
-                  {form.profileImage?.name || form.profileImageName}
-                </Typography>
+                <Typography variant="caption" sx={{ ml: 1 }}>{form.profileImage?.name || form.profileImageName}</Typography>
               )}
-              <input hidden type="file" accept="image/*"
-                onChange={(e)=>{
-                  const f=e.target.files[0];
-                  if(!f)return;
-                  setForm({...form,
-                    profileImage:f,
-                    profileImagePreview:URL.createObjectURL(f),
-                    profileImageName:f.name, // ✅ FIX
-                  });
-                }} />
+              <input hidden type="file" accept="image/*" onChange={(e) => {
+                const f = e.target.files[0];
+                if (!f) return;
+                setForm({ ...form, profileImage: f, profileImagePreview: URL.createObjectURL(f), profileImageName: f.name });
+              }} />
             </Button>
 
-            {/* STRENGTH  */}
             <Divider />
             <Typography fontWeight={600}>Strength</Typography>
-
-            <TextField label="Strength Title"
-              value={form.strengthTitle}
-              onChange={(e)=>setForm({...form,strengthTitle:e.target.value})}/>
-            <TextField label="Strength Description" multiline rows={2}
-              value={form.strengthDesc}
-              onChange={(e)=>setForm({...form,strengthDesc:e.target.value})}/>
-            <Button onClick={addOrUpdateStrength}>
-              {form.editStrengthIndex !== null ? "Update Strength" : "Add Strength"}
+            <TextField label="Strength Title" fullWidth value={form.strengthTitle} onChange={(e) => setForm({ ...form, strengthTitle: e.target.value })} />
+            <TextField label="Strength Description" multiline rows={2} fullWidth value={form.strengthDesc} onChange={(e) => setForm({ ...form, strengthDesc: e.target.value })} />
+            <Button variant="text" sx={{ alignSelf: 'center' }} onClick={addOrUpdateStrength}>
+              {form.editStrengthIndex !== null ? "UPDATE STRENGTH" : "ADD STRENGTH"}
             </Button>
 
-            {form.strengths.map((s,i)=>(
-              <Stack key={i} direction="row" justifyContent="space-between">
-                <Box>
-                  <Typography fontWeight={600}>{s.title}</Typography>
-                  <Typography>{s.description}</Typography>
-                </Box>
-                <Box>
-                  <IconButton onClick={()=>editStrength(s,i)}><EditIcon /></IconButton>
-                  <IconButton color="error" onClick={()=>deleteStrength(i)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-              </Stack>
+            {form.strengths.map((s, i) => (
+              <Box key={i} sx={{ bgcolor: '#f9f9f9', p: 1, borderRadius: 1 }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                  <Box sx={{ flex: 1 }}>
+                    <Typography fontWeight={600} variant="subtitle2">{s.title}</Typography>
+                    <Typography variant="caption" color="text.secondary">{s.description}</Typography>
+                  </Box>
+                  <Stack direction="row">
+                    <IconButton size="small" onClick={() => editStrength(s, i)}><EditIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" color="error" onClick={() => deleteStrength(i)}><DeleteIcon fontSize="small" /></IconButton>
+                  </Stack>
+                </Stack>
+              </Box>
             ))}
 
-            {/* LANGUAGE */}
             <Divider />
             <Typography fontWeight={600}>Language</Typography>
+            <TextField label="Language" fullWidth value={form.languageName} onChange={(e) => setForm({ ...form, languageName: e.target.value })} />
+            <Stack direction="row" spacing={2} alignItems="center">
+              <TextField select label="Level" fullWidth value={form.languageLevel} onChange={(e) => setForm({ ...form, languageLevel: e.target.value })}>
+                <MenuItem value="Native">Native</MenuItem>
+                <MenuItem value="Advanced">Advanced</MenuItem>
+                <MenuItem value="Intermediate">Intermediate</MenuItem>
+                <MenuItem value="Beginner">Beginner</MenuItem>
+              </TextField>
+            </Stack>
 
-            <TextField label="Language"
-              value={form.languageName}
-              onChange={(e)=>setForm({...form,languageName:e.target.value})}/>
-            <TextField select label="Level"
-              value={form.languageLevel}
-              onChange={(e)=>setForm({...form,languageLevel:e.target.value})}>
-              <MenuItem value="Native">Native</MenuItem>
-              <MenuItem value="Advanced">Advanced</MenuItem>
-              <MenuItem value="Intermediate">Intermediate</MenuItem>
-              <MenuItem value="Beginner">Beginner</MenuItem>
-            </TextField>
-
-            <DotRating value={form.languageRating}
-              onChange={(n)=>setForm({...form,languageRating:Number(n)})} />
-
-            <Button onClick={addOrUpdateLanguage}>
-              {form.editLanguageIndex !== null ? "Update Language" : "Add Language"}
+            <Button variant="text" sx={{ alignSelf: 'center' }} onClick={addOrUpdateLanguage}>
+              {form.editLanguageIndex !== null ? "UPDATE LANGUAGE" : "ADD LANGUAGE"}
             </Button>
 
-            {form.languages.map((l,i)=>(
-              <Stack key={i} direction="row" justifyContent="space-between">
-                <Typography>{l.name} – {l.level}</Typography>
-                <Box display="flex" gap={1}>
-                  <DotRating value={Number(l.rating)} readOnly />
-                  <IconButton onClick={()=>editLanguage(l,i)}><EditIcon /></IconButton>
-                  <IconButton color="error" onClick={()=>deleteLanguage(i)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-              </Stack>
+            {form.languages.map((l, i) => (
+              <Box key={i} sx={{ borderBottom: '1px solid #eee', pb: 1 }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Typography variant="body2">{l.name} – {l.level}</Typography>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <DotRating value={Number(l.rating)} readOnly />
+                    <IconButton size="small" onClick={() => editLanguage(l, i)}><EditIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" color="error" onClick={() => deleteLanguage(i)}><DeleteIcon fontSize="small" /></IconButton>
+                  </Stack>
+                </Stack>
+              </Box>
             ))}
           </Stack>
         </DialogContent>
-
-        <DialogActions>
-          <Button onClick={()=>setOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={save}>Save</Button>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setOpen(false)}>CANCEL</Button>
+          <Button variant="contained" onClick={save}>SAVE</Button>
         </DialogActions>
       </Dialog>
 
-      {/* DELETE CONFIRM */}
-      <Dialog open={confirmOpen} onClose={()=>setConfirmOpen(false)}>
+      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
         <DialogTitle>Delete profile?</DialogTitle>
         <DialogActions>
-          <Button onClick={()=>setConfirmOpen(false)}>Cancel</Button>
+          <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>
           <Button color="error" onClick={remove}>Delete</Button>
         </DialogActions>
       </Dialog>

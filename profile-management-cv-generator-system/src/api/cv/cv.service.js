@@ -32,19 +32,15 @@ const buildTemplate1HTML = ({ profile, education, experience, skills }) => `
 </style>
 </head>
 <body>
-
 <h1>${profile?.fullName || ""}</h1>
-
 <div class="contact">
   <span>📍 ${profile?.address || ""}</span>
   <span>✉️ ${profile?.email || ""}</span>
   <span>📞 ${profile?.phone || ""}</span>
   <span>🔗 ${profile?.linkedinId || ""}</span>
 </div>
-
 <h2>SUMMARY</h2>
 <p>${profile?.summary || ""}</p>
-
 <h2>EXPERIENCE</h2>
 ${experience.map(x => `
 <div class="item">
@@ -58,7 +54,6 @@ ${experience.map(x => `
   <ul>${quillToBullets(x.description)}</ul>
 </div>
 `).join("")}
-
 <h2>EDUCATION</h2>
 ${education.map(e => `
 <div class="item">
@@ -71,7 +66,6 @@ ${education.map(e => `
   </span>
 </div>
 `).join("")}
-
 <h2>SKILLS</h2>
 ${Object.entries(
   skills.reduce((acc,s)=>{
@@ -83,7 +77,6 @@ ${Object.entries(
 <b>${title}</b>
 <ul>${items.map(i=>`<li>${i}</li>`).join("")}</ul>
 `).join("")}
-
 </body>
 </html>
 `;
@@ -94,85 +87,162 @@ const buildTemplate2HTML = ({ profile, experience, skills }) => `
 <html>
 <head>
 <meta charset="UTF-8"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-  body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:0;color:#111;}
-  .page{display:flex;padding:40px;}
-  .left{width:70%;padding-right:30px;}
-  .right{width:30%;padding-left:30px;border-left:2px solid #ddd;}
-  h1{margin:0;font-size:28px;}
-  .role{color:#1e88e5;font-weight:600;}
-  .contact{font-size:12px;margin:6px 0 20px;}
-  .section{margin-top:18px;}
-  .section h2{font-size:15px;border-bottom:1px solid #000;margin-bottom:8px;}
-  .exp-item{margin-bottom:12px;}
-  .exp-item b{font-size:14px;}
-  .small{font-size:12px;color:#555;}
-  .skill-chip{display:inline-block;border:1px solid #333;border-radius:14px;padding:4px 10px;font-size:11px;margin:3px;}
-  .strength{margin-bottom:10px;}
-  .lang-row{margin:6px 0;font-size:13px;}
-  .dot{display:inline-block;width:8px;height:8px;background:#1e88e5;border-radius:50%;margin-right:3px;}
+  @page { size: A4; margin: 0; }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:0; padding:40px; color:#333; background:#fff; }
+  
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+  .header-text { flex: 1; }
+  .header-text h1 { margin: 0; font-size: 36px; text-transform: uppercase; letter-spacing: 1px; color: #000; }
+  .header-text .headline { color: #0091ff; font-weight: bold; font-size: 18px; margin: 5px 0; }
+  .header-contact { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; margin-top: 10px; color: #555; }
+  .header-contact div { display: flex; align-items: center; gap: 5px; }
+  .header-contact i { color: #0091ff; width: 14px; }
+  
+  .avatar-container { width: 120px; height: 120px; border-radius: 50%; overflow: hidden; border: 2px solid #f0f0f0; }
+  .avatar-container img { width: 100%; height: 100%; object-fit: cover; }
+
+  .main-content { display: flex; gap: 40px; margin-top: 20px; }
+  .col-left { width: 65%; }
+  .col-right { width: 35%; }
+
+  .section-title { font-size: 16px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 4px; margin: 25px 0 12px 0; text-transform: uppercase; }
+  .summary-text { font-size: 12px; line-height: 1.6; color: #444; text-align: justify; }
+
+  .exp-item { margin-bottom: 20px; }
+  .exp-role { font-size: 15px; font-weight: bold; color: #333; margin-bottom: 2px; }
+  .exp-company { font-size: 13px; font-weight: bold; color: #0091ff; margin-bottom: 4px; }
+  .exp-meta { font-size: 11px; color: #777; display: flex; gap: 15px; margin-bottom: 8px; }
+  .exp-meta i { margin-right: 4px; }
+  .exp-desc { font-size: 11.5px; padding-left: 18px; margin: 0; color: #444; }
+  .exp-desc li { margin-bottom: 5px; }
+  .exp-sep{
+  height:1px;
+  background:#e5e5e5;
+  margin:14px 0 18px;
+}
+
+  .skill-group-title { font-size: 12px; font-weight: bold; margin: 12px 0 6px 0; color: #333; }
+  .skill-tag { display: inline-block; background: #fff; border: 1px solid #ccc; padding: 4px 10px; border-radius: 4px; font-size: 11px; margin: 0 4px 6px 0; color: #444; }
+  
+  .strength-item { margin-bottom: 15px; }
+  .strength-header { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 13px; color: #000; margin-bottom: 4px; }
+  .strength-header i { color: #0091ff; font-size: 14px; }
+  .strength-body { font-size: 11px; color: #666; line-height: 1.4; }
+
+  /* divider for strengths */
+  .strength-sep{
+    height:1px;
+    background:#e5e5e5;
+    margin:10px 0 14px;
+  }
+
+  /* LANGUAGES  */
+  .lang-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .lang-left {
+    display: flex;
+    flex-direction: column;
+  }
+  .lang-name { font-size: 13px; font-weight: 700; }
+  .lang-level { font-size: 11px; color: #777; margin-top: 2px; }
+
+  .lang-right { white-space: nowrap; }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #d9d9d9;
+    display: inline-block;
+    margin-left: 4px;
+  }
+  .dot.active { background: #1e88e5; }
+
+  .lang-sep {
+    height: 1px;
+    background: #e5e5e5;
+    margin: 8px 0 12px;
+  }
 </style>
 </head>
 <body>
 
-<div class="page">
-  <!-- LEFT -->
-  <div class="left">
-    <h1>${profile?.fullName || ""}</h1>
-    <div class="role">Experienced Project Manager | IT Leadership | Cost Management</div>
-    <div class="contact">
-      ✉️ ${profile?.email || ""} &nbsp; | &nbsp;
-      📞 ${profile?.phone || ""} <br/>
-      📍 ${profile?.address || ""} &nbsp; | &nbsp;
-      🔗 ${profile?.linkedinId || ""}
-    </div>
-
-    <div class="section">
-      <h2>SUMMARY</h2>
-      <p>${profile?.summary || ""}</p>
-    </div>
-
-    <div class="section">
-      <h2>EXPERIENCE</h2>
-      ${experience.map(x=>`
-        <div class="exp-item">
-          <b>${x.role}</b><br/>
-          <span class="small">${x.company} – ${x.location}</span>
-          <ul>${quillToBullets(x.description)}</ul>
-        </div>
-      `).join("")}
+<div class="header">
+  <div class="header-text">
+    <h1>${profile?.fullName || "ANDREW CLARK"}</h1>
+    <div class="headline">${profile?.headline || "Experienced Project Manager | IT | Leadership"}</div>
+    <div class="header-contact">
+      <div><i class="fa-solid fa-phone"></i> ${profile?.phone || ""}</div>
+      <div><i class="fa-solid fa-envelope"></i> ${profile?.email || ""}</div>
+      <div><i class="fa-solid fa-link"></i> ${profile?.linkedinId || ""}</div>
+      <div><i class="fa-solid fa-location-dot"></i> ${profile?.address || ""}</div>
     </div>
   </div>
+  <div class="avatar-container">
+    ${profile?.profileImage ? `<img src="http://localhost:5000${profile.profileImage}" />` : `<img src="https://via.placeholder.com/150" />`}
+  </div>
+</div>
 
-  <!-- RIGHT -->
-  <div class="right">
-    <div class="section">
-      <h2>SKILLS</h2>
-      ${skills.map(s=>`<span class="skill-chip">${s.name}</span>`).join("")}
-    </div>
+<div class="main-content">
+  <div class="col-left">
+    <div class="section-title">Summary</div>
+    <div class="summary-text">${profile?.summary || ""}</div>
 
-    <div class="section">
-      <h2>STRENGTHS</h2>
-      ${(profile?.strengths||[]).map(s=>`
-        <div class="strength">⭐ ${s}</div>
-      `).join("")}
-    </div>
-
-    <div class="section">
-      <h2>LANGUAGES</h2>
-      ${(profile?.languages||[]).map(l=>`
-        <div class="lang-row">
-          ${l.name} – ${l.level}
-          <div>
-            <span class="dot"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
-          </div>
+    <div class="section-title">Experience</div>
+    ${experience.map((x,i,arr) => `
+      <div class="exp-item">
+        <div class="exp-role">${x.role}</div>
+        <div class="exp-company">${x.company}</div>
+        <div class="exp-meta">
+          <span><i class="fa-regular fa-calendar"></i> ${new Date(x.fromDate).getFullYear()} - ${x.currentlyWorking ? 'Present' : new Date(x.toDate).getFullYear()}</span>
+          <span><i class="fa-solid fa-location-dot"></i> ${x.location}</span>
         </div>
-      `).join("")}
-    </div>
+        <ul class="exp-desc">${quillToBullets(x.description)}</ul>
+      </div>
+      ${i < arr.length - 1 ? `<div class="exp-sep"></div>` : ``}
+    `).join("")}
+  </div>
+
+  <div class="col-right">
+    <div class="section-title">Skills</div>
+    ${Object.entries(
+      skills.reduce((acc, s) => {
+        acc[s.title] = acc[s.title] || [];
+        acc[s.title].push(s.name);
+        return acc;
+      }, {})
+    ).map(([title, items]) => `
+      <div class="skill-group-title">${title}</div>
+      ${items.map(name => `<span class="skill-tag">${name}</span>`).join("")}
+    `).join("")}
+
+    <div class="section-title">Strengths</div>
+    ${(profile?.strengths || []).map((s,i,arr) => `
+      <div class="strength-item">
+        <div class="strength-header"><i class="fa-solid fa-gem"></i> ${s.title}</div>
+        <div class="strength-body">${s.description}</div>
+      </div>
+      ${i < arr.length - 1 ? `<div class="strength-sep"></div>` : ``}
+    `).join("")}
+
+    <div class="section-title">Languages</div>
+    ${(profile?.languages || []).map((l, i, arr) => `
+      <div class="lang-row">
+        <div class="lang-left">
+          <div class="lang-name">${l.name}</div>
+          <div class="lang-level">${l.level}</div>
+        </div>
+        <div class="lang-right">
+          ${[1,2,3,4,5].map(n => `<span class="dot ${n <= Number(l.rating) ? 'active' : ''}"></span>`).join("")}
+        </div>
+      </div>
+      ${i < arr.length - 1 ? `<div class="lang-sep"></div>` : ``}
+    `).join("")}
   </div>
 </div>
 
@@ -197,13 +267,17 @@ const buildCVHTML = async (userId, template = "template1") => {
 const generateCV = async (userId, template = "template1") => {
   const html = await buildCVHTML(userId, template);
 
-  const browser = await puppeteer.launch({ headless: "new" });
+  const browser = await puppeteer.launch({ 
+    headless: "new",
+    args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+  });
   const page = await browser.newPage();
   await page.setContent(html, { waitUntil: "networkidle0" });
 
   const pdf = await page.pdf({
     format: "A4",
     printBackground: true,
+    margin: { top: '0px', right: '0px', bottom: '0px', left: '0px' }
   });
 
   await browser.close();
@@ -211,5 +285,3 @@ const generateCV = async (userId, template = "template1") => {
 };
 
 module.exports = { generateCV, buildCVHTML };
-
-
