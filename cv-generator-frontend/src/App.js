@@ -11,6 +11,10 @@ import Skill from "./pages/Skill";
 import CVPreview from "./pages/CVPreview";
 import ResetPassword from "./pages/ResetPassword";
 
+// NEW PAGES
+import ConferencesAndCourses from "./pages/ConferencesAndCourses";
+import Certificates from "./pages/Certificates";
+
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./components/MainLayout";
 
@@ -40,6 +44,11 @@ export default function App() {
           ["/education", <Education />],
           ["/experience", <Experience />],
           ["/skills", <Skill />],
+
+          // NEW ROUTES
+          ["/conference-and-courses", <ConferencesAndCourses />],
+          ["/certificates", <Certificates />],
+
           ["/cv", <CVPreview />],
           ["/reset-password", <ResetPassword />],
         ].map(([path, element]) => (

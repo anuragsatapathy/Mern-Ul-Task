@@ -84,8 +84,9 @@ const Profile = () => {
   useEffect(() => {
     const levelRatings = {
       Native: 5,
-      Advanced: 4,
-      Intermediate: 3,
+      Proficiency:4,
+      Advanced: 3,
+      Intermediate: 2,
       Beginner: 1,
     };
     setForm((prev) => ({
@@ -406,6 +407,7 @@ const Profile = () => {
             <Stack direction="row" spacing={2} alignItems="center">
               <TextField select label="Level" fullWidth value={form.languageLevel} onChange={(e) => setForm({ ...form, languageLevel: e.target.value })}>
                 <MenuItem value="Native">Native</MenuItem>
+                <MenuItem value="Proficiency">Proficiency</MenuItem>
                 <MenuItem value="Advanced">Advanced</MenuItem>
                 <MenuItem value="Intermediate">Intermediate</MenuItem>
                 <MenuItem value="Beginner">Beginner</MenuItem>

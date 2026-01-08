@@ -217,7 +217,7 @@ const buildTemplate2HTML = ({ profile, experience, skills }) => `
         return acc;
       }, {})
     ).map(([title, items]) => `
-      <div class="skill-group-title">${title}</div>
+    
       ${items.map(name => `<span class="skill-tag">${name}</span>`).join("")}
     `).join("")}
 

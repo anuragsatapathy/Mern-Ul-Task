@@ -7,6 +7,8 @@ const menu = [
   { label: "EDUCATION", path: "/education" },
   { label: "EXPERIENCE", path: "/experience" },
   { label: "SKILLS", path: "/skills" },
+  { label: "CONFERENCES & COURSES", path: "/conference-and-courses" },
+  { label: "CERTIFICATES", path: "/certificates" },
   { label: "PREVIEW CV", path: "/cv" },
 ];
 

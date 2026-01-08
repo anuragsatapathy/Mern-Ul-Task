@@ -1,33 +1,37 @@
 import { useEffect, useState } from "react";
-import { Box, Typography, Button, Paper, Card } from "@mui/material";
+import { Box, Typography, Button, Paper, Card, Grid } from "@mui/material";
 import api from "../api/api";
-import EmptyState from "../components/EmptyState";
 import { toast } from "react-toastify";
 
 const CVPreview = () => {
   const [html, setHtml] = useState("");
-  const [template, setTemplate] = useState("template1");
+  const [template, setTemplate] = useState(null);
+  const [previews, setPreviews] = useState({ template1: "", template2: "" });
 
-  const fetchCV = async (tpl = template) => {
+  // Fetch both previews
+  const fetchAllPreviews = async () => {
     try {
-      const res = await api.get(`/cv/preview?template=${tpl}`);
-      setHtml(res.data);
-    } catch {
-      setHtml("");
+      const [res1, res2] = await Promise.all([
+        api.get("/cv/preview?template=template1"),
+        api.get("/cv/preview?template=template2"),
+      ]);
+      setPreviews({ template1: res1.data, template2: res2.data });
+    } catch (err) {
+      console.error("Failed to fetch previews", err);
     }
   };
 
   useEffect(() => {
-    fetchCV();
+    fetchAllPreviews();
   }, []);
 
-  const selectTemplate = async (id) => {
+  const selectTemplate = (id) => {
     try {
       setTemplate(id);
-      await fetchCV(id);
-      toast.success("Template selected");
+      setHtml(previews[id]);
+      toast.success("Template Selected");
     } catch {
-      toast.error("Failed to select template");
+      toast.error("Failed to load template");
     }
   };
 
@@ -36,15 +40,12 @@ const CVPreview = () => {
       const res = await api.get(`/cv/generate?template=${template}`, {
         responseType: "blob",
       });
-
       const blob = new Blob([res.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
-
       const a = document.createElement("a");
       a.href = url;
       a.download = "My_CV.pdf";
       a.click();
-
       toast.success("CV downloaded");
     } catch {
       toast.error("Failed to download CV");
@@ -52,53 +53,109 @@ const CVPreview = () => {
   };
 
   return (
-    <Box>
-      <Typography variant="h4" mb={2}>
-        CV Templates
-      </Typography>
+    <Box sx={{ minHeight: "100vh", bgcolor: "#f8fafc", p: 4 }}>
+      {/* CV CARDS ONLY */}
+      <Grid container spacing={6} justifyContent="flex-start">
+        {[
+          { id: "template1", label: "CV 1" },
+          { id: "template2", label: "CV 2" },
+        ].map((t) => (
+          <Grid item key={t.id}>
+            <Box textAlign="center">
+              {/* A4 CARD */}
+              <Card
+                onClick={() => selectTemplate(t.id)}
+                sx={{
+                  width: 190,
+                  height: 270, // A4 ratio
+                  cursor: "pointer",
+                  border:
+                    template === t.id
+                      ? "2px solid #2563eb"
+                      : "1px solid #e5e7eb",
+                  boxShadow:
+                    template === t.id
+                      ? "0 10px 22px rgba(37,99,235,0.25)"
+                      : "0 6px 14px rgba(0,0,0,0.12)",
+                  borderRadius: "6px",
+                  overflow: "hidden",
+                  transition: "0.25s",
+                  background: "#fff",
+                  "&:hover": {
+                    transform: "translateY(-6px)",
+                    boxShadow: "0 14px 26px rgba(0,0,0,0.18)",
+                  },
+                }}
+              >
+                {/* REAL CV PREVIEW */}
+                <Box
+                  sx={{
+                    transform: "scale(0.22)",
+                    transformOrigin: "top left",
+                    width: "820px",
+                    height: "1160px",
+                    pointerEvents: "none",
+                  }}
+                >
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: previews[t.id],
+                    }}
+                  />
+                </Box>
+              </Card>
 
-      {/* TEMPLATE SELECTOR */}
-      <Box display="flex" gap={2} mb={3}>
-        {["template1", "template2"].map((t) => (
-          <Card
-            key={t}
-            onClick={() => selectTemplate(t)}
-            sx={{
-              p: 2,
-              cursor: "pointer",
-              border:
-                template === t ? "2px solid #1976d2" : "1px solid #ccc",
-            }}
-          >
-            <Typography align="center">
-              {t === "template1" ? "Cv 1" : "Cv 2"}
-            </Typography>
-          </Card>
+              {/* LABEL BELOW */}
+              <Typography
+                sx={{
+                  mt: 1.5,
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  color: "#111",
+                }}
+              >
+                {t.label}
+              </Typography>
+            </Box>
+          </Grid>
         ))}
-      </Box>
+      </Grid>
 
-      {!html && (
-        <EmptyState text="No CV data available yet. Please add profile, education, experience and skills." />
-      )}
+      {/* FULL PREVIEW */}
+      {template && html && (
+        <Box mt={8}>
+          <Box sx={{ maxWidth: 900, mx: "auto" }}>
+            <Paper
+              sx={{
+                p: 4,
+                borderRadius: "8px",
+                border: "1px solid #e5e7eb",
+                boxShadow: "0 10px 20px rgba(0,0,0,0.08)",
+                mb: 4,
+              }}
+            >
+              <div dangerouslySetInnerHTML={{ __html: html }} />
+            </Paper>
 
-      {html && (
-        <>
-          <Paper
-            sx={{
-              p: 2,
-              border: "1px solid #ddd",
-              maxHeight: "75vh",
-              overflow: "auto",
-            }}
-            dangerouslySetInnerHTML={{ __html: html }}
-          />
-
-          <Box textAlign="center" mt={3}>
-            <Button variant="contained" size="large" onClick={downloadCV}>
-              DOWNLOAD CV
-            </Button>
+            <Box textAlign="center">
+              <Button
+                variant="contained"
+                onClick={downloadCV}
+                sx={{
+                  bgcolor: "#2563eb",
+                  px: 7,
+                  py: 1.5,
+                  borderRadius: "8px",
+                  fontWeight: 600,
+                  textTransform: "none",
+                  "&:hover": { bgcolor: "#1d4ed8" },
+                }}
+              >
+                Download CV
+              </Button>
+            </Box>
           </Box>
-        </>
+        </Box>
       )}
     </Box>
   );
