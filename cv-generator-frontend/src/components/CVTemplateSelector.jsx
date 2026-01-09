@@ -4,6 +4,7 @@ const CVTemplateSelector = ({ selected, onSelect }) => {
   const templates = [
     { id: "template1", name: "Cv 1" },
     { id: "template2", name: "Cv 2" },
+    { id: "template3", name: "Cv 3" },
   ];
 
   return (

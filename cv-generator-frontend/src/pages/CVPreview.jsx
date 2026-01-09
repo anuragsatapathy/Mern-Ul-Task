@@ -6,18 +6,29 @@ import { toast } from "react-toastify";
 const CVPreview = () => {
   const [html, setHtml] = useState("");
   const [template, setTemplate] = useState(null);
-  const [previews, setPreviews] = useState({ template1: "", template2: "" });
+  const [previews, setPreviews] = useState({
+    template1: "",
+    template2: "",
+    template3: "",
+  });
 
-  // Fetch both previews
+  // Fetch all previews
   const fetchAllPreviews = async () => {
     try {
-      const [res1, res2] = await Promise.all([
+      const [res1, res2, res3] = await Promise.all([
         api.get("/cv/preview?template=template1"),
         api.get("/cv/preview?template=template2"),
+        api.get("/cv/preview?template=template3"),
       ]);
-      setPreviews({ template1: res1.data, template2: res2.data });
+
+      setPreviews({
+        template1: res1.data,
+        template2: res2.data,
+        template3: res3.data,
+      });
     } catch (err) {
       console.error("Failed to fetch previews", err);
+      toast.error("Failed to load CV previews");
     }
   };
 
@@ -40,12 +51,14 @@ const CVPreview = () => {
       const res = await api.get(`/cv/generate?template=${template}`, {
         responseType: "blob",
       });
+
       const blob = new Blob([res.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = "My_CV.pdf";
       a.click();
+
       toast.success("CV downloaded");
     } catch {
       toast.error("Failed to download CV");
@@ -54,20 +67,20 @@ const CVPreview = () => {
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f8fafc", p: 4 }}>
-      {/* CV CARDS ONLY */}
+      {/* CV CARDS */}
       <Grid container spacing={6} justifyContent="flex-start">
         {[
           { id: "template1", label: "CV 1" },
           { id: "template2", label: "CV 2" },
+          { id: "template3", label: "CV 3" },
         ].map((t) => (
           <Grid item key={t.id}>
             <Box textAlign="center">
-              {/* A4 CARD */}
               <Card
                 onClick={() => selectTemplate(t.id)}
                 sx={{
                   width: 190,
-                  height: 270, // A4 ratio
+                  height: 270,
                   cursor: "pointer",
                   border:
                     template === t.id
@@ -87,7 +100,7 @@ const CVPreview = () => {
                   },
                 }}
               >
-                {/* REAL CV PREVIEW */}
+                {/* CV PREVIEW */}
                 <Box
                   sx={{
                     transform: "scale(0.22)",
@@ -105,7 +118,6 @@ const CVPreview = () => {
                 </Box>
               </Card>
 
-              {/* LABEL BELOW */}
               <Typography
                 sx={{
                   mt: 1.5,

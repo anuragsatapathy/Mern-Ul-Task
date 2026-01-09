@@ -20,11 +20,12 @@ import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
+import XIcon from "@mui/icons-material/X";
 import { toast } from "react-toastify";
 import api from "../api/api";
 import EmptyState from "../components/EmptyState";
 
-/* DOT RATING  */
+/* DOT RATING */
 const DotRating = ({ value = 0, onChange, readOnly = false }) => (
   <Box display="flex" gap={0.5}>
     {[1, 2, 3, 4, 5].map((n) => (
@@ -49,23 +50,19 @@ const emptyForm = {
   phone: "",
   address: "",
   linkedinId: "",
+  xId: "",
   summary: "",
   headline: "",
-
   profileImage: null,
   profileImagePreview: null,
   profileImageName: "",
-
-  // strengths
   strengthTitle: "",
   strengthDesc: "",
   strengths: [],
   editStrengthIndex: null,
-
-  // languages
   languageName: "",
   languageLevel: "Native",
-  languageRating: 5, 
+  languageRating: 5,
   languages: [],
   editLanguageIndex: null,
 };
@@ -80,11 +77,10 @@ const Profile = () => {
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  /* AUTO-RATING LOGIC */
   useEffect(() => {
     const levelRatings = {
       Native: 5,
-      Proficiency:4,
+      Proficiency: 4,
       Advanced: 3,
       Intermediate: 2,
       Beginner: 1,
@@ -95,7 +91,6 @@ const Profile = () => {
     }));
   }, [form.languageLevel]);
 
-  /* FETCH  */
   const fetchProfile = async () => {
     try {
       const res = await api.get("/profile");
@@ -105,6 +100,7 @@ const Profile = () => {
         setForm({
           ...emptyForm,
           ...data,
+          xId: data.xId || "",
           strengths: data.strengths || [],
           languages: (data.languages || []).map((l) => ({
             ...l,
@@ -131,7 +127,6 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
-  /* VALIDATION */
   const validate = () => {
     const e = {};
     if (!form.fullName) e.fullName = "Full name is required";
@@ -141,6 +136,7 @@ const Profile = () => {
     else if (!phoneRegex.test(form.phone)) e.phone = "Phone must be 10 digits";
     if (!form.address) e.address = "Address is required";
     if (!form.linkedinId) e.linkedinId = "LinkedIn is required";
+    if (!form.xId) e.xId = "X ID is required";
     if (!form.summary) e.summary = "Summary is required";
     if (!form.headline) e.headline = "Headline is required";
 
@@ -152,7 +148,6 @@ const Profile = () => {
     return true;
   };
 
-  /* STRENGTH */
   const addOrUpdateStrength = () => {
     if (!form.strengthTitle || !form.strengthDesc) {
       toast.error("Enter strength title and description");
@@ -190,7 +185,6 @@ const Profile = () => {
     });
   };
 
-  /* LANGUAGE  */
   const addOrUpdateLanguage = () => {
     if (!form.languageName) {
       toast.error("Enter language");
@@ -243,6 +237,7 @@ const Profile = () => {
       fd.append("phone", form.phone);
       fd.append("address", form.address);
       fd.append("linkedinId", form.linkedinId);
+      fd.append("xId", form.xId);
       fd.append("summary", form.summary);
       fd.append("headline", form.headline);
       if (form.profileImage) fd.append("profileImage", form.profileImage);
@@ -274,7 +269,7 @@ const Profile = () => {
 
   return (
     <Box>
-      <Typography variant="h4" mb={2}>Profile</Typography>
+      <Typography variant="h4" mb={2} fontWeight={600}>Profile</Typography>
 
       {!profile && (
         <>
@@ -287,84 +282,161 @@ const Profile = () => {
         <Box display="flex" justifyContent="center">
           <Card
             sx={{
-              mt: 3, p: 3, width: "100%", maxWidth: 850, minHeight: 420, borderRadius: 4, position: "relative",
+              mt: 3, p: 4, width: "100%", maxWidth: 850, borderRadius: 4, position: "relative",
               background: "linear-gradient(135deg, #E3F2FD 0%, #FCE4EC 100%)",
               boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
               transition: "0.3s", "&:hover": { transform: "translateY(-4px)", boxShadow: "0 18px 40px rgba(0,0,0,0.18)" },
             }}
           >
-            <Box position="absolute" top={12} right={12}>
+            <Box position="absolute" top={16} right={16}>
               <IconButton onClick={() => setOpen(true)}><EditIcon /></IconButton>
               <IconButton color="error" onClick={() => setConfirmOpen(true)}><DeleteIcon /></IconButton>
             </Box>
 
-            {profile.profileImage && (
-              <img src={`http://localhost:5000${profile.profileImage}`} alt="profile" style={{ width: 80, height: 80, borderRadius: "50%", marginBottom: 8 }} />
-            )}
-
-            <Typography variant="h5" fontWeight={700}>{profile.fullName}</Typography>
-            <Typography color="primary" fontWeight={600} mb={1}>{profile.headline}</Typography>
-
-            <Stack spacing={0.5} mb={2}>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <EmailIcon fontSize="small" /> <Typography variant="body2">{profile.email}</Typography>
-                <PhoneIcon fontSize="small" sx={{ ml: 1 }} /> <Typography variant="body2">{profile.phone}</Typography>
-              </Stack>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <LocationOnIcon fontSize="small" /> <Typography variant="body2">{profile.address}</Typography>
-              </Stack>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <LinkedInIcon fontSize="small" sx={{ color: "#1976d2" }} />
-                <Typography variant="body2" color="primary">{profile.linkedinId}</Typography>
-              </Stack>
+            <Stack direction="row" spacing={3} alignItems="center" mb={2}>
+              {profile.profileImage && (
+                <img
+                  src={`http://localhost:5000${profile.profileImage}`}
+                  alt="profile"
+                  style={{ width: 100, height: 100, borderRadius: "50%", objectFit: 'cover', border: '3px solid #fff' }}
+                />
+              )}
+              <Box>
+                <Typography variant="h4" fontWeight={800} color="text.primary">{profile.fullName}</Typography>
+                <Typography variant="h6" color="primary" sx={{ opacity: 0.9, fontWeight: 600 }}>{profile.headline}</Typography>
+              </Box>
             </Stack>
 
-            <Divider sx={{ my: 2 }} />
-            <Typography fontWeight={600} gutterBottom>Professional Summary</Typography>
-            <Typography variant="body2" color="text.secondary">{profile.summary}</Typography>
+       
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2.5, mb: 2 }}>
+              <Stack 
+                component="a" 
+                href={`mailto:${profile.email}`} 
+                direction="row" 
+                alignItems="center" 
+                spacing={1} 
+                sx={{ textDecoration: 'none', color: 'inherit', '&:hover': { opacity: 0.7 } }}
+              >
+                <EmailIcon fontSize="small" color="action" />
+                <Typography variant="body2" fontWeight={500}>{profile.email}</Typography>
+              </Stack>
+
+              <Stack 
+                component="a" 
+                href={`tel:${profile.phone}`} 
+                direction="row" 
+                alignItems="center" 
+                spacing={1} 
+                sx={{ textDecoration: 'none', color: 'inherit', '&:hover': { opacity: 0.7 } }}
+              >
+                <PhoneIcon fontSize="small" color="action" />
+                <Typography variant="body2" fontWeight={500}>{profile.phone}</Typography>
+              </Stack>
+
+              <Stack 
+                component="a" 
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile.address)}`} 
+                target="_blank"
+                direction="row" 
+                alignItems="center" 
+                spacing={1} 
+                sx={{ textDecoration: 'none', color: 'inherit', '&:hover': { opacity: 0.7 } }}
+              >
+                <LocationOnIcon fontSize="small" color="action" />
+                <Typography variant="body2" fontWeight={500}>{profile.address}</Typography>
+              </Stack>
+
+              <Stack 
+                component="a" 
+                href={profile.linkedinId.startsWith('http') ? profile.linkedinId : `https://linkedin.com/in/${profile.linkedinId}`}
+                target="_blank"
+                direction="row" 
+                alignItems="center" 
+                spacing={1} 
+                sx={{ textDecoration: 'none', '&:hover': { opacity: 0.7 } }}
+              >
+                <LinkedInIcon fontSize="small" sx={{ color: "#0077b5" }} />
+                <Typography variant="body2" fontWeight={600} color="primary.main">
+                  {profile.linkedinId.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '')}
+                </Typography>
+              </Stack>
+
+              <Stack 
+                component="a" 
+                href={profile.xId.startsWith('http') ? profile.xId : `https://x.com/${profile.xId.replace('@', '')}`}
+                target="_blank"
+                direction="row" 
+                alignItems="center" 
+                spacing={1} 
+                sx={{ textDecoration: 'none', color: 'inherit', '&:hover': { opacity: 0.7 } }}
+              >
+                <XIcon sx={{ fontSize: 16, color: "#000" }} />
+                <Typography variant="body2" fontWeight={600} color="text.primary">
+                  {profile.xId.startsWith('@') ? profile.xId : `@${profile.xId}`}
+                </Typography>
+              </Stack>
+            </Box>
+
+            <Divider sx={{ my: 2, borderColor: 'rgba(0,0,0,0.08)' }} />
+            
+            <Typography variant="subtitle1" fontWeight={700} color="text.primary" gutterBottom>Professional Summary</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>{profile.summary}</Typography>
 
             {profile.strengths?.length > 0 && (
               <>
-                <Divider sx={{ my: 2 }} />
-                <Typography fontWeight={600} mb={1}>Strengths</Typography>
-                {profile.strengths.map((s, i) => (
-                  <Box key={i} mb={1.5}>
-                    <Typography fontWeight={600} variant="body2">{s.title}</Typography>
-                    <Typography variant="body2" color="text.secondary">{s.description}</Typography>
-                  </Box>
-                ))}
+                <Divider sx={{ my: 2.5, borderColor: 'rgba(0,0,0,0.08)' }} />
+                <Typography variant="subtitle1" fontWeight={700} mb={1.5}>Strengths</Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                  {profile.strengths.map((s, i) => (
+                    <Box key={i}>
+                      <Typography fontWeight={700} variant="body2" color="text.primary">{s.title}</Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>{s.description}</Typography>
+                    </Box>
+                  ))}
+                </Box>
               </>
             )}
 
             {profile.languages?.length > 0 && (
               <>
-                <Divider sx={{ my: 2 }} />
-                <Typography fontWeight={600} mb={1}>Languages</Typography>
-                {profile.languages.map((l, i) => (
-                  <Stack key={i} direction="row" justifyContent="space-between" alignItems="center" mb={0.5}>
-                    <Typography variant="body2">{l.name} – {l.level}</Typography>
-                    <DotRating value={Number(l.rating)} readOnly />
-                  </Stack>
-                ))}
+                <Divider sx={{ my: 2.5, borderColor: 'rgba(0,0,0,0.08)' }} />
+                <Typography variant="subtitle1" fontWeight={700} mb={1.5}>Languages</Typography>
+                <Stack direction="row" spacing={4} flexWrap="wrap">
+                  {profile.languages.map((l, i) => (
+                    <Stack key={i} direction="row" spacing={2} alignItems="center">
+                      <Box>
+                        <Typography variant="body2" fontWeight={600}>{l.name}</Typography>
+                        <Typography variant="caption" color="text.secondary">{l.level}</Typography>
+                      </Box>
+                      <DotRating value={Number(l.rating)} readOnly />
+                    </Stack>
+                  ))}
+                </Stack>
               </>
             )}
           </Card>
         </Box>
       )}
 
+      {/* DIALOGS */}
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>{profile ? "Edit Profile" : "Add Profile"}</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>{profile ? "Edit Profile" : "Add Profile"}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} pt={1}>
-            <TextField label="Full Name" fullWidth value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
+            <TextField label="Full Name" fullWidth value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} error={!!errors.fullName} helperText={errors.fullName} />
             <Stack direction="row" spacing={2}>
-              <TextField label="Email" fullWidth value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              <TextField label="Phone" fullWidth value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <TextField label="Email" fullWidth value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} error={!!errors.email} helperText={errors.email} />
+              <TextField label="Phone" fullWidth value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} error={!!errors.phone} helperText={errors.phone} />
             </Stack>
-            <TextField label="Address" fullWidth value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-            <TextField label="LinkedIn" fullWidth value={form.linkedinId} onChange={(e) => setForm({ ...form, linkedinId: e.target.value })} />
-            <TextField label="Summary" multiline rows={3} fullWidth value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} />
-            <TextField label="Headline" fullWidth value={form.headline} onChange={(e) => setForm({ ...form, headline: e.target.value })} />
+            <TextField label="Address" fullWidth value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} error={!!errors.address} helperText={errors.address} />
+            
+            <Stack direction="row" spacing={2}>
+               <TextField label="LinkedIn" fullWidth value={form.linkedinId} onChange={(e) => setForm({ ...form, linkedinId: e.target.value })} error={!!errors.linkedinId} helperText={errors.linkedinId} />
+               <TextField label="X" fullWidth value={form.xId} onChange={(e) => setForm({ ...form, xId: e.target.value })} error={!!errors.xId} helperText={errors.xId} />
+            </Stack>
+
+            <TextField label="Summary" multiline rows={3} fullWidth value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} error={!!errors.summary} helperText={errors.summary} />
+            <TextField label="Headline" fullWidth value={form.headline} onChange={(e) => setForm({ ...form, headline: e.target.value })} error={!!errors.headline} helperText={errors.headline} />
 
             <Button component="label" variant="outlined">
               Upload Profile Image

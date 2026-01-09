@@ -12,6 +12,8 @@ import {
   Stack,
   IconButton,
   Divider,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -34,6 +36,7 @@ const Certificates = () => {
     title: "",
     description: "",
     date: null,
+    isNoExpiry: false,
   };
 
   const [form, setForm] = useState(emptyForm);
@@ -52,7 +55,7 @@ const Certificates = () => {
     const e = {};
     if (!form.title.trim()) e.title = "Title is required";
     if (!form.description.trim()) e.description = "Description is required";
-    if (!form.date) e.date = "Date is required";
+    if (!form.isNoExpiry && !form.date) e.date = "Date is required";
 
     setErrors(e);
 
@@ -75,7 +78,8 @@ const Certificates = () => {
     setForm({
       title: x.title,
       description: x.description,
-      date: dayjs(x.date),
+      date: x.date ? dayjs(x.date) : null,
+      isNoExpiry: !x.date,
     });
     setErrors({});
     setOpen(true);
@@ -94,7 +98,7 @@ const Certificates = () => {
     const payload = {
       title: form.title,
       description: form.description,
-      date: dayjs(form.date).toDate(),
+      date: form.isNoExpiry ? null : dayjs(form.date).toDate(),
     };
 
     try {
@@ -155,7 +159,6 @@ const Certificates = () => {
                   },
                 }}
               >
-                {/* ACTIONS */}
                 <Box position="absolute" top={12} right={12}>
                   <IconButton onClick={() => openEditDialog(x)}>
                     <EditIcon />
@@ -171,11 +174,10 @@ const Certificates = () => {
                 </Stack>
 
                 <Typography fontSize={13} color="text.secondary">
-                  {dayjs(x.date).format("DD/MM/YYYY")}
+                  {x.date ? dayjs(x.date).format("DD/MM/YYYY") : "No Expiry Date"}
                 </Typography>
 
                 <Divider sx={{ my: 1.5 }} />
-
                 <Typography>{x.description}</Typography>
               </Card>
             ))}
@@ -209,21 +211,42 @@ const Certificates = () => {
               onChange={(e) => setForm({ ...form, description: e.target.value })}
             />
 
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-             <DatePicker
-                label="Date"
-                value={form.date}
-                onChange={(v) => setForm({ ...form, date: v })}
-                slotProps={{
+            <Stack direction="row" spacing={2} alignItems="center">
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label="Date"
+                  disabled={form.isNoExpiry}
+                  value={form.date}
+                  onChange={(v) => setForm({ ...form, date: v })}
+                  slotProps={{
                     textField: {
-                    sx: { width: "35%" },   
-                    error: !!errors.date,
-                    helperText: errors.date,
+                      sx: { width: "100%" },
+                      error: !!errors.date,
+                      helperText: errors.date,
                     },
-                }}
+                  }}
                 />
+              </LocalizationProvider>
 
-            </LocalizationProvider>
+             
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={form.isNoExpiry}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setForm((prev) => ({
+                        ...prev,
+                        isNoExpiry: checked,
+                        date: checked ? null : prev.date,
+                      }));
+                    }}
+                  />
+                }
+                label="No expiry date"
+                sx={{ minWidth: "160px" }}
+              />
+            </Stack>
           </Stack>
         </DialogContent>
 

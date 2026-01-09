@@ -5,7 +5,14 @@ const Certificate = require(
 
 const createCertificate = async (data) => {
   try {
-    const certificate = new Certificate(data);
+    const payload = { ...data };
+
+   
+    if (data.date === null) {
+      payload.date = null;
+    }
+
+    const certificate = new Certificate(payload);
     await certificate.save();
 
     return {
@@ -47,9 +54,17 @@ const getCertificateById = async (id) => {
 
 const updateCertificate = async (id, data) => {
   try {
-    const certificate = await Certificate.findByIdAndUpdate(id, data, {
-      new: true,
-    });
+    const updateData = { ...data };
+
+    if (data.date === null) {
+      updateData.date = null;
+    }
+
+    const certificate = await Certificate.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    );
 
     return {
       status: 200,

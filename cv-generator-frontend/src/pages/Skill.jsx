@@ -12,6 +12,7 @@ import {
   TextField,
   MenuItem,
   IconButton,
+  Stack,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -33,9 +34,14 @@ const Skill = () => {
   });
 
   const fetchData = async () => {
-    const res = await api.get("/skills");
-    const items = res?.data?.data?.items ?? res?.data?.data ?? [];
-    setList(Array.isArray(items) ? items : []);
+    try {
+      const res = await api.get("/skills");
+      const items = res?.data?.data?.items ?? res?.data?.data ?? [];
+      setList(Array.isArray(items) ? items : []);
+    } catch (error) {
+      console.error("Error fetching skills:", error);
+      setList([]);
+    }
   };
 
   useEffect(() => {
@@ -84,39 +90,47 @@ const Skill = () => {
   const save = async () => {
     if (!validate()) return;
 
-    if (editId) {
-      await api.put(`/skills/${editId}`, form);
-      toast.success("Skill updated");
-    } else {
-      await api.post("/skills", form);
-      toast.success("Skill added");
+    try {
+      if (editId) {
+        await api.put(`/skills/${editId}`, form);
+        toast.success("Skill updated");
+      } else {
+        await api.post("/skills", form);
+        toast.success("Skill added");
+      }
+      closeDialog();
+      fetchData();
+    } catch (error) {
+      toast.error("Failed to save skill");
     }
-
-    closeDialog();
-    fetchData();
   };
 
   const confirmDelete = async () => {
-    await api.delete(`/skills/${deleteId}`);
-    toast.success("Skill deleted");
-    setDeleteId(null);
-    fetchData();
+    try {
+      await api.delete(`/skills/${deleteId}`);
+      toast.success("Skill deleted");
+      setDeleteId(null);
+      fetchData();
+    } catch (error) {
+      toast.error("Failed to delete skill");
+    }
   };
 
   return (
     <Box>
-  
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          mb: 2,
+          mb: 4,
         }}
       >
-        <Typography variant="h4">Skills</Typography>
+        <Typography variant="h4" fontWeight={700}>
+          Skills
+        </Typography>
 
-        <Button variant="contained" onClick={openAddDialog}>
+        <Button variant="contained" onClick={openAddDialog} sx={{ px: 3 }}>
           ADD SKILL
         </Button>
       </Box>
@@ -124,35 +138,44 @@ const Skill = () => {
       {list.length === 0 ? (
         <EmptyState text="No skills added yet." />
       ) : (
-        <Grid container spacing={2}>
+        <Grid container spacing={3}>
           {list.map((s) => (
-            <Grid item xs={12} md={4} key={s._id}>
+            <Grid item key={s._id}>
               <Card
                 sx={{
-                  p: 1.5,
-                  bgcolor: "#F3E5F5",
+                  p: 2,
+                  width: 260, 
+                  height: 100, 
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  background: "linear-gradient(135deg, #F3E5F5 0%, #EDE7F6 100%)",
                   position: "relative",
-                  borderRadius: 4,
-                  pr: 6,
-                  transition: "0.3s",
+                  borderRadius: 3,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                  transition: "all 0.3s ease",
+                  border: "1px solid rgba(0,0,0,0.03)",
                   "&:hover": {
-                    transform: "translateY(-6px)",
-                    boxShadow: "0 16px 36px rgba(0,0,0,0.18)",
+                    transform: "translateY(-5px)",
+                    boxShadow: "0 12px 24px rgba(0,0,0,0.12)",
+                    borderColor: "primary.main",
                   },
                 }}
               >
+              
                 <Box
                   sx={{
                     position: "absolute",
-                    top: 6,
-                    right: 6,
+                    top: 8,
+                    right: 8,
                     display: "flex",
-                    gap: 0.5,
+                    gap: 0,
                   }}
                 >
                   <IconButton
                     size="small"
                     onClick={() => openEditDialog(s)}
+                    sx={{ color: "text.secondary", "&:hover": { color: "primary.main" } }}
                   >
                     <EditIcon fontSize="small" />
                   </IconButton>
@@ -161,16 +184,45 @@ const Skill = () => {
                     size="small"
                     color="error"
                     onClick={() => setDeleteId(s._id)}
+                    sx={{ "&:hover": { bgcolor: "error.lighter" } }}
                   >
                     <DeleteIcon fontSize="small" />
                   </IconButton>
                 </Box>
 
-                <Typography fontWeight={600} fontSize={14}>
+                
+                <Typography
+                  variant="caption"
+                  fontWeight={800}
+                  sx={{
+                    color: "primary.dark",
+                    textTransform: "uppercase",
+                    letterSpacing: 1,
+                    mb: 0.5,
+                  }}
+                >
                   {s.title}
                 </Typography>
-                <Typography fontSize={13}>
-                  {s.name} ({s.level})
+                
+                <Typography 
+                  variant="body1" 
+                  fontWeight={600} 
+                  sx={{ 
+                    color: "text.primary",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    pr: 4 
+                  }}
+                >
+                  {s.name}
+                </Typography>
+
+                <Typography 
+                  variant="body2" 
+                  sx={{ color: "text.secondary", fontStyle: "italic" }}
+                >
+                  {s.level}
                 </Typography>
               </Card>
             </Grid>
@@ -178,63 +230,58 @@ const Skill = () => {
         </Grid>
       )}
 
-      {/*  ADD / EDIT DIALOG */}
+      {/* ADD / EDIT DIALOG */}
       <Dialog open={open} onClose={closeDialog} fullWidth maxWidth="sm">
-        <DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>
           {editId ? "Edit Skill" : "Add Skill"}
         </DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            label="Title"
-            margin="dense"
-            value={form.title}
-            error={!!errors.title}
-            helperText={errors.title}
-            onChange={(e) =>
-              setForm({ ...form, title: e.target.value })
-            }
-          />
-          <TextField
-            fullWidth
-            label="Skill"
-            margin="dense"
-            value={form.name}
-            error={!!errors.name}
-            helperText={errors.name}
-            onChange={(e) =>
-              setForm({ ...form, name: e.target.value })
-            }
-          />
-          <TextField
-            fullWidth
-            select
-            label="Level"
-            margin="dense"
-            value={form.level}
-            error={!!errors.level}
-            helperText={errors.level}
-            onChange={(e) =>
-              setForm({ ...form, level: e.target.value })
-            }
-          >
-            <MenuItem value="Beginner">Beginner</MenuItem>
-            <MenuItem value="Intermediate">Intermediate</MenuItem>
-            <MenuItem value="Advanced">Advanced</MenuItem>
-          </TextField>
+        <DialogContent dividers>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              fullWidth
+              label="Category (e.g., Language, Database)"
+              placeholder="e.g. LANGUAGE"
+              value={form.title}
+              error={!!errors.title}
+              helperText={errors.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              label="Skill Name"
+              placeholder="e.g. Python"
+              value={form.name}
+              error={!!errors.name}
+              helperText={errors.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              select
+              label="Proficiency Level"
+              value={form.level}
+              error={!!errors.level}
+              helperText={errors.level}
+              onChange={(e) => setForm({ ...form, level: e.target.value })}
+            >
+              <MenuItem value="Beginner">Beginner</MenuItem>
+              <MenuItem value="Intermediate">Intermediate</MenuItem>
+              <MenuItem value="Advanced">Advanced</MenuItem>
+            </TextField>
+          </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDialog}>Cancel</Button>
-          <Button variant="contained" onClick={save}>
+        <DialogActions sx={{ p: 2.5 }}>
+          <Button onClick={closeDialog} color="inherit">Cancel</Button>
+          <Button variant="contained" onClick={save} sx={{ px: 4 }}>
             Save
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* DELETE CONFIRMATION  */}
+      {/* DELETE CONFIRMATION */}
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
-        <DialogTitle>Delete skill?</DialogTitle>
-        <DialogActions>
+        <DialogTitle>Delete this skill?</DialogTitle>
+        <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setDeleteId(null)}>Cancel</Button>
           <Button color="error" onClick={confirmDelete}>
             Delete

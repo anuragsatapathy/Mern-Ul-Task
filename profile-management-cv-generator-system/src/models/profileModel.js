@@ -9,7 +9,7 @@ const profileSchema = new mongoose.Schema(
     phone: String,
     address: String,
     linkedinId: String,
-    XId: String,
+    xId: String,
     summary: String,
 
     

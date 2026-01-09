@@ -17,7 +17,7 @@ const certificateSchema = new mongoose.Schema(
     },
     date: {
       type: Date,
-      required: true,
+      required: false,   
     },
     isDeleted: {
       type: Boolean,
@@ -28,6 +28,5 @@ const certificateSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Certificate", certificateSchema);
-
 
 

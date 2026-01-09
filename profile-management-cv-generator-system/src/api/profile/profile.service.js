@@ -22,7 +22,7 @@ const saveProfile = async (userId, data, file) => {
       imagePath = `/uploads/profile/${fileName}`;
     }
 
-    // STRENGTHS 
+    // STRENGTHS
     let strengths = existing?.strengths || [];
     if (data.strengths) {
       const incoming = JSON.parse(data.strengths);
@@ -32,7 +32,7 @@ const saveProfile = async (userId, data, file) => {
       }));
     }
 
-    // LANGUAGES 
+    // LANGUAGES
     let languages = existing?.languages || [];
     if (data.languages) {
       const incoming = JSON.parse(data.languages);
@@ -51,6 +51,12 @@ const saveProfile = async (userId, data, file) => {
       phone: data.phone ?? existing?.phone,
       address: data.address ?? existing?.address,
       linkedinId: data.linkedinId ?? existing?.linkedinId,
+
+      xId:
+        data.xId !== undefined
+          ? data.xId
+          : existing?.xId,
+
       summary: data.summary ?? existing?.summary,
       headline: data.headline ?? existing?.headline,
 

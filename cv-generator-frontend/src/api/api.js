@@ -5,7 +5,6 @@ const api = axios.create({
   withCredentials: false,
 });
 
-// REQUEST INTERCEPTOR
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -19,17 +18,13 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// RESPONSE INTERCEPTOR
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       console.warn("Unauthorized – token invalid or expired");
 
-      // clear token
       localStorage.removeItem("token");
-
-      // redirect to login
       window.location.href = "/login";
     }
 
