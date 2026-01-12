@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   Box,
   Typography,
@@ -13,12 +13,50 @@ import {
   MenuItem,
   IconButton,
   Stack,
+  Tooltip,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { toast } from "react-toastify";
 import api from "../api/api";
 import EmptyState from "../components/EmptyState";
+
+//detect overflow
+const OverflowTooltip = ({ text, variant, fontWeight, sx }) => {
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const textRef = useRef(null);
+
+  const checkOverflow = () => {
+    const element = textRef.current;
+    if (element) {
+      setIsOverflowing(element.scrollWidth > element.clientWidth);
+    }
+  };
+
+  useEffect(() => {
+    checkOverflow();
+    window.addEventListener("resize", checkOverflow);
+    return () => window.removeEventListener("resize", checkOverflow);
+  }, [text]);
+
+  return (
+    <Tooltip title={text} disableHoverListener={!isOverflowing} arrow>
+      <Typography
+        ref={textRef}
+        variant={variant}
+        fontWeight={fontWeight}
+        sx={{
+          ...sx,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {text}
+      </Typography>
+    </Tooltip>
+  );
+};
 
 const Skill = () => {
   const [list, setList] = useState([]);
@@ -144,8 +182,8 @@ const Skill = () => {
               <Card
                 sx={{
                   p: 2,
-                  width: 260, 
-                  height: 100, 
+                  width: 260,
+                  height: 100,
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "center",
@@ -162,7 +200,6 @@ const Skill = () => {
                   },
                 }}
               >
-              
                 <Box
                   sx={{
                     position: "absolute",
@@ -190,7 +227,6 @@ const Skill = () => {
                   </IconButton>
                 </Box>
 
-                
                 <Typography
                   variant="caption"
                   fontWeight={800}
@@ -203,23 +239,19 @@ const Skill = () => {
                 >
                   {s.title}
                 </Typography>
-                
-                <Typography 
-                  variant="body1" 
-                  fontWeight={600} 
-                  sx={{ 
-                    color: "text.primary",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    pr: 4 
-                  }}
-                >
-                  {s.name}
-                </Typography>
 
-                <Typography 
-                  variant="body2" 
+                <OverflowTooltip
+                  text={s.name}
+                  variant="body1"
+                  fontWeight={600}
+                  sx={{
+                    color: "text.primary",
+                    pr: 4,
+                  }}
+                />
+
+                <Typography
+                  variant="body2"
                   sx={{ color: "text.secondary", fontStyle: "italic" }}
                 >
                   {s.level}
@@ -249,7 +281,7 @@ const Skill = () => {
             <TextField
               fullWidth
               label="Skill Name"
-              placeholder="e.g. Python"
+              placeholder="e.g. Mern"
               value={form.name}
               error={!!errors.name}
               helperText={errors.name}
@@ -271,7 +303,9 @@ const Skill = () => {
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 2.5 }}>
-          <Button onClick={closeDialog} color="inherit">Cancel</Button>
+          <Button onClick={closeDialog} color="inherit">
+            Cancel
+          </Button>
           <Button variant="contained" onClick={save} sx={{ px: 4 }}>
             Save
           </Button>

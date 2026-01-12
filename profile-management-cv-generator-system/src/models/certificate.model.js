@@ -15,10 +15,18 @@ const certificateSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    date: {
+
+    
+    completionDate: {
       type: Date,
-      required: false,   
+      required: true,
     },
+    validTill: {
+      type: Date,
+      required: false,
+      default: null,
+    },
+
     isDeleted: {
       type: Boolean,
       default: false,
@@ -28,5 +36,4 @@ const certificateSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Certificate", certificateSchema);
-
 

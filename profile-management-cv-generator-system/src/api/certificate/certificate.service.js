@@ -7,9 +7,8 @@ const createCertificate = async (data) => {
   try {
     const payload = { ...data };
 
-   
-    if (data.date === null) {
-      payload.date = null;
+    if (!data.validTill) {
+      payload.validTill = null;
     }
 
     const certificate = new Certificate(payload);
@@ -56,8 +55,8 @@ const updateCertificate = async (id, data) => {
   try {
     const updateData = { ...data };
 
-    if (data.date === null) {
-      updateData.date = null;
+    if (!data.validTill) {
+      updateData.validTill = null;
     }
 
     const certificate = await Certificate.findByIdAndUpdate(

@@ -35,7 +35,8 @@ const Certificates = () => {
   const emptyForm = {
     title: "",
     description: "",
-    date: null,
+    completionDate: null,  
+    validTill: null,       
     isNoExpiry: false,
   };
 
@@ -55,7 +56,8 @@ const Certificates = () => {
     const e = {};
     if (!form.title.trim()) e.title = "Title is required";
     if (!form.description.trim()) e.description = "Description is required";
-    if (!form.isNoExpiry && !form.date) e.date = "Date is required";
+    if (!form.completionDate) e.completionDate = "Completion date is required";
+    if (!form.isNoExpiry && !form.validTill) e.validTill = "Valid till date is required";
 
     setErrors(e);
 
@@ -78,8 +80,9 @@ const Certificates = () => {
     setForm({
       title: x.title,
       description: x.description,
-      date: x.date ? dayjs(x.date) : null,
-      isNoExpiry: !x.date,
+      completionDate: x.completionDate ? dayjs(x.completionDate) : null,   
+      validTill: x.validTill ? dayjs(x.validTill) : null,                
+      isNoExpiry: !x.validTill,
     });
     setErrors({});
     setOpen(true);
@@ -98,7 +101,8 @@ const Certificates = () => {
     const payload = {
       title: form.title,
       description: form.description,
-      date: form.isNoExpiry ? null : dayjs(form.date).toDate(),
+      completionDate: dayjs(form.completionDate).toDate(),   
+      validTill: form.isNoExpiry ? null : dayjs(form.validTill).toDate(), 
     };
 
     try {
@@ -174,7 +178,13 @@ const Certificates = () => {
                 </Stack>
 
                 <Typography fontSize={13} color="text.secondary">
-                  {x.date ? dayjs(x.date).format("DD/MM/YYYY") : "No Expiry Date"}
+                  {x.completionDate
+                    ? `Completed: ${dayjs(x.completionDate).format("DD/MM/YYYY")}`
+                    : ""}
+                  {" • "}
+                  {x.validTill
+                    ? `Valid Till: ${dayjs(x.validTill).format("DD/MM/YYYY")}`
+                    : "No Expiry"}
                 </Typography>
 
                 <Divider sx={{ my: 1.5 }} />
@@ -211,24 +221,39 @@ const Certificates = () => {
               onChange={(e) => setForm({ ...form, description: e.target.value })}
             />
 
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              
+              <DatePicker
+                label="Completion Date"
+                value={form.completionDate}
+                onChange={(v) => setForm({ ...form, completionDate: v })}
+                slotProps={{
+                  textField: {
+                    sx: { width: "68%" },
+                    error: !!errors.completionDate,
+                    helperText: errors.completionDate,
+                  },
+                }}
+              />
+            </LocalizationProvider>
+
             <Stack direction="row" spacing={2} alignItems="center">
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
-                  label="Date"
+                  label="Valid Till"
                   disabled={form.isNoExpiry}
-                  value={form.date}
-                  onChange={(v) => setForm({ ...form, date: v })}
+                  value={form.validTill}
+                  onChange={(v) => setForm({ ...form, validTill: v })}
                   slotProps={{
                     textField: {
                       sx: { width: "100%" },
-                      error: !!errors.date,
-                      helperText: errors.date,
+                      error: !!errors.validTill,
+                      helperText: errors.validTill,
                     },
                   }}
                 />
               </LocalizationProvider>
 
-             
               <FormControlLabel
                 control={
                   <Checkbox
@@ -238,7 +263,7 @@ const Certificates = () => {
                       setForm((prev) => ({
                         ...prev,
                         isNoExpiry: checked,
-                        date: checked ? null : prev.date,
+                        validTill: checked ? null : prev.validTill,
                       }));
                     }}
                   />

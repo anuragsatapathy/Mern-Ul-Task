@@ -25,6 +25,7 @@ const buildTemplate1HTML = ({ profile, education, experience, skills }) => `
   h1 { text-align:center; font-size:28px; margin-bottom:6px; }
   .contact { text-align:center; font-size:13px; margin-bottom:18px; }
   .contact span { margin:0 6px; }
+  .contact a { color: inherit; text-decoration: none; }
   h2 { font-size:15px; border-bottom:1px solid #333; margin-top:22px; padding-bottom:3px; }
   .item { margin-bottom:14px; }
   ul { margin:6px 0 0 18px; padding-left:14px; }
@@ -38,10 +39,26 @@ const buildTemplate1HTML = ({ profile, education, experience, skills }) => `
 <body>
 <h1>${profile?.fullName || ""}</h1>
 <div class="contact">
-  <span>📍 ${profile?.address || ""}</span>
-  <span>✉️ ${profile?.email || ""}</span>
-  <span>📞 ${profile?.phone || ""}</span>
-  <span>🔗 ${profile?.linkedinId || ""}</span>
+  <span>
+    <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile?.address || '')}" target="_blank">
+      📍 ${profile?.address || ""}
+    </a>
+  </span>
+  <span>
+    <a href="mailto:${profile?.email || ""}">
+      ✉️ ${profile?.email || ""}
+    </a>
+  </span>
+  <span>
+    <a href="tel:${profile?.phone || ""}">
+      📞 ${profile?.phone || ""}
+    </a>
+  </span>
+  <span>
+    <a href="${profile?.linkedinId?.startsWith('http') ? profile.linkedinId : 'https://' + profile.linkedinId}" target="_blank">
+      🔗 ${profile?.linkedinId || ""}
+    </a>
+  </span>
 </div>
 <h2>SUMMARY</h2>
 <p>${profile?.summary || ""}</p>
@@ -85,14 +102,14 @@ ${Object.entries(
 </html>
 `;
 
-/*  TEMPLATE 2  */
+/* TEMPLATE 2  */
 const buildTemplate2HTML = ({ profile, experience, skills }) => {
   
   const quillToBullets = (html) => {
     if (!html) return "";
     return html.replace(/<p><br><\/p>/g, "")
-               .replace(/<p>/g, "<li>")
-               .replace(/<\/p>/g, "</li>");
+                .replace(/<p>/g, "<li>")
+                .replace(/<\/p>/g, "</li>");
   };
 
   return `
@@ -103,6 +120,13 @@ const buildTemplate2HTML = ({ profile, experience, skills }) => {
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 <style>
   @page { size: A4; margin: 15mm;; }
+  @page {
+  margin-top: 60px;
+}
+
+@page :first {
+  margin-top: 0;
+}
   
   body { 
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -121,6 +145,7 @@ const buildTemplate2HTML = ({ profile, experience, skills }) => {
   .header-text .headline { color: #0091ff; font-weight: bold; font-size: 16px; margin: 5px 0; }
   .header-contact { display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; font-size: 11px; margin-top: 12px; color: #555; }
   .header-contact div { display: flex; align-items: center; gap: 6px; }
+  .header-contact a { color: inherit; text-decoration: none; display: flex; align-items: center; gap: 6px; }
   .header-contact i { color: #0091ff; width: 14px; text-align: center; }
   
   .avatar-container { width: 115px; height: 115px; border-radius: 50%; overflow: hidden; border: 2px solid #f0f0f0; flex-shrink: 0; }
@@ -188,10 +213,26 @@ const buildTemplate2HTML = ({ profile, experience, skills }) => {
     <h1>${profile?.fullName || "Name"}</h1>
     <div class="headline">${profile?.headline || "Headline"}</div>
     <div class="header-contact">
-      <div><i class="fa-solid fa-phone"></i> ${profile?.phone || ""}</div>
-      <div><i class="fa-solid fa-envelope"></i> ${profile?.email || ""}</div>
-      <div><i class="fa-solid fa-link"></i> ${profile?.linkedinId || ""}</div>
-      <div><i class="fa-solid fa-location-dot"></i> ${profile?.address || ""}</div>
+      <div>
+        <a href="tel:${profile?.phone || '#'}">
+          <i class="fa-solid fa-phone"></i> ${profile?.phone || ""}
+        </a>
+      </div>
+      <div>
+        <a href="mailto:${profile?.email || '#'}">
+          <i class="fa-solid fa-envelope"></i> ${profile?.email || ""}
+        </a>
+      </div>
+      <div>
+        <a href="${profile?.linkedinId?.startsWith('http') ? profile.linkedinId : 'https://' + profile.linkedinId}" target="_blank">
+          <i class="fa-solid fa-link"></i> ${profile?.linkedinId || ""}
+        </a>
+      </div>
+      <div>
+        <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile?.address || '')}" target="_blank">
+          <i class="fa-solid fa-location-dot"></i> ${profile?.address || ""}
+        </a>
+      </div>
     </div>
   </div>
   <div class="avatar-container">
@@ -258,7 +299,6 @@ const buildTemplate3HTML = ({ profile, education, experience, skills, certificat
   
   const quillToBullets = (html) => {
     if (!html) return "";
-    
     return html.replace(/<p><br><\/p>/g, "")
                .replace(/<p>/g, "<li>")
                .replace(/<\/p>/g, "</li>");
@@ -271,7 +311,21 @@ const buildTemplate3HTML = ({ profile, education, experience, skills, certificat
 <meta charset="UTF-8"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 <style>
-  @page { size: A4; margin: 0; }
+ @page {
+  size: A4;
+  margin: 0;
+}
+
+@page {
+  margin-top: 60px;
+}
+
+@page :first {
+  margin-top: 0;
+}
+
+    
+
   body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; }
 
   .isolate-t3 {
@@ -283,13 +337,29 @@ const buildTemplate3HTML = ({ profile, education, experience, skills, certificat
     min-height: 297mm;
   }
 
+  @media print {
+    .body { 
+      padding-top: 60px !important; 
+    }
+   
+    .exp-item, .right-item, .lang-box { 
+      page-break-inside: avoid; 
+      margin-top: 10px;
+    }
+
+    .section-title { 
+       page-break-after: avoid; 
+       margin-top: 20px;
+     }
+   }
+
   .header-wrap {
     background: #2d343e; 
     color: #fff;
-    padding: 40px 50px 95px 50px;
+    padding: 40px 50px 110px 50px;
     position: relative;
-    /* Angled bottom cut */
-    clip-path: polygon(0 0, 100% 0, 100% 78%, 0 100%);
+    clip-path: polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%);
+    z-index: 5;
   }
 
   .header-top {
@@ -299,10 +369,10 @@ const buildTemplate3HTML = ({ profile, education, experience, skills, certificat
   }
 
   .name-block h1 { margin: 0; font-size: 38px; font-weight: 800; letter-spacing: -0.5px; }
-  .name-block .role { color: #f2c94c; font-weight: 600; margin-top: 4px; font-size: 17px; }
+  .name-block .role { color: #f2c94c; font-weight: 600; margin-top: 5px; font-size: 17px; }
 
   .summary-text {
-    max-width: 62%;
+    max-width: 60%;
     font-size: 11px;
     line-height: 1.6;
     color: #e0e0e0;
@@ -310,20 +380,28 @@ const buildTemplate3HTML = ({ profile, education, experience, skills, certificat
   }
 
   .contact-block { font-size: 11px; text-align: right; }
-  .contact-block div { display: flex; gap: 10px; justify-content: flex-end; align-items: center; margin-bottom: 7px; color: #e0e0e0; }
+  .contact-block div { margin-bottom: 7px; }
+  .contact-block a { 
+    display: flex; 
+    gap: 10px; 
+    justify-content: flex-end; 
+    align-items: center; 
+    color: #e0e0e0; 
+    text-decoration: none;
+  }
   .contact-block i { color: #f2c94c; width: 14px; text-align: center; font-size: 13px; }
 
-
-.avatar {
+  .avatar {
     position: absolute;
-    right: 18%; 
-    top: 120px; 
-    width: 155px;
-    height: 155px;
+    top:18%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 145px;
+    height: 145px;
     border-radius: 50%;
-    border: 8px solid #fff;
+    border: 7px solid #fff;
     background: #fff;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     z-index: 10;
     overflow: hidden;
     display: flex;
@@ -332,16 +410,14 @@ const buildTemplate3HTML = ({ profile, education, experience, skills, certificat
   }
   .avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-  
   .body {
-    padding: 85px 50px 40px 50px;
+    padding: 90px 50px 40px 50px;
     display: grid;
     grid-template-columns: 1.4fr 1fr;
     gap: 45px;
-   
-    background-image: radial-gradient(#e0e0e0 0.7px, transparent 0.7px);
-    background-size: 18px 18px;
   }
+
+  
 
   .section-title {
     display: flex;
@@ -352,7 +428,6 @@ const buildTemplate3HTML = ({ profile, education, experience, skills, certificat
     text-transform: uppercase;
     margin-bottom: 18px;
     color: #2d343e;
-    letter-spacing: 0.5px;
   }
   .section-title i {
     background: #2d343e;
@@ -366,10 +441,9 @@ const buildTemplate3HTML = ({ profile, education, experience, skills, certificat
     font-size: 13px;
   }
 
- 
   .exp-item { margin-bottom: 28px; }
   .exp-role { font-weight: 700; font-size: 16px; color: #111; }
-  .exp-company { font-weight: 700; font-size: 15px; color: #444; margin-top: 1px; }
+  .exp-company { font-weight: 700; font-size: 15px; color: #444; }
   .exp-meta {
     display: flex;
     justify-content: space-between;
@@ -384,13 +458,12 @@ const buildTemplate3HTML = ({ profile, education, experience, skills, certificat
   .exp-desc li::before {
     content: "•";
     color: #f2994a;
-    font-weight: bold;
     position: absolute;
     left: -15px;
+    font-weight: bold;
     font-size: 14px;
   }
 
- 
   .pill-group { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 30px; }
   .pill { background: #bdc3c7; color: #fff; border-radius: 4px; padding: 5px 12px; font-size: 11px; font-weight: 700; }
 
@@ -399,13 +472,10 @@ const buildTemplate3HTML = ({ profile, education, experience, skills, certificat
   .item-date { color: #f2994a; font-weight: 700; font-size: 11.5px; margin-left: 2px; }
   .item-sub { color: #828282; font-style: italic; font-size: 11px; margin-top: 3px; line-height: 1.4; }
 
- 
   .lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .lang-box { margin-bottom: 5px; }
   .lang-name { font-weight: 700; font-size: 12.5px; color: #222; }
-  .lang-level { font-size: 10.5px; color: #c49c5d; font-style: italic; font-weight: 600; margin-top: 1px; }
+  .lang-level { font-size: 10.5px; color: #c49c5d; font-style: italic; font-weight: 600; }
 
- 
   .footer-bg {
     position: absolute;
     bottom: 0;
@@ -418,14 +488,6 @@ const buildTemplate3HTML = ({ profile, education, experience, skills, certificat
     z-index: -1;
     opacity: 0.6;
   }
-    .exp-item, .right-item, .lang-box, .pill-group { 
-    page-break-inside: avoid; 
-  }
-  .section-title { 
-    page-break-after: avoid; 
-  }
- 
-  .header-wrap { page-break-after: avoid; }
 </style>
 </head>
 <body>
@@ -434,22 +496,43 @@ const buildTemplate3HTML = ({ profile, education, experience, skills, certificat
   <div class="header-wrap">
     <div class="header-top">
       <div class="name-block">
-        <h1>${profile?.fullName || "Name Not Provided"}</h1>
-        <div class="role">${profile?.headline || "Professional"}</div>
+        <h1>${profile?.fullName || "Abhishek Sharma"}</h1>
+        <div class="role">${profile?.headline || "Developer Project Manager"}</div>
       </div>
       <div class="contact-block">
-        <div>${profile?.email || ""} <i class="fa-solid fa-envelope"></i></div>
-        <div>${profile?.phone || ""} <i class="fa-solid fa-phone"></i></div>
-        <div>${profile?.address || ""} <i class="fa-solid fa-location-dot"></i></div>
-        <div>linkedin.com/in/${profile?.linkedinId || ""} <i class="fa-brands fa-linkedin"></i></div>
-        <div>@${profile?.xId || ""} <i class="fa-brands fa-x-twitter"></i></div>
+        <div>
+          <a href="mailto:${profile?.email || ''}">
+            ${profile?.email || ""} <i class="fa-solid fa-envelope"></i>
+          </a>
+        </div>
+        <div>
+          <a href="tel:${profile?.phone || ''}">
+            ${profile?.phone || ""} <i class="fa-solid fa-phone"></i>
+          </a>
+        </div>
+        <div>
+          <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile?.address || '')}" target="_blank">
+            ${profile?.address || ""} <i class="fa-solid fa-location-dot"></i>
+          </a>
+        </div>
+        <div>
+          <a href="https://linkedin.com/in/${profile?.linkedinId || ''}" target="_blank">
+            linkedin.com/in/${profile?.linkedinId || ""} <i class="fa-brands fa-linkedin"></i>
+          </a>
+        </div>
+        <div>
+          <a href="https://x.com/${profile?.xId || ''}" target="_blank">
+            @${profile?.xId || ""} <i class="fa-brands fa-x-twitter"></i>
+          </a>
+        </div>
       </div>
     </div>
-    <div class="summary-text">${profile?.summary || ""}</div>
-    <div class="avatar">
+    
+    <div class="summary-text">${profile?.summary || "Lorem ipsum dolor sit amet, consectetur adipiscing elit..."}</div>
+  </div>
+  <div class="avatar">
       <img src="${profile?.profileImage ? 'http://localhost:5000'+profile.profileImage : 'https://via.placeholder.com/150'}" />
     </div>
-  </div>
 
   <div class="body">
     <div>
@@ -511,7 +594,6 @@ const buildTemplate3HTML = ({ profile, education, experience, skills, certificat
       </div>
     </div>
   </div>
-
   <div class="footer-bg"></div>
 </div>
 </body>
