@@ -2,9 +2,9 @@ const express = require("express");
 const router = express.Router();
 
 const cvController = require("./cv.controller");
-const jwtValidation = require("../../middlewares/jwtValidation");
+const universalAuth = require("../../middlewares/universalAuth");
 
-router.get("/preview", jwtValidation, cvController.previewCV);
-router.get("/generate", jwtValidation, cvController.generateCV);
+router.get("/preview", universalAuth, cvController.previewCV);
+router.get("/generate", universalAuth, cvController.generateCV);
 
 module.exports = router;

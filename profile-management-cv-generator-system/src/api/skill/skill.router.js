@@ -2,18 +2,18 @@ const express = require("express");
 const router = express.Router();
 
 const skillController = require("./skill.controller");
-const jwtValidation = require("../../middlewares/jwtValidation");
+const universalAuth = require("../../middlewares/universalAuth");
 
 // Add Skill
-router.post("/", jwtValidation, skillController.addSkill);
+router.post("/", universalAuth, skillController.addSkill);
 
-// Get Skill
-router.get("/", jwtValidation, skillController.getSkill);
+// Get Skills
+router.get("/", universalAuth, skillController.getSkill);
 
 // Update Skill
-router.put("/:id", jwtValidation, skillController.updateSkill);
+router.put("/:id", universalAuth, skillController.updateSkill);
 
 // Delete Skill
-router.delete("/:id", jwtValidation, skillController.deleteSkill);
+router.delete("/:id", universalAuth, skillController.deleteSkill);
 
 module.exports = router;

@@ -13,6 +13,9 @@ import LockIcon from "@mui/icons-material/Lock";
 import api from "../api/api";
 import { useNavigate } from "react-router-dom";
 import AuthNavbar from "../components/AuthNavbar";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth"; 
+import GoogleIcon from "@mui/icons-material/Google";
+
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -25,6 +28,8 @@ export default function Login() {
   });
 
   const navigate = useNavigate();
+  const provider = new GoogleAuthProvider();
+  const auth = getAuth(); 
 
   const submit = async (e) => {
     e.preventDefault();
@@ -85,6 +90,38 @@ export default function Login() {
       });
     }
   };
+
+ const handleSSOLogin = async () => {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    const token = await user.getIdToken();
+    localStorage.setItem("token", token);
+
+    setToast({
+      open: true,
+      message: "Login successful",
+      severity: "success",
+    });
+
+       setTimeout(() => {
+      navigate("/profile");
+    }, 800);
+
+    //navigate("/profile");
+    
+  } catch (error) {
+    console.error("Google Login Error:", error);
+    setToast({
+      open: true,
+      message: error.message || "Google login failed",
+      severity: "error",
+    });
+  }
+};
+
+
 
   return (
     <>
@@ -174,19 +211,43 @@ export default function Login() {
             }}
           />
 
-          <Button
-            type="submit"
-            sx={{
-              width: 200,
-              borderRadius: 20,
-              bgcolor: "#5c9dff",
-              color: "#fff",
-              fontWeight: 600,
-              "&:hover": { bgcolor: "#4a8bf0" },
-            }}
-          >
-            LOGIN
-          </Button>
+          {/* LOGIN */}
+            <Button
+              type="submit"
+              sx={{
+                width: 200,
+                borderRadius: 20,
+                bgcolor: "#5c9dff",
+                color: "#fff",
+                fontWeight: 600,
+                "&:hover": { bgcolor: "#4a8bf0" },
+                mb: 2, 
+              }}
+            >
+              LOGIN
+            </Button>
+
+            {/* GOOGLE LOGIN */}
+            <Button
+              onClick={handleSSOLogin}
+              startIcon={<GoogleIcon />}
+              sx={{
+                width: 200,
+                borderRadius: 20,
+                bgcolor: "#fff",
+                color: "#444",
+                fontWeight: 600,
+                border: "1px solid #ddd",
+                textTransform: "none",
+                "&:hover": {
+                  bgcolor: "#f5f5f5",
+                  borderColor: "#bbb",
+                },
+              }}
+            >
+              Sign in with Google
+            </Button>
+
         </Box>
       </Box>
 

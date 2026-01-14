@@ -2,12 +2,12 @@ const express = require("express");
 const router = express.Router();
 
 const controller = require("./conferenceandcourses.controller");
-const jwtValidation = require("../../middlewares/jwtValidation");
+const universalAuth = require("../../middlewares/universalAuth");
 
-router.post("/", jwtValidation, controller.createConferenceAndCourse);
-router.get("/", jwtValidation, controller.getConferenceAndCourses);
-router.get("/:id", jwtValidation, controller.getConferenceAndCourseById);
-router.put("/:id", jwtValidation, controller.updateConferenceAndCourse);
-router.delete("/:id", jwtValidation, controller.deleteConferenceAndCourse);
+router.post("/", universalAuth, controller.createConferenceAndCourse);
+router.get("/", universalAuth, controller.getConferenceAndCourses);
+router.get("/:id", universalAuth, controller.getConferenceAndCourseById);
+router.put("/:id", universalAuth, controller.updateConferenceAndCourse);
+router.delete("/:id", universalAuth, controller.deleteConferenceAndCourse);
 
 module.exports = router;

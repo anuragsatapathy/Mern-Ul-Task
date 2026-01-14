@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import api from "../api/api";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const ResetPassword = () => {
   const [user, setUser] = useState({ name: "", email: "" });
@@ -25,23 +26,39 @@ const ResetPassword = () => {
     severity: "success",
   });
 
-  // FETCH USER DETAILS
+  // FETCH USER DETAILS 
   useEffect(() => {
-    api
-      .get("/users/me")
-      .then((res) => {
+    const fetchUser = async () => {
+      try {
+       
+        const res = await api.get("/users/me");
         setUser(res.data.data);
-      })
-      .catch(() => {
-        setToast({
-          open: true,
-          message: "Failed to load user details",
-          severity: "error",
+      } catch {
+        
+        const auth = getAuth();
+
+        const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+          if (fbUser) {
+            setUser({
+              name: fbUser.displayName || "Google User",
+              email: fbUser.email,
+            });
+          } else {
+            setToast({
+              open: true,
+              message: "Failed to load user details",
+              severity: "error",
+            });
+          }
         });
-      });
+
+        return () => unsubscribe();
+      }
+    };
+
+    fetchUser();
   }, []);
 
- 
   const validate = () => {
     const err = {};
 
@@ -61,7 +78,6 @@ const ResetPassword = () => {
     return Object.keys(err).length === 0;
   };
 
- 
   const submit = async () => {
     if (!validate()) {
       setToast({
@@ -109,7 +125,6 @@ const ResetPassword = () => {
         Reset Password
       </Typography>
 
-     
       <Card sx={{ maxWidth: 600, p: 3, mb: 3 }}>
         <Typography fontWeight={600}>Name</Typography>
         <Typography mb={2}>{user.name}</Typography>
@@ -118,7 +133,7 @@ const ResetPassword = () => {
         <Typography>{user.email}</Typography>
       </Card>
 
-   
+      {/* RESET FORM */}
       <Card sx={{ maxWidth: 600, p: 3 }}>
         <TextField
           label="New Password"
@@ -162,7 +177,7 @@ const ResetPassword = () => {
         </Stack>
       </Card>
 
-   
+      {/* TOAST */}
       <Snackbar
         open={toast.open}
         autoHideDuration={3000}
@@ -177,4 +192,3 @@ const ResetPassword = () => {
 };
 
 export default ResetPassword;
-

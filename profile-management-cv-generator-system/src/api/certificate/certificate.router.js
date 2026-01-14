@@ -2,21 +2,21 @@ const express = require("express");
 const router = express.Router();
 
 const certificateController = require("./certificate.controller");
-const jwtValidation = require("../../middlewares/jwtValidation");
+const universalAuth = require("../../middlewares/universalAuth");
 
 // Create
-router.post("/", jwtValidation, certificateController.createCertificate);
+router.post("/", universalAuth, certificateController.createCertificate);
 
 // Get All
-router.get("/", jwtValidation, certificateController.getCertificates);
+router.get("/", universalAuth, certificateController.getCertificates);
 
 // Get by ID
-router.get("/:id", jwtValidation, certificateController.getCertificateById);
+router.get("/:id", universalAuth, certificateController.getCertificateById);
 
 // Update
-router.put("/:id", jwtValidation, certificateController.updateCertificate);
+router.put("/:id", universalAuth, certificateController.updateCertificate);
 
 // Delete
-router.delete("/:id", jwtValidation, certificateController.deleteCertificate);
+router.delete("/:id", universalAuth, certificateController.deleteCertificate);
 
 module.exports = router;

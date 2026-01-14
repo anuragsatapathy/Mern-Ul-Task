@@ -569,7 +569,7 @@ const buildTemplate3HTML = ({ profile, education, experience, skills, certificat
       ${(certificates || []).map(c => `
         <div class="right-item">
           <div class="item-title">${c.title}</div> 
-          <span class="item-date">(${c.date ? new Date(c.date).getFullYear() : ''})</span>
+          <span class="item-date">(${c. completionDate ? new Date(c. completionDate).getFullYear() : ''})</span>
           <div class="item-sub">${c.description || c.issuer || ""}</div>
         </div>
       `).join("")}

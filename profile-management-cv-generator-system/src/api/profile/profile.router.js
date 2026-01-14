@@ -3,18 +3,18 @@ const router = express.Router();
 const multer = require("multer");
 
 const profileController = require("./profile.controller");
-const jwtValidation = require("../../middlewares/jwtValidation");
+const universalAuth = require("../../middlewares/universalAuth");
 
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.post(
   "/",
-  jwtValidation,
+  universalAuth,
   upload.single("profileImage"),
   profileController.saveProfile
 );
 
-router.get("/", jwtValidation, profileController.getProfile);
-router.delete("/", jwtValidation, profileController.deleteProfile);
+router.get("/", universalAuth, profileController.getProfile);
+router.delete("/", universalAuth, profileController.deleteProfile);
 
 module.exports = router;

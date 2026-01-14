@@ -2,18 +2,18 @@ const express = require("express");
 const router = express.Router();
 
 const experienceController = require("./experience.controller");
-const jwtValidation = require("../../middlewares/jwtValidation");
+const universalAuth = require("../../middlewares/universalAuth");
 
 // Add Experience
-router.post("/", jwtValidation, experienceController.addExperience);
+router.post("/", universalAuth, experienceController.addExperience);
 
 // Get Experience
-router.get("/", jwtValidation, experienceController.getExperience);
+router.get("/", universalAuth, experienceController.getExperience);
 
 // Update Experience
-router.put("/:id", jwtValidation, experienceController.updateExperience);
+router.put("/:id", universalAuth, experienceController.updateExperience);
 
 // Delete Experience
-router.delete("/:id", jwtValidation, experienceController.deleteExperience);
+router.delete("/:id", universalAuth, experienceController.deleteExperience);
 
 module.exports = router;
