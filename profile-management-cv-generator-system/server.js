@@ -1,6 +1,10 @@
 const express = require("express");
 const cors = require("cors");
-const path = require("path");          // ✅ ADD THIS
+const path = require("path");   
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./src/swagger");
+
+
 
 require("dotenv").config();
 
@@ -12,8 +16,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ ADD THIS — serve uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 
 connectDB();
 

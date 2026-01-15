@@ -10,7 +10,9 @@
     "mongoose": "^9.0.2",
     "multer": "^2.0.2",
     "pdfkit": "^0.17.2",
-    "puppeteer": "^24.34.0"
+    "puppeteer": "^24.34.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "scripts": {
     "start": "node server.js",

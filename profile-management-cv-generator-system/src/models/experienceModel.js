@@ -32,7 +32,6 @@ const experienceSchema = new mongoose.Schema(
       trim: true,
     },
 
-   
     fromDate: {
       type: Date,
       required: true,
@@ -41,6 +40,23 @@ const experienceSchema = new mongoose.Schema(
     toDate: {
       type: Date,
       default: null,
+      validate: {
+        validator: function (value) {
+          // if currently working → toDate must be null
+          if (this.currentlyWorking === true) {
+            return value === null;
+          }
+
+          // if not currently working → toDate must exist
+          if (this.currentlyWorking === false) {
+            return value !== null;
+          }
+
+          return true;
+        },
+        message:
+          "toDate must be null when currentlyWorking is true, and required when currentlyWorking is false",
+      },
     },
 
     currentlyWorking: {
