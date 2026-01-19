@@ -1,6 +1,7 @@
 const User = require("../../models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { verifySendEmail } = require("../../utility/mail");
 
 const createUser = async (req, res) => {
   try {
@@ -17,6 +18,7 @@ const createUser = async (req, res) => {
     user.password = await bcrypt.hash(user.password, 10);
     await user.save();
 
+     await verifySendEmail(user.email);
     return res.status(200).json({
       isSuccess: true,
       message: "User created successfully",

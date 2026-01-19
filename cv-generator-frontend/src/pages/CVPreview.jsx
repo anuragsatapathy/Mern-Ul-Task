@@ -18,11 +18,13 @@ import { toast } from "react-toastify";
 import CV1PreviewImg from "../assets/CV 1.png";
 import CV2PreviewImg from "../assets/CV 2.png";
 import CV3PreviewImg from "../assets/CV 3.png";
+import CV4PreviewImg from "../assets/CV 4.png"; // ✅ NEW
 
 const templateLabels = {
   template1: "CV 1",
   template2: "CV 2",
   template3: "CV 3",
+  template4: "CV 4", // ✅ NEW
 };
 
 const CVPreview = () => {
@@ -33,26 +35,30 @@ const CVPreview = () => {
     template1: "",
     template2: "",
     template3: "",
+    template4: "", // ✅ NEW
   });
 
   const templateImageMap = {
     template1: CV1PreviewImg,
     template2: CV2PreviewImg,
     template3: CV3PreviewImg,
+    template4: CV4PreviewImg, // ✅ NEW
   };
 
   const fetchAllPreviews = async () => {
     try {
-      const [res1, res2, res3] = await Promise.all([
+      const [res1, res2, res3, res4] = await Promise.all([
         api.get("/cv/preview?template=template1"),
         api.get("/cv/preview?template=template2"),
         api.get("/cv/preview?template=template3"),
+        api.get("/cv/preview?template=template4"), // ✅ NEW
       ]);
 
       setPreviews({
         template1: res1.data,
         template2: res2.data,
         template3: res3.data,
+        template4: res4.data, // ✅ NEW
       });
     } catch (err) {
       console.error("Failed to fetch previews", err);
@@ -104,17 +110,21 @@ const CVPreview = () => {
           { id: "template1", label: "CV 1" },
           { id: "template2", label: "CV 2" },
           { id: "template3", label: "CV 3" },
+          { id: "template4", label: "CV 4" }, // ✅ NEW
         ].map((t) => (
           <Grid item key={t.id}>
             <Box textAlign="center">
               <Card
                 onClick={() => handleOpenPreview(t.id)}
                 sx={{
-                  width: 220, 
+                  width: 220,
                   height: 310,
                   cursor: "pointer",
                   position: "relative",
-                  border: template === t.id ? "3px solid #2563eb" : "1px solid #e2e8f0",
+                  border:
+                    template === t.id
+                      ? "3px solid #2563eb"
+                      : "1px solid #e2e8f0",
                   transition: "all 0.3s ease",
                   borderRadius: "8px",
                   overflow: "hidden",
@@ -132,9 +142,9 @@ const CVPreview = () => {
                   sx={{
                     width: "100%",
                     height: "100%",
-                    objectFit: "contain", 
+                    objectFit: "contain",
                     display: "block",
-                    bgcolor: "#fff"
+                    bgcolor: "#fff",
                   }}
                 />
               </Card>
@@ -154,18 +164,23 @@ const CVPreview = () => {
         ))}
       </Grid>
 
-     
       <Dialog
         open={openPreview}
         onClose={handleClosePreview}
-      // maxWidth="sm" 
         fullWidth
-        //scroll="body"
         PaperProps={{
-          sx: { borderRadius: "12px",  maxHeight:"90vh",maxWidth:"900px"}
+          sx: { borderRadius: "12px", maxHeight: "90vh", maxWidth: "900px" },
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, py: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            px: 3,
+            py: 2,
+          }}
+        >
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
             CV Preview: {templateLabels[template]}
           </Typography>
@@ -183,26 +198,30 @@ const CVPreview = () => {
               width: "100%",
               overflow: "hidden",
               position: "relative",
-              height: "fit-content"
+              height: "fit-content",
             }}
           >
-            <Box sx={{ 
-              transform: "scale(0.70)", 
-              transformOrigin: "top center",
-              width: "138.8%", 
-              margin: "0 -19.4%", 
-              mb: -20,
-            }}>
+            <Box
+              sx={{
+                transform: "scale(0.7)",
+                transformOrigin: "top center",
+                width: "138.8%",
+                margin: "0 -19.4%",
+                mb: -20,
+              }}
+            >
               <div dangerouslySetInnerHTML={{ __html: html }} />
             </Box>
           </Paper>
         </DialogContent>
 
-        <DialogActions sx={{ p: 2, justifyContent: 'center', gap: 2 }}>
+        <DialogActions
+          sx={{ p: 2, justifyContent: "center", gap: 2 }}
+        >
           <Button
             variant="outlined"
             onClick={handleClosePreview}
-            sx={{ textTransform: 'none', fontWeight: 600 }}
+            sx={{ textTransform: "none", fontWeight: 600 }}
           >
             Cancel
           </Button>
