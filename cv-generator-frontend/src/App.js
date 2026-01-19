@@ -12,6 +12,8 @@ import CVPreview from "./pages/CVPreview";
 import ResetPassword from "./pages/ResetPassword";
 import ConferencesAndCourses from "./pages/ConferencesAndCourses";
 import Certificates from "./pages/Certificates";
+import Hobby from "./pages/Hobby";
+import Reference from "./pages/Reference";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./components/MainLayout";
@@ -30,19 +32,22 @@ export default function App() {
       />
 
       <Routes>
-        
+        {/* PUBLIC ROUTES */}
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
+        {/* PROTECTED ROUTES */}
         {[
           ["/profile", <Profile />],
           ["/education", <Education />],
           ["/experience", <Experience />],
           ["/skills", <Skill />],
+          ["/hobbies", <Hobby />],
+          ["/references", <Reference />],
+
           ["/conference-and-courses", <ConferencesAndCourses />],
           ["/certificates", <Certificates />],
-
           ["/cv", <CVPreview />],
           ["/reset-password", <ResetPassword />],
         ].map(([path, element]) => (

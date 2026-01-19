@@ -9,6 +9,8 @@ const skillRouter = require("./skill/skill.router");
 const cvRouter = require("./cv/cv.router");
 const certificateRouter = require("./certificate/certificate.router");
 const conferenceAndCoursesRouter = require("./conferenceandcourses/conferenceandcourses.router");
+const hobbyRouter = require("./hobby/hobby.routes");
+const referenceRouter = require("./reference/reference.routes");
 
 router.use("/users", userRouter);
 router.use("/profile", profileRouter);
@@ -18,5 +20,7 @@ router.use("/skills", skillRouter);
 router.use("/cv", cvRouter);
 router.use("/certificates", certificateRouter);
 router.use("/conference-and-courses", conferenceAndCoursesRouter);
+router.use("/hobbies", hobbyRouter);
+router.use("/references", referenceRouter);
 
 module.exports = router;

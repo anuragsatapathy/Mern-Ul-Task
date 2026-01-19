@@ -18,13 +18,13 @@ import { toast } from "react-toastify";
 import CV1PreviewImg from "../assets/CV 1.png";
 import CV2PreviewImg from "../assets/CV 2.png";
 import CV3PreviewImg from "../assets/CV 3.png";
-import CV4PreviewImg from "../assets/CV 4.png"; // ✅ NEW
+import CV4PreviewImg from "../assets/CV 4.png"; 
 
 const templateLabels = {
   template1: "CV 1",
   template2: "CV 2",
   template3: "CV 3",
-  template4: "CV 4", // ✅ NEW
+  template4: "CV 4", 
 };
 
 const CVPreview = () => {
@@ -35,14 +35,14 @@ const CVPreview = () => {
     template1: "",
     template2: "",
     template3: "",
-    template4: "", // ✅ NEW
+    template4: "", 
   });
 
   const templateImageMap = {
     template1: CV1PreviewImg,
     template2: CV2PreviewImg,
     template3: CV3PreviewImg,
-    template4: CV4PreviewImg, // ✅ NEW
+    template4: CV4PreviewImg, 
   };
 
   const fetchAllPreviews = async () => {
@@ -51,14 +51,14 @@ const CVPreview = () => {
         api.get("/cv/preview?template=template1"),
         api.get("/cv/preview?template=template2"),
         api.get("/cv/preview?template=template3"),
-        api.get("/cv/preview?template=template4"), // ✅ NEW
+        api.get("/cv/preview?template=template4"), 
       ]);
 
       setPreviews({
         template1: res1.data,
         template2: res2.data,
         template3: res3.data,
-        template4: res4.data, // ✅ NEW
+        template4: res4.data, 
       });
     } catch (err) {
       console.error("Failed to fetch previews", err);
@@ -110,7 +110,7 @@ const CVPreview = () => {
           { id: "template1", label: "CV 1" },
           { id: "template2", label: "CV 2" },
           { id: "template3", label: "CV 3" },
-          { id: "template4", label: "CV 4" }, // ✅ NEW
+          { id: "template4", label: "CV 4" }, 
         ].map((t) => (
           <Grid item key={t.id}>
             <Box textAlign="center">

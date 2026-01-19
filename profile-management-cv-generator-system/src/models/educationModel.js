@@ -8,15 +8,20 @@ const educationSchema = new mongoose.Schema(
     branch: String,
     university: String,
     institution: String,
+
+    location: String, 
+
     cgpa: String,
 
     startDate: Date,
     endDate: Date,
 
     description: String,
+
     isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
 module.exports = mongoose.model("Education", educationSchema);
+

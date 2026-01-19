@@ -5,6 +5,8 @@ const Experience = require("../../models/experienceModel");
 const Skill = require("../../models/skillModel");
 const Certificate = require("../../models/certificate.model"); 
 const ConferenceCourse = require("../../models/conferenceCourse.model");
+const Hobby = require("../../models/hobbyModel");
+const Reference = require("../../models/referenceModel");
 
 // convert <p> from Quill into <li>
 const quillToBullets = (html = "") => {
@@ -601,15 +603,28 @@ const buildTemplate3HTML = ({ profile, education, experience, skills, certificat
 `;
 };
 
-/* TEMPLATE 4  */
-const buildTemplate4HTML = ({ profile, experience, education, skills }) => {
-  
+/* TEMPLATE 4 */
+const buildTemplate4HTML = ({
+  profile,
+  experience = [],
+  education = [],
+  skills = [],
+  references = [],
+  hobbies = [],
+  languages = [], 
+}) => {
+
   const quillToBullets = (html) => {
     if (!html) return "";
-    return html.replace(/<p><br><\/p>/g, "")
-               .replace(/<p>/g, "<li>")
-               .replace(/<\/p>/g, "</li>");
+    return html
+      .replace(/<p><br><\/p>/g, "")
+      .replace(/<p>/g, "<li>")
+      .replace(/<\/p>/g, "</li>");
   };
+
+  const safeArray = (arr) => Array.isArray(arr) && arr.length > 0;
+  
+  const languagesList = safeArray(languages) ? languages : (safeArray(profile?.languages) ? profile.languages : []);
 
   return `
 <!DOCTYPE html>
@@ -618,266 +633,410 @@ const buildTemplate4HTML = ({ profile, experience, education, skills }) => {
 <meta charset="UTF-8" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
   
-  @page { 
-    size: A4; 
-    margin: 0; 
-  }
-
+  @page { size: A4; margin: 0; }
   * { box-sizing: border-box; }
-  
-  body { 
-    margin: 0; 
-    padding: 0; 
-    font-family: 'Open Sans', sans-serif; 
-    background: #fff; 
-    color: #333; 
+
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: #fff;
+    color: #333;
+    -webkit-print-color-adjust: exact;
   }
 
   .wrapper {
     display: flex;
     min-height: 297mm;
-    /* This ensures the sidebar background color persists across pages */
-    background: linear-gradient(to right, #4a4a4a 32%, #ffffff 32%);
   }
 
-  /* SIDEBAR */
+  /* Sidebar Styling */
   .sidebar {
     width: 32%;
-    /* Transparent because the wrapper gradient provides the color */
-    background: transparent; 
+    background-color: #3d3d3d;
     color: #ffffff;
-    padding: 40px 25px;
+    padding: 50px 25px;
   }
 
   .avatar-container {
-    width: 155px;
-    height: 155px;
+    width: 165px;
+    height: 165px;
     border-radius: 50%;
     overflow: hidden;
-    margin: 0 auto 30px;
-    border: 4px solid #5a5a5a;
+    margin: 0 auto 35px;
+    border: 5px solid #555;
   }
-  .avatar-container img { width: 100%; height: 100%; object-fit: cover; }
+
+  .avatar-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .sidebar-section {
+    margin-bottom: 30px;
+  }
 
   .sidebar h3 {
-    font-size: 13px;
+    font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 1.2px;
-    margin: 30px 0 12px;
+    margin: 0 0 12px 0;
     border-bottom: 1px solid rgba(255,255,255,0.2);
     padding-bottom: 6px;
     font-weight: 700;
   }
 
-  .sidebar p, .sidebar li { font-size: 11px; line-height: 1.6; color: #e0e0e0; margin-bottom: 8px; }
-  .sidebar ul { list-style: none; padding: 0; margin: 0; }
-  .sidebar a { color: #fff; text-decoration: underline; text-underline-offset: 2px; }
+  .sidebar p, .sidebar li {
+    font-size: 11px;
+    line-height: 1.5;
+    color: #d1d1d1;
+    margin-bottom: 10px;
+  }
 
-  /* MAIN CONTENT */
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .sidebar a {
+    color: #fff;
+    text-decoration: none;
+    word-break: break-all;
+  }
+
+  /* Main Content Styling */
   .content {
     width: 68%;
-    padding: 40px 35px;
-    background: white;
+    padding: 50px 40px;
   }
 
-  /* HEADER */
-  .header-table { width: 100%; margin-bottom: 35px; border-collapse: collapse; }
-  .header-left { width: 55%; vertical-align: top; }
-  .header-right { width: 45%; vertical-align: top; text-align: right; }
-  
-  .name { font-size: 38px; font-weight: 800; text-transform: uppercase; margin: 0; line-height: 0.9; color: #333; }
-  .headline { font-size: 12px; color: #777; letter-spacing: 1.5px; margin-top: 8px; text-transform: uppercase; font-weight: 600; }
+  .header-main {
+    margin-bottom: 45px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
 
-  .contact-row { 
-    display: flex; 
-    align-items: center; 
-    justify-content: flex-end; 
-    margin-bottom: 8px; 
-    gap: 12px; 
+  .name-title h1 {
+    margin: 0;
+    font-size: 38px;
+    text-transform: uppercase;
+    font-weight: 800;
+    line-height: 1;
+    color: #1a1a1a;
+  }
+
+  .name-title .sub-role {
+    font-size: 14px;
+    color: #666;
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+
+  .contact-info {
+    text-align: right;
     font-size: 10.5px;
-    color: #555;
+    color: #444;
   }
-  .contact-row i { 
-    background: #222; color: #fff; 
-    width: 22px; height: 22px; 
-    min-width: 22px;
-    border-radius: 50%; 
-    display: flex; align-items: center; justify-content: center; 
+
+  .contact-item {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .contact-icon {
+    background: #1a1a1a;
+    color: #fff;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
     font-size: 10px;
   }
-  .contact-row span { text-align: right; line-height: 1.3; }
-  .contact-row a { color: #555; text-decoration: none; }
 
-  /* SECTION TITLE */
   .section-head {
     font-size: 14px;
     font-weight: 700;
     text-transform: uppercase;
-    border-bottom: 1.5px solid #333;
-    padding-bottom: 5px;
-    margin: 30px 0 20px;
-    color: #222;
-    page-break-after: avoid; /* Don't leave a header alone at the bottom */
+    color: #1a1a1a;
+    margin: 25px 0 8px;
+    display: inline-block;
   }
 
-  /* TIMELINE */
-  .timeline-container { 
-    display: flex; 
-    margin-bottom: 25px; 
-    page-break-inside: avoid; /* Prevents experience items from splitting across pages */
-  }
-  .timeline-left { width: 130px; font-size: 10.5px; color: #666; text-transform: uppercase; line-height: 1.4; font-weight: 600; }
-  .timeline-center { width: 30px; position: relative; }
-  .timeline-right { flex: 1; padding-left: 5px; }
-
-  .timeline-center::before {
-    content: ""; position: absolute; left: 4px; top: 5px; bottom: -25px;
-    width: 1px; background: #ddd;
-  }
-  .timeline-center::after {
-    content: ""; position: absolute; left: 0; top: 4px;
-    width: 10px; height: 10px; background: #4a4a4a; border-radius: 50%;
-  }
-  .timeline-container:last-of-type .timeline-center::before { display: none; }
-
-  .item-title { font-size: 13px; font-weight: 700; color: #222; margin-bottom: 6px; }
-  .bullet-list { margin: 0; padding-left: 18px; font-size: 11px; color: #444; line-height: 1.6; }
-  .bullet-list li { margin-bottom: 5px; }
-
-  /* SKILLS & LANGUAGES */
-  .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 15px 40px; }
-  .progress-container { margin-bottom: 12px; page-break-inside: avoid; }
-  .progress-label { font-size: 10px; text-transform: uppercase; color: #555; margin-bottom: 6px; display: block; font-weight: 700; }
-  .progress-bar-bg { width: 100%; height: 6px; background: #eee; border-radius: 0px; }
-  .progress-bar-fill { height: 100%; background: #4a4a4a; border-radius: 0px; }
-
-  /* PRINT SPECIFIC FIXES */
-  @media print {
-    body { -webkit-print-color-adjust: exact; }
-    .wrapper { height: auto; overflow: visible; }
-    .sidebar { height: 100%; }
-    /* Ensure the sidebar background extends if content is long */
-    .sidebar, .content { page-break-inside: auto; }
+  .hr-line {
+    border: none;
+    border-top: 2px solid #1a1a1a;
+    margin-bottom: 20px;
   }
 
+  /* Timeline Styling */
+  .timeline-item {
+    display: grid;
+    grid-template-columns: 135px 35px 1fr;
+    margin-bottom: 22px;
+  }
+
+  .timeline-meta {
+    font-size: 11px;
+    color: #666;
+  }
+
+  .timeline-meta strong {
+    display: block;
+    color: #1a1a1a;
+    text-transform: uppercase;
+    font-size: 11.5px;
+    margin-bottom: 2px;
+  }
+
+  .timeline-point {
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+
+  .timeline-point::before {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #3d3d3d;
+    border-radius: 50%;
+    top: 4px;
+    z-index: 2;
+  }
+
+  .timeline-point::after {
+    content: "";
+    position: absolute;
+    width: 1px;
+    background: #ddd;
+    top: 14px;
+    bottom: -25px;
+    left: 50%;
+  }
+
+  .timeline-item:last-child .timeline-point::after {
+    display: none;
+  }
+
+  .timeline-content {
+    padding-bottom: 10px;
+  }
+
+  .item-role {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 5px;
+  }
+
+  .bullet-list {
+    margin: 5px 0 0;
+    padding-left: 15px;
+    font-size: 11px;
+    color: #444;
+    line-height: 1.5;
+  }
+
+  /* Grid for Skills/Languages */
+  .grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 40px;
+    row-gap: 18px;
+  }
+
+  .bar-item {
+    page-break-inside: avoid;
+  }
+
+  .bar-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    color: #333;
+  }
+
+  .bar-bg {
+    height: 6px;
+    background: #eee;
+    width: 100%;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: #3d3d3d;
+  }
+
+  /* Specific Spacing for Page Breaks */
+  .first-page-bottom {
+    height: 40px;
+  }
+  
+  .second-page-top {
+    padding-top: 50px;
+  }
 </style>
 </head>
+
 <body>
 <div class="wrapper">
 
   <aside class="sidebar">
     <div class="avatar-container">
-      <img src="${profile?.profileImage ? 'http://localhost:5000' + profile.profileImage : 'https://via.placeholder.com/150'}" alt="Profile Image"/>
+      <img src="${profile?.profileImage ? 'http://localhost:5000' + profile.profileImage : 'https://via.placeholder.com/150'}" />
     </div>
 
-    <h3>About Me</h3>
-    <p>${profile?.summary || "Highly experienced ATS Templates Specialist with a strong background in managing and optimizing Applicant Tracking Systems. Proven ability to train teams and collaborate effectively with IT departments. Known for meticulous attention to detail and problem-solving skills."}</p>
+    <div class="sidebar-section">
+      <h3>About Me</h3>
+      <p>${profile?.summary || "Highly experienced ATS Templates Specialist with a strong background in managing and optimizing Applicant Tracking Systems. Proven ability to train teams and collaborate effectively with IT departments."}</p>
+    </div>
 
-    <h3>Links</h3>
-    <ul>
-      <li><strong>Linkedin:</strong><br>
-        <a href="https://linkedin.com/in/${profile?.linkedinId || 'sherlockholmes'}" target="_blank">linkedin.com/in/${profile?.linkedinId || 'sherlockholmes'}</a>
-      </li>
-      <li style="margin-top:10px;"><strong>X:</strong><br>
-        <a href="https://x.com/${profile?.xId || 'sherlockholmes'}" target="_blank">x.com/${profile?.xId || 'sherlockholmes'}</a>
-      </li>
-    </ul>
+    <div class="sidebar-section">
+      <h3>Links</h3>
+      <ul>
+        <li><strong>LinkedIn:</strong><br>
+          <a href="https://linkedin.com/in/${profile?.linkedinId || 'sherlockholmes'}">https://www.linkedin.com/in/${profile?.linkedinId || 'sherlockholmes'}</a>
+        </li>
+        <li style="margin-top:10px;"><strong>X:</strong><br>
+          <a href="https://x.com/${profile?.xId || 'sherlockholmes'}">https://x.com/${profile?.xId || 'sherlockholmes'}</a>
+        </li>
+      </ul>
+    </div>
 
-    <h3>Reference</h3>
-    <p><strong style="color:#fff; font-size:12px;">DR. JOHN WATSON</strong><br>
-    Private Practice<br>
-    T: +44 20 7935 1200<br>
-    E: <a href="mailto:john.watson@doctor.com">john.watson@doctor.com</a></p>
+    <div class="sidebar-section">
+      <h3>Reference</h3>
+      ${safeArray(references) ? references.map(r => `
+        <p>
+          <strong style="color:#fff; font-size:12px; text-transform:uppercase;">${r.name}</strong><br>
+          ${r.designation || 'Private Practice'}<br>
+          T: ${r.phone}<br>
+          E: <a href="mailto:${r.email}">${r.email}</a>
+        </p>
+      `).join("") : `
+        <p>
+          <strong style="color:#fff; font-size:12px; text-transform:uppercase;">DR. JOHN WATSON</strong><br>
+          Private Practice<br>
+          T: +44 20 7935 1200<br>
+          E: <a href="mailto:john.watson@doctor.com">john.watson@doctor.com</a>
+        </p>
+      `}
+    </div>
 
-    <h3>Hobbies</h3>
-    <ul style="letter-spacing: 0.5px;">
-      <li>• VIOLIN PLAYING</li>
-      <li>• CHEMISTRY</li>
-      <li>• BOXING</li>
-      <li>• FENCING</li>
-      <li>• CRYPTOGRAPHY</li>
-    </ul>
+    <div class="sidebar-section">
+      <h3>Hobbies</h3>
+      <ul>
+        ${safeArray(hobbies) ? hobbies.map(h => `<li>• ${h.name.toUpperCase()}</li>`).join("") : `
+          <li>• VIOLIN PLAYING</li>
+          <li>• CHEMISTRY</li>
+          <li>• BOXING</li>
+          <li>• FENCING</li>
+          <li>• CRYPTOGRAPHY</li>
+        `}
+      </ul>
+    </div>
+    <div class="first-page-bottom"></div>
   </aside>
 
   <main class="content">
     
-    <table class="header-table">
-      <tr>
-        <td class="header-left">
-          <h1 class="name">${profile?.fullName || "SHERLOCK HOLMES"}</h1>
-          <div class="headline">${profile?.headline || "ATS TEMPLATES SPECIALIST"}</div>
-        </td>
-        <td class="header-right">
-          <div class="contact-row">
-            <span>${profile?.address || "221B Baker Street, London, London,<br>NW1 6XE, United Kingdom"}</span>
-            <i class="fa fa-location-dot"></i> 
-          </div>
-          <div class="contact-row">
-            <span><a href="tel:${profile?.phone || ''}">${profile?.phone || "+44 20 7224 3688"}</a></span>
-            <i class="fa fa-phone"></i> 
-          </div>
-          <div class="contact-row">
-            <span><a href="mailto:${profile?.email || ''}">${profile?.email || "sherlock.holmes@detective.com"}</a></span>
-            <i class="fa fa-envelope"></i> 
-          </div>
-        </td>
-      </tr>
-    </table>
+    <header class="header-main">
+      <div class="name-block">
+        <h1>${profile?.fullName || "SHERLOCK HOLMES"}</h1>
+        <div class="sub-role">${profile?.headline || "ATS TEMPLATES SPECIALIST"}</div>
+      </div>
+      <div class="contact-info">
+        <div class="contact-item">
+          <span>${profile?.address || "221B Baker Street, London, London, NW1 6XE, United Kingdom"}</span>
+          <div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div>
+        </div>
+        <div class="contact-item">
+          <span>${profile?.phone || "+44 20 7224 3688"}</span>
+          <div class="contact-icon"><i class="fa-solid fa-phone"></i></div>
+        </div>
+        <div class="contact-item">
+          <span>${profile?.email || "sherlock.holmes@detective.com"}</span>
+          <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
+        </div>
+      </div>
+    </header>
 
     <div class="section-head">Work Experience</div>
-    ${experience.length > 0 ? experience.map(x => `
-      <div class="timeline-container">
-        <div class="timeline-left">
-          <strong>${x.company}</strong><br>${x.location || "London"}<br>
-          ${new Date(x.fromDate).getFullYear()} - ${x.currentlyWorking ? "Present" : new Date(x.toDate).getFullYear()}
+    <hr class="hr-line">
+    ${experience.map(x => `
+      <div class="timeline-item">
+        <div class="timeline-meta">
+          <strong>${x.company}</strong>
+          ${x.location || ""}<br>
+          ${new Date(x.fromDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} - 
+          ${x.currentlyWorking ? "Present" : new Date(x.toDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
         </div>
-        <div class="timeline-center"></div>
-        <div class="timeline-right">
-          <div class="item-title">${x.role}</div>
+        <div class="timeline-point"></div>
+        <div class="timeline-content">
+          <div class="item-role">${x.role}</div>
           <ul class="bullet-list">${quillToBullets(x.description)}</ul>
         </div>
       </div>
-    `).join("") : ""}
+    `).join("")}
 
     <div class="section-head">Education</div>
-    ${education.length > 0 ? education.map(e => `
-      <div class="timeline-container">
-        <div class="timeline-left">
-          <strong>${e.university}</strong><br>${e.location || "Bhubaneswar"}<br>
-         ${(e.endDate || e.toDate)
-            ? new Date(e.endDate || e.toDate).getFullYear()
-            : "Present"}
-
+    <hr class="hr-line">
+    ${education.map(e => `
+      <div class="timeline-item">
+        <div class="timeline-meta">
+          <strong>${e.university}</strong>
+          ${e.location || ""}<br>
+          ${new Date(e.startDate || e.fromDate).getFullYear()}
         </div>
-        <div class="timeline-center"></div>
-        <div class="timeline-right">
-          <div class="item-title">${e.degree}</div>
-          <ul class="bullet-list">${e.description ? quillToBullets(e.description) : '<li>Specialized in software development.</li>'}</ul>
+        <div class="timeline-point"></div>
+        <div class="timeline-content">
+          <div class="item-role">${e.degree}</div>
+          <ul class="bullet-list">${quillToBullets(e.description)}</ul>
         </div>
       </div>
-    `).join("") : ""}
+    `).join("")}
 
     <div class="section-head">Skills</div>
-    <div class="grid-2col">
+    <hr class="hr-line">
+    <div class="grid-container">
       ${skills.map(s => `
-        <div class="progress-container">
-          <span class="progress-label">${s.name}</span>
-          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${s.level || '80'}%"></div></div>
+        <div class="bar-item">
+          <div class="bar-label">${s.name}</div>
+          <div class="bar-bg">
+            <div class="bar-fill" style="width:${s.level || 85}%"></div>
+          </div>
         </div>
       `).join("")}
     </div>
 
-    <div class="section-head">Languages</div>
-    <div class="grid-2col">
-      ${(profile?.languages || [{name: 'English', level: 100}, {name: 'French', level: 45}, {name: 'German', level: 30}]).map(l => `
-        <div class="progress-container">
-          <span class="progress-label">${l.name}</span>
-          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${l.level || '50'}%"></div></div>
-        </div>
-      `).join("")}
-    </div>
+    <div class="second-page-top"></div>
+
+    ${languagesList.length > 0 ? `
+      <div class="section-head" style="margin-top:20px;">Languages</div>
+      <hr class="hr-line">
+      <div class="grid-container">
+        ${languagesList.map(l => `
+          <div class="bar-item">
+            <div class="bar-label">${l.name}</div>
+            <div class="bar-bg">
+              <div class="bar-fill" style="width:${l.level || 70}%"></div>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    ` : ""}
 
   </main>
 </div>
@@ -890,24 +1049,38 @@ const buildTemplate4HTML = ({ profile, experience, education, skills }) => {
 
 const buildCVHTML = async (userId, template = "template1") => {
  
-  const [profile, education, experience, skills, certificates, conferences] =
-    await Promise.all([
-      Profile.findOne({ userId }),
-      Education.find({ userId, isDeleted: false }),
-      Experience.find({ userId, isDeleted: false }),
-      Skill.find({ userId, isDeleted: false }),
-      Certificate.find({ userId, isDeleted: false }),
-      ConferenceCourse.find({ userId, isDeleted: false }) 
-    ]);
+  const [
+  profile,
+  education,
+  experience,
+  skills,
+  certificates,
+  conferences,
+  hobbies,
+  references,
+] = await Promise.all([
+  Profile.findOne({ userId }),
+  Education.find({ userId, isDeleted: false }),
+  Experience.find({ userId, isDeleted: false }),
+  Skill.find({ userId, isDeleted: false }),
+  Certificate.find({ userId, isDeleted: false }),
+  ConferenceCourse.find({ userId, isDeleted: false }),
+  Hobby.find({ userId, isDeleted: false }),        
+  Reference.find({ userId, isDeleted: false }),    
+]);
+
 
   if (template === "template4") {
-    return buildTemplate4HTML({
-      profile,
-      education: education || [],
-      experience: experience || [],
-      skills: skills || [],
-    });
-  }
+  return buildTemplate4HTML({
+    profile,
+    education: education || [],
+    experience: experience || [],
+    skills: skills || [],
+    hobbies: hobbies || [],          
+    references: references || [],    
+  });
+}
+
 
   if (template === "template3") {
     return buildTemplate3HTML({ 

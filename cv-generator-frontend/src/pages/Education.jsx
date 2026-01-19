@@ -27,10 +27,12 @@ const emptyForm = {
   degree: "",
   branch: "",
   university: "",
+  location: "",          
   institution: "",
   cgpa: "",
   startDate: null,
   endDate: null,
+  description: "",
 };
 
 const Education = () => {
@@ -56,10 +58,13 @@ const Education = () => {
     if (!form.degree) e.degree = "Required";
     if (!form.branch) e.branch = "Required";
     if (!form.university) e.university = "Required";
+    if (!form.location) e.location = "Required";   
     if (!form.institution) e.institution = "Required";
     if (!form.cgpa) e.cgpa = "Required";
     if (!form.startDate) e.startDate = "Required";
     if (!form.endDate) e.endDate = "Required";
+    if (!form.description) e.description = "Required";
+
     setErrors(e);
 
     if (Object.keys(e).length) {
@@ -70,8 +75,8 @@ const Education = () => {
   };
 
   const openAddDialog = () => {
-    setEditId(null);          
-    setForm(emptyForm);       
+    setEditId(null);
+    setForm(emptyForm);
     setErrors({});
     setOpen(true);
   };
@@ -89,7 +94,7 @@ const Education = () => {
 
   const closeDialog = () => {
     setOpen(false);
-    setEditId(null);          
+    setEditId(null);
     setErrors({});
     setForm(emptyForm);
   };
@@ -132,19 +137,8 @@ const Education = () => {
 
   return (
     <Box>
-      
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          mb: 2,
-        }}
-      >
-        <Typography variant="h4">
-          Education
-        </Typography>
-
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+        <Typography variant="h4">Education</Typography>
         <Button variant="contained" onClick={openAddDialog}>
           ADD EDUCATION
         </Button>
@@ -164,7 +158,6 @@ const Education = () => {
                   p: 3,
                   borderRadius: 4,
                   position: "relative",
-                  
                   background:
                     "linear-gradient(135deg, #E8F5E9 0%, #E0F2F1 100%)",
                   boxShadow: "0 10px 28px rgba(0,0,0,0.12)",
@@ -175,14 +168,12 @@ const Education = () => {
                   },
                 }}
               >
+
                 <Box position="absolute" top={12} right={12}>
                   <IconButton onClick={() => openEditDialog(e)}>
                     <EditIcon />
                   </IconButton>
-                  <IconButton
-                    color="error"
-                    onClick={() => setConfirmId(e._id)}
-                  >
+                  <IconButton color="error" onClick={() => setConfirmId(e._id)}>
                     <DeleteIcon />
                   </IconButton>
                 </Box>
@@ -195,16 +186,19 @@ const Education = () => {
                 </Stack>
 
                 <Typography mt={0.5}>{e.university}</Typography>
-                <Typography color="text.secondary">
-                  {e.institution}
+                <Typography color="text.secondary">{e.location}</Typography>
+                <Typography color="text.secondary">{e.institution}</Typography>
+
+                <Divider sx={{ my: 1.5 }} />
+
+                <Typography fontSize={14} color="text.secondary">
+                  {e.description}
                 </Typography>
 
                 <Divider sx={{ my: 1.5 }} />
 
-                <Stack direction="row" spacing={3} flexWrap="wrap">
-                  <Typography fontWeight={600}>
-                    CGPA: {e.cgpa}
-                  </Typography>
+                <Stack direction="row" spacing={3}>
+                  <Typography fontWeight={600}>CGPA: {e.cgpa}</Typography>
                   <Typography fontSize={13} color="text.secondary">
                     {dayjs(e.startDate).format("DD/MM/YYYY")} –{" "}
                     {dayjs(e.endDate).format("DD/MM/YYYY")}
@@ -218,9 +212,7 @@ const Education = () => {
 
       {/* ADD / EDIT DIALOG */}
       <Dialog open={open} onClose={closeDialog} fullWidth maxWidth="sm">
-        <DialogTitle>
-          {editId ? "Edit Education" : "Add Education"}
-        </DialogTitle>
+        <DialogTitle>{editId ? "Edit Education" : "Add Education"}</DialogTitle>
 
         <DialogContent>
           <Stack spacing={2} mt={1}>
@@ -231,9 +223,7 @@ const Education = () => {
                 value={form.degree}
                 error={!!errors.degree}
                 helperText={errors.degree}
-                onChange={(e) =>
-                  setForm({ ...form, degree: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, degree: e.target.value })}
               />
 
               <TextField
@@ -242,9 +232,7 @@ const Education = () => {
                 value={form.branch}
                 error={!!errors.branch}
                 helperText={errors.branch}
-                onChange={(e) =>
-                  setForm({ ...form, branch: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, branch: e.target.value })}
               />
             </Stack>
 
@@ -254,9 +242,16 @@ const Education = () => {
               value={form.university}
               error={!!errors.university}
               helperText={errors.university}
-              onChange={(e) =>
-                setForm({ ...form, university: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, university: e.target.value })}
+            />
+
+            <TextField
+              label="LOCATION"
+              fullWidth
+              value={form.location}
+              error={!!errors.location}
+              helperText={errors.location}
+              onChange={(e) => setForm({ ...form, location: e.target.value })}
             />
 
             <TextField
@@ -270,6 +265,19 @@ const Education = () => {
               }
             />
 
+            <TextField
+              label="DESCRIPTION"
+              fullWidth
+              multiline
+              minRows={3}
+              value={form.description}
+              error={!!errors.description}
+              helperText={errors.description}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
+            />
+
             <Stack direction="row" spacing={2}>
               <TextField
                 label="CGPA"
@@ -277,9 +285,7 @@ const Education = () => {
                 value={form.cgpa}
                 error={!!errors.cgpa}
                 helperText={errors.cgpa}
-                onChange={(e) =>
-                  setForm({ ...form, cgpa: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, cgpa: e.target.value })}
               />
 
               <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -287,9 +293,7 @@ const Education = () => {
                   label="Start Date"
                   format="DD/MM/YYYY"
                   value={form.startDate}
-                  onChange={(v) =>
-                    setForm({ ...form, startDate: v })
-                  }
+                  onChange={(v) => setForm({ ...form, startDate: v })}
                   slotProps={{
                     textField: {
                       sx: { width: "30%" },
@@ -303,9 +307,7 @@ const Education = () => {
                   label="End Date"
                   format="DD/MM/YYYY"
                   value={form.endDate}
-                  onChange={(v) =>
-                    setForm({ ...form, endDate: v })
-                  }
+                  onChange={(v) => setForm({ ...form, endDate: v })}
                   slotProps={{
                     textField: {
                       sx: { width: "30%" },
