@@ -144,7 +144,7 @@ const Reference = () => {
   };
 
   return (
-    <Box width="100%" p={4} bgcolor="#ffffff" minHeight="100vh">
+    <Box width="100%" p={4}  minHeight="100vh">
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={6}>
         <Typography variant="h4" fontWeight={700} color="#000">
           References

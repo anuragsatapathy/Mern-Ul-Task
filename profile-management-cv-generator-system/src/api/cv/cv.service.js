@@ -7,6 +7,7 @@ const Certificate = require("../../models/certificate.model");
 const ConferenceCourse = require("../../models/conferenceCourse.model");
 const Hobby = require("../../models/hobbyModel");
 const Reference = require("../../models/referenceModel");
+const { verifySendEmail } = require("../../utility/mail");
 
 // convert <p> from Quill into <li>
 const quillToBullets = (html = "") => {
@@ -1113,19 +1114,23 @@ const generateCV = async (userId, template = "template1") => {
   try {
     const html = await buildCVHTML(userId, template);
 
-    const browser = await puppeteer.launch({ 
+    const browser = await puppeteer.launch({
       headless: "new",
-      args: ["--no-sandbox", "--disable-setuid-sandbox"] 
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
-    
+
     const page = await browser.newPage();
-    
     await page.setContent(html, { waitUntil: "networkidle0" });
 
     const pdf = await page.pdf({
       format: "A4",
       printBackground: true,
-      margin: { top: "0px", right: "0px", bottom: "0px", left: "0px" }
+      margin: {
+        top: "0px",
+        right: "0px",
+        bottom: "0px",
+        left: "0px",
+      },
     });
 
     await browser.close();

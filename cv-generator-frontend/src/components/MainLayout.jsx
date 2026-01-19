@@ -25,7 +25,7 @@ export default function MainLayout({ children }) {
       <Box sx={{ display: "flex", pt: "64px" }}>
         <Box
           sx={{
-            width: 260,
+            width: '270px!important',
             bgcolor: "#1e293b",
             minHeight: "calc(100vh - 64px)",
             p: 3,

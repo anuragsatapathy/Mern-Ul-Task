@@ -1,7 +1,7 @@
 const nodemailer = require("nodemailer");
 // Create a transporter using Ethereal test credentials.
 // For production, replace with your actual SMTP server details.
-const verifySendEmail = async (email) => {
+const verifySendEmail = async (email,subject,text) => {
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com", 
@@ -19,8 +19,8 @@ const transporter = nodemailer.createTransport({
   const info = await transporter.sendMail({
     from: '"CV-GENERATOR" <anurag.satapathy401@gmail.com>',
     to: email,
-    subject: "Hello ✔",
-    text: "Welcome you have been successfully registered", // Plain-text version of the message
+    subject ,
+    text  // Plain-text version of the message
     //html: "<b>Hello world?</b>", // HTML version of the message
   });
 

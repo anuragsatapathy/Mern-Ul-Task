@@ -158,7 +158,7 @@ const Hobby = () => {
                     <DeleteIcon fontSize="small" />
                   </IconButton>
                 </Box>
-
+            <Box>
                 <Typography 
                   variant="overline" 
                   display="block" 
@@ -173,6 +173,7 @@ const Hobby = () => {
                 >
                   {x.name}
                 </Typography>
+                </Box>
               </HobbyCard>
             </Grid>
           ))}

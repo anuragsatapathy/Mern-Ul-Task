@@ -17,8 +17,9 @@ const createUser = async (req, res) => {
     const user = new User(req.body);
     user.password = await bcrypt.hash(user.password, 10);
     await user.save();
-
-     await verifySendEmail(user.email);
+    const subject = "Hello ✔"
+    const bodytext="Welcome you have been successfully registered"
+     await verifySendEmail(user.email,subject,bodytext);
     return res.status(200).json({
       isSuccess: true,
       message: "User created successfully",
