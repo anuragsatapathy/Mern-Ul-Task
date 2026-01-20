@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects  Project[] @relation("UserProjects")
+  tasks     Task[]    @relation("UserTasks")
+}
+
+model Workspace {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  ownerId     String
+  createdAt   DateTime @default(now())
+
+  projects    Project[]
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  status      String
+  workspaceId String
+  createdById String
+  isDeleted   Boolean  @default(false)
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  createdBy   User      @relation("UserProjects", fields: [createdById], references: [id])
+  tasks       Task[]
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  status      String
+  priority    String
+  dueDate     DateTime?
+  projectId   String
+  assignedTo  String
+  isDeleted   Boolean  @default(false)
+
+  project     Project @relation(fields: [projectId], references: [id])
+  user        User    @relation("UserTasks", fields: [assignedTo], references: [id])
+}
