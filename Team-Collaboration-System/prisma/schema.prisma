@@ -7,6 +7,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 model User {
   id        String   @id @default(uuid())
   name      String
@@ -15,22 +33,32 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
-  projects        Project[]   @relation("UserProjects")
-  tasks           Task[]      @relation("UserTasks")
-  ownedWorkspaces Workspace[] @relation("WorkspaceOwner")
+  memberships WorkspaceMember[]
+  projects    Project[]
+  tasks       Task[]
+  activities  Activity[]
 }
 
 model Workspace {
   id          String   @id @default(uuid())
   name        String
   description String?
-  ownerId     String
   createdAt   DateTime @default(now())
 
-  // Relations
-  owner    User      @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  members  WorkspaceMember[]
   projects Project[]
+}
+
+model WorkspaceMember {
+  id          String         @id @default(uuid())
+  userId      String
+  workspaceId String
+  role        WorkspaceRole
+
+  user      User      @relation(fields: [userId], references: [id])
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@unique([userId, workspaceId])
 }
 
 model Project {
@@ -43,25 +71,32 @@ model Project {
   isDeleted   Boolean  @default(false)
   createdAt   DateTime @default(now())
 
-  // Relations
   workspace Workspace @relation(fields: [workspaceId], references: [id])
-  createdBy User      @relation("UserProjects", fields: [createdById], references: [id])
+  createdBy User      @relation(fields: [createdById], references: [id])
   tasks     Task[]
 }
 
 model Task {
-  id          String   @id @default(uuid())
+  id          String       @id @default(uuid())
   title       String
   description String?
-  status      String   @default("todo")
-  priority    String   @default("medium")
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
   dueDate     DateTime?
   projectId   String
   assignedTo  String
-  isDeleted   Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  isDeleted   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
 
-  // Relations
   project Project @relation(fields: [projectId], references: [id])
-  user    User    @relation("UserTasks", fields: [assignedTo], references: [id])
+  user    User    @relation(fields: [assignedTo], references: [id])
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  action    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }

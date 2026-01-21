@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const taskController = require("./task.controller");
+const controller = require("./task.controller");
 const jwtValidation = require("../../middlewares/jwtValidation");
 
-router.post("/", jwtValidation, taskController.createTask);
-router.get("/", jwtValidation, taskController.getTasks);
-router.get("/:id", jwtValidation, taskController.getTaskById);
-router.put("/:id", jwtValidation, taskController.updateTask);
-router.delete("/:id", jwtValidation, taskController.deleteTask);
+router.post("/", jwtValidation, controller.createTask);
+router.get("/", jwtValidation, controller.getTasks);
+router.get("/:id", jwtValidation, controller.getTaskById);
+router.put("/:id", jwtValidation, controller.updateTask);
+router.delete("/:id", jwtValidation, controller.deleteTask);
 
 module.exports = router;

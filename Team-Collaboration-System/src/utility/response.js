@@ -1,31 +1,55 @@
 const generateResponse = (res, isSuccess, message, code, data = null) => {
-  return res.status(code).json({ isSuccess, message, code, data });
+  return res.status(code).json({
+    isSuccess,
+    message,
+    code,
+    data,
+  });
 };
 
-const successResponse = (res, data, message = "success") =>
-  generateResponse(res, true, message, 200, data);
+const successResponse = (res, data, message = "success") => {
+  return generateResponse(res, true, message, 200, data);
+};
 
-const paginatedResponse = (res, data, total, offset) =>
-  successResponse(res, { items: data, pagination: { total, offset } });
+const paginatedResponse = (res, data, total, offset, message = "success") => {
+  return successResponse(res, {
+    items: data,
+    pagination: { total, offset },
+  }, message);
+};
 
-const badRequestResponse = (res, message) =>
-  generateResponse(res, false, message, 400);
+const notFoundResponse = (res, message) => {
+  return generateResponse(res, false, message, 404);
+};
 
-const authFailureResponse = (res, message) =>
-  generateResponse(res, false, message, 401);
+const internalFailureResponse = (res, data) => {
+  return generateResponse(res, false, "internal server error", 500, data);
+};
 
-const notFoundResponse = (res, message) =>
-  generateResponse(res, false, message, 404);
+const authFailureResponse = (res, message) => {
+  return generateResponse(res, false, message, 401);
+};
 
-const internalFailureResponse = (res, data) =>
-  generateResponse(res, false, "Internal server error", 500, data);
+const conflictResponse = (res, message) => {
+  return generateResponse(res, false, message, 409);
+};
+
+const badRequestResponse = (res, message) => {
+  return generateResponse(res, false, message, 400);
+};
+
+const failedValidationResponse = (res, errors) => {
+  return generateResponse(res, false, "Validation failed.", 400, { errors });
+};
 
 module.exports = {
   successResponse,
   paginatedResponse,
+  internalFailureResponse,
   badRequestResponse,
   authFailureResponse,
   notFoundResponse,
-  internalFailureResponse,
+  conflictResponse,
+  failedValidationResponse,
   generateResponse,
 };

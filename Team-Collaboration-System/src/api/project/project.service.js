@@ -1,40 +1,60 @@
 const prisma = require("../../config/db");
 
 const createProject = async (data, userId) => {
-  const project = await prisma.project.create({
-    data: { ...data, createdById: userId },
-  });
-  return { data: project };
+  try {
+    const project = await prisma.project.create({
+      data: { ...data, createdById: userId },
+    });
+    return { status: 200, data: project };
+  } catch (err) {
+    return { status: 500, message: err.message };
+  }
 };
 
-const getProjects = async () => {
-  const projects = await prisma.project.findMany({
-    where: { isDeleted: false },
-  });
-  return { data: projects };
+const getProjects = async (workspaceId) => {
+  try {
+    const projects = await prisma.project.findMany({
+      where: { workspaceId, isDeleted: false },
+    });
+    return { status: 200, data: projects };
+  } catch (err) {
+    return { status: 500, message: err.message };
+  }
 };
 
 const getProjectById = async (id) => {
-  const project = await prisma.project.findUnique({
-    where: { id },
-  });
-  return { data: project };
+  try {
+    const project = await prisma.project.findFirst({
+      where: { id, isDeleted: false },
+    });
+    return { status: 200, data: project };
+  } catch (err) {
+    return { status: 500, message: err.message };
+  }
 };
 
 const updateProject = async (id, data) => {
-  const project = await prisma.project.update({
-    where: { id },
-    data,
-  });
-  return { data: project };
+  try {
+    const project = await prisma.project.update({
+      where: { id },
+      data,
+    });
+    return { status: 200, data: project };
+  } catch (err) {
+    return { status: 500, message: err.message };
+  }
 };
 
 const deleteProject = async (id) => {
-  const project = await prisma.project.update({
-    where: { id },
-    data: { isDeleted: true },
-  });
-  return { data: project };
+  try {
+    const project = await prisma.project.update({
+      where: { id },
+      data: { isDeleted: true },
+    });
+    return { status: 200, data: project };
+  } catch (err) {
+    return { status: 500, message: err.message };
+  }
 };
 
 module.exports = {

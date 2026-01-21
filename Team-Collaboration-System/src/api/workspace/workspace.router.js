@@ -1,9 +1,12 @@
-const express = require("express"); const router = express.Router(); const workspaceController = require("./workspace.controller"); const jwtValidation = require("../../middlewares/jwtValidation");
+const express = require("express");
+const router = express.Router();
+const controller = require("./workspace.controller");
+const jwtValidation = require("../../middlewares/jwtValidation");
 
-router.post("/", jwtValidation, workspaceController.createWorkspace);
-router.get("/", jwtValidation, workspaceController.getWorkspaces);
-router.get("/:id", jwtValidation, workspaceController.getWorkspaceById);
-router.put("/:id", jwtValidation, workspaceController.updateWorkspace);
-router.delete("/:id", jwtValidation, workspaceController.deleteWorkspace);
+router.post("/", jwtValidation, controller.createWorkspace);
+router.get("/", jwtValidation, controller.getWorkspaces);
+router.get("/:id", jwtValidation, controller.getWorkspaceById);
+router.put("/:id", jwtValidation, controller.updateWorkspace);
+router.delete("/:id", jwtValidation, controller.deleteWorkspace);
 
 module.exports = router;

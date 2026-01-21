@@ -1,8 +1,9 @@
-const workspaceService = require("./workspace.service"); const responses = require("../../utility/response");
+const service = require("./workspace.service");
+const responses = require("../../utility/response");
 
 const createWorkspace = async (req, res) => {
   try {
-    const result = await workspaceService.createWorkspace(req.body, req.user.id);
+    const result = await service.createWorkspace(req.body, req.user.id);
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);
@@ -11,7 +12,7 @@ const createWorkspace = async (req, res) => {
 
 const getWorkspaces = async (req, res) => {
   try {
-    const result = await workspaceService.getWorkspaces(req.user.id);
+    const result = await service.getWorkspaces(req.user.id);
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);
@@ -20,7 +21,7 @@ const getWorkspaces = async (req, res) => {
 
 const getWorkspaceById = async (req, res) => {
   try {
-    const result = await workspaceService.getWorkspaceById(req.params.id);
+    const result = await service.getWorkspaceById(req.params.id, req.user.id);
     if (!result.data) return responses.notFoundResponse(res, "Workspace not found");
     return responses.successResponse(res, result.data);
   } catch (err) {
@@ -30,7 +31,7 @@ const getWorkspaceById = async (req, res) => {
 
 const updateWorkspace = async (req, res) => {
   try {
-    const result = await workspaceService.updateWorkspace(req.params.id, req.body);
+    const result = await service.updateWorkspace(req.params.id, req.body);
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);
@@ -39,7 +40,7 @@ const updateWorkspace = async (req, res) => {
 
 const deleteWorkspace = async (req, res) => {
   try {
-    const result = await workspaceService.deleteWorkspace(req.params.id);
+    const result = await service.deleteWorkspace(req.params.id);
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);

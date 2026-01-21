@@ -1,16 +1,18 @@
-const prisma = require("../../config/db"); const bcrypt = require("bcryptjs"); const jwt = require("jsonwebtoken");
+const prisma = require("../../config/db");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const register = async (data) => {
   try {
     const exists = await prisma.user.findUnique({
       where: { email: data.email },
     });
-    if (exists) return { status: 400, message: "User already exists" };
+    if (exists) return { status: 409, message: "User already exists" };
 
-    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const hashed = await bcrypt.hash(data.password, 10);
 
     const user = await prisma.user.create({
-      data: { ...data, password: hashedPassword },
+      data: { ...data, password: hashed },
     });
 
     return { status: 200, data: user };
