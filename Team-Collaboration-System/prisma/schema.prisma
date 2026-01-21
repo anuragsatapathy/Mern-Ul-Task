@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -14,8 +15,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  projects  Project[] @relation("UserProjects")
-  tasks     Task[]    @relation("UserTasks")
+  // Relations
+  projects        Project[]   @relation("UserProjects")
+  tasks           Task[]      @relation("UserTasks")
+  ownedWorkspaces Workspace[] @relation("WorkspaceOwner")
 }
 
 model Workspace {
@@ -25,34 +28,40 @@ model Workspace {
   ownerId     String
   createdAt   DateTime @default(now())
 
-  projects    Project[]
+  // Relations
+  owner    User      @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  projects Project[]
 }
 
 model Project {
   id          String   @id @default(uuid())
   name        String
   description String?
-  status      String
+  status      String   @default("active")
   workspaceId String
   createdById String
   isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
 
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
-  createdBy   User      @relation("UserProjects", fields: [createdById], references: [id])
-  tasks       Task[]
+  // Relations
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  createdBy User      @relation("UserProjects", fields: [createdById], references: [id])
+  tasks     Task[]
 }
 
 model Task {
   id          String   @id @default(uuid())
   title       String
   description String?
-  status      String
-  priority    String
+  status      String   @default("todo")
+  priority    String   @default("medium")
   dueDate     DateTime?
   projectId   String
   assignedTo  String
   isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
 
-  project     Project @relation(fields: [projectId], references: [id])
-  user        User    @relation("UserTasks", fields: [assignedTo], references: [id])
+  // Relations
+  project Project @relation(fields: [projectId], references: [id])
+  user    User    @relation("UserTasks", fields: [assignedTo], references: [id])
 }
