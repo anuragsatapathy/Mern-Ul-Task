@@ -16,6 +16,7 @@
  *       content:
  *         application/json:
  *           schema:
+ *             required: [name]
  *             properties:
  *               name:
  *                 type: string
@@ -58,6 +59,16 @@
  *         required: true
  *         schema:
  *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Workspace updated

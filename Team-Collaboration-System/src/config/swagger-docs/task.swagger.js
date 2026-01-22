@@ -28,6 +28,8 @@
  *                 type: string
  *               status:
  *                 type: string
+ *               priority:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Task created
@@ -65,6 +67,23 @@
  *         required: true
  *         schema:
  *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               status:
+ *                 type: string
+ *               priority:
+ *                 type: string
+ *               dueDate:
+ *                 type: string
+ *                 format: date-time
  *     responses:
  *       200:
  *         description: Task updated
