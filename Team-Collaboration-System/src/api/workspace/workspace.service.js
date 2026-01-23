@@ -13,7 +13,6 @@ const createWorkspace = async (data, userId) => {
         },
       },
     });
-
     return { status: 200, data: workspace };
   } catch (err) {
     return { status: 500, message: err.message };
@@ -24,6 +23,7 @@ const getWorkspaces = async (userId) => {
   try {
     const workspaces = await prisma.workspace.findMany({
       where: {
+        isDeleted: false,
         members: {
           some: { userId },
         },
@@ -40,6 +40,7 @@ const getWorkspaceById = async (id, userId) => {
     const workspace = await prisma.workspace.findFirst({
       where: {
         id,
+        isDeleted: false,
         members: {
           some: { userId },
         },
@@ -53,11 +54,19 @@ const getWorkspaceById = async (id, userId) => {
 
 const updateWorkspace = async (id, data) => {
   try {
-    const workspace = await prisma.workspace.update({
-      where: { id },
+    const result = await prisma.workspace.updateMany({
+      where: {
+        id,
+        isDeleted: false,
+      },
       data,
     });
-    return { status: 200, data: workspace };
+
+    if (result.count === 0) {
+      return { status: 404, message: "Workspace not found" };
+    }
+
+    return { status: 200, data: result };
   } catch (err) {
     return { status: 500, message: err.message };
   }
@@ -65,10 +74,19 @@ const updateWorkspace = async (id, data) => {
 
 const deleteWorkspace = async (id) => {
   try {
-    const workspace = await prisma.workspace.delete({
-      where: { id },
+    const result = await prisma.workspace.updateMany({
+      where: {
+        id,
+        isDeleted: false,
+      },
+      data: { isDeleted: true },
     });
-    return { status: 200, data: workspace };
+
+    if (result.count === 0) {
+      return { status: 404, message: "Workspace not found" };
+    }
+
+    return { status: 200, data: result };
   } catch (err) {
     return { status: 500, message: err.message };
   }

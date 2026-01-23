@@ -1,54 +1,99 @@
-import { useEffect, useState } from "react";
-import axios from "../api/axios";
-import { Box, Button, Typography, TextField } from "@mui/material";
-import Navbar from "../components/Navbar";
-import { showSuccess } from "../utils/toast";
-import { useNavigate } from "react-router-dom";
+import { Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, Divider, Box } from "@mui/material";
+import { useNavigate, useLocation } from "react-router-dom";
+import { DashboardCustomize, FolderCopy, Logout, CorporateFare } from "@mui/icons-material";
+import { showError } from "../utils/toast";
 
-const Workspaces = () => {
-  const [list, setList] = useState([]);
-  const [name, setName] = useState("");
+const drawerWidth = 260;
+
+const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const fetchWorkspaces = async () => {
-    const res = await axios.get("/workspaces");
-    setList(res.data.data);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("activeWorkspace");
+    navigate("/login");
   };
 
-  const createWorkspace = async () => {
-    await axios.post("/workspaces", { name });
-    showSuccess("Workspace created");
-    setName("");
-    fetchWorkspaces();
+  const goToProjects = () => {
+    const workspaceId = localStorage.getItem("activeWorkspace");
+    if (!workspaceId) {
+      showError("Please select a workspace first");
+      navigate("/workspaces");
+      return;
+    }
+    navigate(`/projects/${workspaceId}`);
   };
 
-  useEffect(() => {
-    fetchWorkspaces();
-  }, []);
+  const menuItems = [
+    { text: "Workspaces", icon: <CorporateFare />, path: "/workspaces", action: () => navigate("/workspaces") },
+    { text: "Projects", icon: <FolderCopy />, path: "/projects", action: goToProjects },
+  ];
 
   return (
-    <>
-      <Navbar />
-      <Box p={3}>
-        <Typography variant="h5">Workspaces</Typography>
-
-        <TextField
-          label="Workspace name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <Button onClick={createWorkspace}>Create</Button>
-
-        {list.map((w) => (
-          <Box key={w.id} mt={2}>
-            <Button onClick={() => navigate(`/projects/${w.id}`)}>
-              {w.name}
-            </Button>
-          </Box>
-        ))}
+    <Drawer
+      variant="permanent"
+      sx={{
+        width: drawerWidth,
+        flexShrink: 0,
+        [`& .MuiDrawer-paper`]: { 
+          width: drawerWidth, 
+          boxSizing: "border-box", 
+          bgcolor: "#0f172a", 
+          color: "white",
+          borderRight: "none",
+        },
+      }}
+    >
+      <Box sx={{ p: 4, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ width: 32, height: 32, bgcolor: '#6366f1', borderRadius: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <DashboardCustomize sx={{ fontSize: 20 }} />
+        </Box>
+        <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: 0.5 }}>
+          Workspace
+        </Typography>
       </Box>
-    </>
+
+      <Divider sx={{ bgcolor: "rgba(255,255,255,0.06)", mx: 2, mb: 2 }} />
+      
+      <List sx={{ px: 2, flexGrow: 1 }}>
+        {menuItems.map((item) => {
+          const isActive = location.pathname.startsWith(item.path);
+          return (
+            <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
+              <ListItemButton
+                onClick={item.action}
+                sx={{
+                  borderRadius: "10px",
+                  bgcolor: isActive ? "rgba(99, 102, 241, 0.15)" : "transparent",
+                  color: isActive ? "#818cf8" : "#94a3b8",
+                  "&:hover": { bgcolor: "rgba(255,255,255,0.04)", color: "#fff" },
+                }}
+              >
+                <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} primaryTypographyProps={{ fontSize: '0.95rem', fontWeight: isActive ? 600 : 500 }} />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
+      </List>
+
+      <Box sx={{ p: 2, pb: 4 }}>
+        <ListItemButton
+          onClick={handleLogout}
+          sx={{ 
+            borderRadius: "10px", 
+            color: "#f87171", 
+            "&:hover": { bgcolor: "rgba(248,113,113,0.08)" } 
+          }}
+        >
+          <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}><Logout /></ListItemIcon>
+          <ListItemText primary="Logout" primaryTypographyProps={{ fontSize: '0.95rem', fontWeight: 500 }} />
+        </ListItemButton>
+      </Box>
+    </Drawer>
   );
 };
 
-export default Workspaces;
+export default Navbar;

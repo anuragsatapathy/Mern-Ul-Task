@@ -2,12 +2,10 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
-import { ToastContainer } from "react-toastify";
-import CssBaseline from "@mui/material/CssBaseline";
-
+import { CssBaseline } from "@mui/material";
 import App from "./App";
 import store from "./store";
-
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -16,11 +14,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <BrowserRouter>
         <CssBaseline />
         <App />
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          theme="colored"
-        />
+        <ToastContainer position="top-right" autoClose={3000} />
       </BrowserRouter>
     </Provider>
   </React.StrictMode>

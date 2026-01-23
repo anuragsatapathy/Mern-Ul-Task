@@ -43,11 +43,13 @@ model Workspace {
   id          String   @id @default(uuid())
   name        String
   description String?
+  isDeleted   Boolean  @default(false)
   createdAt   DateTime @default(now())
 
   members  WorkspaceMember[]
   projects Project[]
 }
+
 
 model WorkspaceMember {
   id          String         @id @default(uuid())
