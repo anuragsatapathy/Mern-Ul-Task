@@ -3,6 +3,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Workspaces from "./pages/Workspaces";
 import Projects from "./pages/Projects";
+import Tasks from "./pages/Tasks";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
@@ -44,6 +45,16 @@ const App = () => {
         }
       />
 
+      <Route
+        path="/tasks/:projectId"
+        element={
+          <ProtectedRoute>
+            <Tasks />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Default route */}
       <Route
         path="/"
         element={

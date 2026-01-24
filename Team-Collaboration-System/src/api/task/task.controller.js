@@ -3,7 +3,12 @@ const responses = require("../../utility/response");
 
 const createTask = async (req, res) => {
   try {
-    const result = await service.createTask(req.body);
+    const result = await service.createTask(req.body, req.user.id); 
+
+    if (result.status !== 200) {
+      return responses.badRequestResponse(res, "Task not created");
+    }
+
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);

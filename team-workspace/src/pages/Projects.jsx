@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; // ✅ added useNavigate
 import axios from "../api/axios";
 import Navbar from "../components/Navbar";
 import {
@@ -11,6 +11,7 @@ import { showSuccess, showError } from "../utils/toast";
 
 const Projects = () => {
   const { workspaceId } = useParams();
+  const navigate = useNavigate(); // ✅ added
   const [projects, setProjects] = useState([]);
   const [name, setName] = useState("");
   const [editId, setEditId] = useState(null);
@@ -89,8 +90,12 @@ const Projects = () => {
       <Navbar />
       <Container maxWidth="md" sx={{ py: 6 }}>
         <Paper sx={{ p: 4, borderRadius: 4, boxShadow: "0 10px 25px rgba(0,0,0,0.03)", border: "1px solid #e2e8f0" }}>
-          <Typography variant="h4" sx={{ fontWeight: 800, mb: 1, color: "#1e293b" }}>Projects</Typography>
-          <Typography variant="body1" sx={{ color: "#64748b", mb: 4 }}>Workspace ID: {workspaceId}</Typography>
+          <Typography variant="h4" sx={{ fontWeight: 800, mb: 1, color: "#1e293b" }}>
+            Projects
+          </Typography>
+          <Typography variant="body1" sx={{ color: "#64748b", mb: 4 }}>
+            Workspace ID: {workspaceId}
+          </Typography>
 
           <Box sx={{ display: "flex", gap: 2, mb: 5 }}>
             <TextField
@@ -100,8 +105,8 @@ const Projects = () => {
               onChange={(e) => setName(e.target.value)}
               sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
             />
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               onClick={create}
               sx={{ px: 4, borderRadius: 3, fontWeight: 600, textTransform: 'none', bgcolor: '#6366f1' }}
             >
@@ -126,18 +131,24 @@ const Projects = () => {
                     borderRadius: 3,
                     border: '1px solid #f1f5f9',
                     '&:hover': { bgcolor: '#f8fafc' },
-                    transition: '0.2s'
+                    transition: '0.2s',
+                    cursor: "pointer" // ✅ clickable
                   }}
+                  onClick={() => navigate(`/tasks/${p.id}`)} // ✅ NAVIGATION FIX
                   secondaryAction={
                     editId === p.id ? (
-                      <Box>
+                      <Box onClick={(e) => e.stopPropagation()}>
                         <IconButton color="primary" onClick={saveEdit}><Save /></IconButton>
                         <IconButton color="error" onClick={cancelEdit}><Close /></IconButton>
                       </Box>
                     ) : (
-                      <Box>
-                        <IconButton size="small" onClick={() => startEdit(p)} sx={{ color: '#94a3b8' }}><Edit fontSize="small" /></IconButton>
-                        <IconButton size="small" onClick={() => setDeleteId(p.id)} sx={{ color: '#fca5a5' }}><Delete fontSize="small" /></IconButton>
+                      <Box onClick={(e) => e.stopPropagation()}>
+                        <IconButton size="small" onClick={() => startEdit(p)} sx={{ color: '#94a3b8' }}>
+                          <Edit fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => setDeleteId(p.id)} sx={{ color: '#fca5a5' }}>
+                          <Delete fontSize="small" />
+                        </IconButton>
                       </Box>
                     )
                   }
@@ -152,9 +163,9 @@ const Projects = () => {
                       sx={{ mr: 8 }}
                     />
                   ) : (
-                    <ListItemText 
-                      primary={p.name} 
-                      primaryTypographyProps={{ fontWeight: 600, color: "#334155" }} 
+                    <ListItemText
+                      primary={p.name}
+                      primaryTypographyProps={{ fontWeight: 600, color: "#334155" }}
                     />
                   )}
                 </ListItem>
@@ -166,10 +177,14 @@ const Projects = () => {
 
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)} PaperProps={{ sx: { borderRadius: 3 } }}>
         <DialogTitle sx={{ fontWeight: 700 }}>Delete Project?</DialogTitle>
-        <DialogContent><Typography>Are you sure you want to remove this project permanently.</Typography></DialogContent>
+        <DialogContent>
+          <Typography>Are you sure you want to remove this project permanently.</Typography>
+        </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setDeleteId(null)} sx={{ color: '#64748b' }}>Cancel</Button>
-          <Button color="error" variant="contained" onClick={confirmDelete} sx={{ borderRadius: 2 }}>Delete</Button>
+          <Button color="error" variant="contained" onClick={confirmDelete} sx={{ borderRadius: 2 }}>
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

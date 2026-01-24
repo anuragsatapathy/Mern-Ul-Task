@@ -1,11 +1,34 @@
 const prisma = require("../../config/db");
 
-const createTask = async (data) => {
+const createTask = async (data, userId) => {
   try {
-    const task = await prisma.task.create({ data });
+    if (!data.title || !data.projectId) {
+      return { status: 400, message: "Title and projectId are required" };
+    }
+
+    const project = await prisma.project.findFirst({
+      where: {
+        id: data.projectId,
+        isDeleted: false,
+      },
+    });
+
+    if (!project) {
+      return { status: 400, message: "Invalid projectId" };
+    }
+
+    const task = await prisma.task.create({
+      data: {
+        title: data.title,
+        projectId: data.projectId,
+        assignedTo: userId,
+      },
+    });
+
     return { status: 200, data: task };
   } catch (err) {
-    return { status: 500, message: err.message };
+    console.error("CREATE TASK ERROR:", err);
+    return { status: 500, message: "Task not created" };
   }
 };
 
@@ -14,11 +37,11 @@ const getTasks = async (filters) => {
     const tasks = await prisma.task.findMany({
       where: {
         isDeleted: false,
-        status: filters.status,
-        assignedTo: filters.assignedTo,
         projectId: filters.projectId,
       },
+      orderBy: { createdAt: "desc" },
     });
+
     return { status: 200, data: tasks };
   } catch (err) {
     return { status: 500, message: err.message };
