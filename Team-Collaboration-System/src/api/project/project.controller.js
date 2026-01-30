@@ -4,6 +4,9 @@ const responses = require("../../utility/response");
 const createProject = async (req, res) => {
   try {
     const result = await service.createProject(req.body, req.user.id);
+    if (result.status !== 200) {
+      return responses.generateResponse(res, false, result.message, result.status);
+    }
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);
@@ -12,7 +15,15 @@ const createProject = async (req, res) => {
 
 const getProjects = async (req, res) => {
   try {
-    const result = await service.getProjects(req.query.workspaceId);
+    const result = await service.getProjects(
+      req.query.workspaceId,
+      req.user.id
+    );
+
+    if (result.status !== 200) {
+      return responses.generateResponse(res, false, result.message, result.status);
+    }
+
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);
@@ -21,8 +32,20 @@ const getProjects = async (req, res) => {
 
 const getProjectById = async (req, res) => {
   try {
-    const result = await service.getProjectById(req.params.id);
-    if (!result.data) return responses.notFoundResponse(res, "Project not found");
+    const result = await service.getProjectById(
+      req.params.id,
+      req.user.id
+    );
+
+    if (result.status !== 200) {
+      return responses.generateResponse(
+        res,
+        false,
+        result.message,
+        result.status
+      );
+    }
+
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);
@@ -31,7 +54,16 @@ const getProjectById = async (req, res) => {
 
 const updateProject = async (req, res) => {
   try {
-    const result = await service.updateProject(req.params.id, req.body);
+    const result = await service.updateProject(
+      req.params.id,
+      req.body,
+      req.user.id
+    );
+
+    if (result.status !== 200) {
+      return responses.generateResponse(res, false, result.message, result.status);
+    }
+
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);
@@ -40,7 +72,12 @@ const updateProject = async (req, res) => {
 
 const deleteProject = async (req, res) => {
   try {
-    const result = await service.deleteProject(req.params.id);
+    const result = await service.deleteProject(req.params.id, req.user.id);
+
+    if (result.status !== 200) {
+      return responses.generateResponse(res, false, result.message, result.status);
+    }
+
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);
@@ -50,7 +87,7 @@ const deleteProject = async (req, res) => {
 module.exports = {
   createProject,
   getProjects,
-  getProjectById,
+  getProjectById, 
   updateProject,
   deleteProject,
 };

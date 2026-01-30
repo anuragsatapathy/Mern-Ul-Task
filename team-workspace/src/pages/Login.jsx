@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Button,
@@ -8,12 +8,18 @@ import {
   InputAdornment,
   Container,
 } from "@mui/material";
-import { PersonOutline, LockOpenOutlined } from "@mui/icons-material"; 
+import { PersonOutline, LockOpenOutlined } from "@mui/icons-material";
 import axios from "../api/axios";
 import { showSuccess, showError } from "../utils/toast";
+import useAuth from "../auth/useAuth";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { setUser, setToken } = useAuth();
+
+  
+  const inviteToken = new URLSearchParams(location.search).get("invite");
 
   const [form, setForm] = useState({
     email: "",
@@ -25,17 +31,19 @@ const Login = () => {
   const validate = () => {
     const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+
     if (!form.email) {
       newErrors.email = "Email is required";
     } else if (!emailRegex.test(form.email)) {
       newErrors.email = "Enter a valid email address";
     }
 
-    const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
     if (!form.password) {
       newErrors.password = "Password is required";
     } else if (!specialCharRegex.test(form.password)) {
-      newErrors.password = "Password must contain at least one special character";
+      newErrors.password =
+        "Password must contain at least one special character";
     }
 
     setErrors(newErrors);
@@ -54,12 +62,36 @@ const Login = () => {
     try {
       const res = await axios.post("/auth/login", form);
       const { token, user } = res.data.data;
+
+      
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
+
+      setToken(token);
+      setUser(user);
+
+     
+      if (inviteToken) {
+           await axios.post(
+          "/invites/accept",
+          { token: inviteToken },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+      }
+
       showSuccess("Login successful");
-      navigate("/workspaces");
+
+     
+      navigate("/workspaces", { replace: true });
     } catch (err) {
-      showError(err.response?.data?.message || "Invalid email or password");
+      showError(
+        err.response?.data?.message || "Invalid email or password"
+      );
     }
   };
 
@@ -67,12 +99,13 @@ const Login = () => {
     "& .MuiOutlinedInput-root": {
       color: "white",
       backgroundColor: "rgba(255, 255, 255, 0.05)",
-      "& fieldset": { borderColor: "rgba(255, 255, 255, 0.5)", borderRadius: "12px" },
+      "& fieldset": {
+        borderColor: "rgba(255, 255, 255, 0.4)",
+        borderRadius: "12px",
+      },
       "&:hover fieldset": { borderColor: "white" },
-      "&.Mui-focused fieldset": { borderColor: "#4ade80" }, 
+      "&.Mui-focused fieldset": { borderColor: "#4ade80" },
     },
-    "& .MuiInputLabel-root": { color: "rgba(255, 255, 255, 0.7)" },
-    "& .MuiInputLabel-root.Mui-focused": { color: "#4ade80" },
     mb: 3,
   };
 
@@ -80,47 +113,19 @@ const Login = () => {
     <Box
       sx={{
         minHeight: "100vh",
-        width: "100vw",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)",
-        position: "relative",
-        overflow: "hidden",
+        background: "linear-gradient(135deg, #1e40af, #1e3a8a)",
       }}
     >
-      <Box
-        sx={{
-          position: "absolute",
-          width: "500px",
-          height: "500px",
-          borderRadius: "50%",
-          background: "rgba(59, 130, 246, 0.2)",
-          top: "-100px",
-          left: "-100px",
-          filter: "blur(80px)",
-        }}
-      />
-      <Box
-        sx={{
-          position: "absolute",
-          width: "400px",
-          height: "400px",
-          borderRadius: "50%",
-          background: "rgba(30, 58, 138, 0.6)",
-          bottom: "-50px",
-          right: "-50px",
-          filter: "blur(60px)",
-        }}
-      />
-
-      <Container maxWidth="xs" sx={{ zIndex: 1 }}>
+      <Container maxWidth="xs">
         <Box textAlign="center" mb={4}>
-          <Typography variant="h3" fontWeight="700" color="white" gutterBottom>
+          <Typography variant="h3" fontWeight={700} color="white">
             Login
           </Typography>
-          <Typography variant="body1" color="rgba(255, 255, 255, 0.7)">
-            Please enter your Email and your Password
+          <Typography color="rgba(255,255,255,0.7)">
+            Sign in to continue
           </Typography>
         </Box>
 
@@ -128,7 +133,7 @@ const Login = () => {
           <TextField
             fullWidth
             name="email"
-            placeholder="Username or E-mail"
+            placeholder="Email address"
             value={form.email}
             onChange={handleChange}
             error={!!errors.email}
@@ -168,28 +173,30 @@ const Login = () => {
             variant="outlined"
             sx={{
               py: 1.5,
-              mt: 2,
               borderRadius: "12px",
               color: "#4ade80",
               borderColor: "#4ade80",
-              fontSize: "1rem",
-              fontWeight: "600",
-              textTransform: "none",
-              borderWidth: "2px",
-              "&:hover": {
-                borderWidth: "2px",
-                backgroundColor: "rgba(74, 222, 128, 0.1)",
-                borderColor: "#4ade80",
-              },
+              fontWeight: 600,
             }}
           >
             Login
           </Button>
         </Box>
 
-        <Typography textAlign="center" mt={4} color="rgba(255, 255, 255, 0.6)">
+        <Typography
+          textAlign="center"
+          mt={4}
+          color="rgba(255,255,255,0.6)"
+        >
           Don’t have an account?{" "}
-          <Link to="/register" style={{ color: "#4ade80", textDecoration: "none", fontWeight: "bold" }}>
+          <Link
+            to={`/register${inviteToken ? `?invite=${inviteToken}` : ""}`}
+            style={{
+              color: "#4ade80",
+              fontWeight: "bold",
+              textDecoration: "none",
+            }}
+          >
             Register
           </Link>
         </Typography>

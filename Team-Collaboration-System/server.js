@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
-const cors = require("cors"); 
+const cors = require("cors");
+
 const apiRouter = require("./src/api/api.router");
 const swaggerConfig = require("./src/config");
 
@@ -8,17 +9,17 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173", 
+    origin: "http://localhost:5173",
     credentials: true,
   })
 );
 
 app.use(express.json());
 
-// API routes
+app.use("/invites", require("./src/api/invite/invite.routes"));
+
 app.use("/api", apiRouter);
 
-// Swagger docs
 swaggerConfig(app);
 
 app.listen(5000, () => {

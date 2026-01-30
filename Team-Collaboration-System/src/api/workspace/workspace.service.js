@@ -4,7 +4,10 @@ const createWorkspace = async (data, userId) => {
   try {
     const workspace = await prisma.workspace.create({
       data: {
-        ...data,
+        name: data.name,
+        description: data.description || null,
+        isDeleted: false,
+
         members: {
           create: {
             userId,
@@ -13,9 +16,10 @@ const createWorkspace = async (data, userId) => {
         },
       },
     });
+
     return { status: 200, data: workspace };
   } catch (err) {
-    return { status: 500, message: err.message };
+    throw err;
   }
 };
 
@@ -25,77 +29,99 @@ const getWorkspaces = async (userId) => {
       where: {
         isDeleted: false,
         members: {
-          some: { userId },
+          some: { userId }, 
         },
       },
-    });
-    return { status: 200, data: workspaces };
-  } catch (err) {
-    return { status: 500, message: err.message };
-  }
-};
-
-const getWorkspaceById = async (id, userId) => {
-  try {
-    const workspace = await prisma.workspace.findFirst({
-      where: {
-        id,
-        isDeleted: false,
+      include: {
         members: {
-          some: { userId },
+          include: {
+            user: {
+              select: { id: true, name: true, email: true },
+            },
+          },
         },
       },
+      orderBy: { createdAt: "desc" },
     });
-    return { status: 200, data: workspace };
+
+    const formatted = workspaces.map((w) => {
+      const myMember = w.members.find(
+        (m) => m.userId === userId
+      );
+
+      const ownerMember = w.members.find(
+        (m) => m.role === "OWNER"
+      );
+
+      return {
+        id: w.id,
+        name: w.name,
+        description: w.description,
+        createdAt: w.createdAt,
+        myRole: myMember?.role.toLowerCase(),
+        owner: ownerMember
+          ? {
+              id: ownerMember.user.id,
+              name: ownerMember.user.name,
+              email: ownerMember.user.email,
+            }
+          : null,
+        members: w.members.map((m) => ({
+          id: m.id,
+          role: m.role,
+          user: {
+            id: m.user.id,
+            name: m.user.name,
+            email: m.user.email,
+          },
+        })),
+      };
+    });
+
+    return { status: 200, data: formatted };
   } catch (err) {
-    return { status: 500, message: err.message };
+    throw err;
   }
 };
 
 const updateWorkspace = async (id, data) => {
-  try {
-    const result = await prisma.workspace.updateMany({
-      where: {
-        id,
-        isDeleted: false,
-      },
-      data,
-    });
+  const result = await prisma.workspace.updateMany({
+    where: {
+      id,
+      isDeleted: false,
+    },
+    data: {
+      name: data.name,
+      description: data.description,
+    },
+  });
 
-    if (result.count === 0) {
-      return { status: 404, message: "Workspace not found" };
-    }
-
-    return { status: 200, data: result };
-  } catch (err) {
-    return { status: 500, message: err.message };
+  if (!result.count) {
+    return { status: 404, message: "Workspace not found" };
   }
+
+  return { status: 200, data: result };
 };
 
 const deleteWorkspace = async (id) => {
-  try {
-    const result = await prisma.workspace.updateMany({
-      where: {
-        id,
-        isDeleted: false,
-      },
-      data: { isDeleted: true },
-    });
+  const result = await prisma.workspace.updateMany({
+    where: {
+      id,
+      isDeleted: false,
+    },
+    data: { isDeleted: true },
+  });
 
-    if (result.count === 0) {
-      return { status: 404, message: "Workspace not found" };
-    }
-
-    return { status: 200, data: result };
-  } catch (err) {
-    return { status: 500, message: err.message };
+  if (!result.count) {
+    return { status: 404, message: "Workspace not found" };
   }
+
+  return { status: 200, data: result };
 };
 
 module.exports = {
   createWorkspace,
   getWorkspaces,
-  getWorkspaceById,
   updateWorkspace,
   deleteWorkspace,
 };

@@ -4,7 +4,6 @@ const jwt = require("jsonwebtoken");
 
 const register = async (data) => {
   try {
-    
     if (!data.email || !data.password || !data.name) {
       return { status: 400, message: "Missing required fields" };
     }
@@ -19,15 +18,34 @@ const register = async (data) => {
 
     const hashed = await bcrypt.hash(data.password, 10);
 
+    //   const toIST = () =>
+    // new Date().toLocaleString("en-IN", {
+    //   timeZone: "Asia/Kolkata",
+    // });
+
     const user = await prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
         password: hashed,
+        //createdAt:toIST(),
       },
     });
 
-    return { status: 200, data: user };
+   
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    return {
+      status: 200,
+      data: {
+        token,
+        user,
+      },
+    };
   } catch (err) {
     console.error("REGISTER ERROR:", err);
     return { status: 500, message: err.message };
@@ -59,7 +77,13 @@ const login = async (data) => {
       { expiresIn: "1d" }
     );
 
-    return { status: 200, data: { token, user } };
+    return {
+      status: 200,
+      data: {
+        token,
+        user,
+      },
+    };
   } catch (err) {
     console.error("LOGIN ERROR:", err);
     return { status: 500, message: err.message };

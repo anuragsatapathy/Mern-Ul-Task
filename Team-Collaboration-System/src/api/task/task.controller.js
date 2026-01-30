@@ -3,12 +3,10 @@ const responses = require("../../utility/response");
 
 const createTask = async (req, res) => {
   try {
-    const result = await service.createTask(req.body, req.user.id); 
-
+    const result = await service.createTask(req.body, req.user.id);
     if (result.status !== 200) {
-      return responses.badRequestResponse(res, "Task not created");
+      return responses.badRequestResponse(res, result.message);
     }
-
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);
@@ -17,7 +15,19 @@ const createTask = async (req, res) => {
 
 const getTasks = async (req, res) => {
   try {
-    const result = await service.getTasks(req.query);
+    if (!req.query.projectId) {
+      return responses.badRequestResponse(res, "projectId is required");
+    }
+
+    const result = await service.getTasks(
+      req.query.projectId,
+      req.user.id
+    );
+
+    if (result.status !== 200) {
+      return responses.generateResponse(res, false, result.message, result.status);
+    }
+
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);
@@ -26,8 +36,10 @@ const getTasks = async (req, res) => {
 
 const getTaskById = async (req, res) => {
   try {
-    const result = await service.getTaskById(req.params.id);
-    if (!result.data) return responses.notFoundResponse(res, "Task not found");
+    const result = await service.getTaskById(req.params.id, req.user.id);
+    if (!result.data) {
+      return responses.notFoundResponse(res, "Task not found");
+    }
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);
@@ -36,7 +48,17 @@ const getTaskById = async (req, res) => {
 
 const updateTask = async (req, res) => {
   try {
-    const result = await service.updateTask(req.params.id, req.body);
+    const result = await service.updateTask(
+      req.params.id,
+      req.body,
+      req.user.id,
+      req.user.role 
+    );
+
+    if (result.status !== 200) {
+      return responses.generateResponse(res, false, result.message, result.status);
+    }
+
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);
@@ -45,7 +67,16 @@ const updateTask = async (req, res) => {
 
 const deleteTask = async (req, res) => {
   try {
-    const result = await service.deleteTask(req.params.id);
+    const result = await service.deleteTask(
+      req.params.id,
+      req.user.id,
+      req.user.role 
+    );
+
+    if (result.status !== 200) {
+      return responses.generateResponse(res, false, result.message, result.status);
+    }
+
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);

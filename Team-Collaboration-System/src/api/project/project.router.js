@@ -5,7 +5,7 @@ const jwtValidation = require("../../middlewares/jwtValidation");
 
 router.post("/", jwtValidation, controller.createProject);
 router.get("/", jwtValidation, controller.getProjects);
-router.get("/:id", jwtValidation, controller.getProjectById);
+router.get("/:id", jwtValidation, controller.getProjectById); 
 router.put("/:id", jwtValidation, controller.updateProject);
 router.delete("/:id", jwtValidation, controller.deleteProject);
 

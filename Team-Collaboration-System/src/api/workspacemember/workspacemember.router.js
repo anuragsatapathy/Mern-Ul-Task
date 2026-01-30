@@ -6,24 +6,25 @@ const jwtValidation = require("../../middlewares/jwtValidation");
 const roleGuard = require("../../middlewares/roleGuard");
 
 router.post(
-  "/add",
+  "/:workspaceId/add",
   jwtValidation,
   roleGuard(["OWNER", "ADMIN"]),
   controller.addMember
 );
 
 router.put(
-  "/role",
+  "/:workspaceId/role",
   jwtValidation,
   roleGuard(["OWNER"]),
   controller.updateRole
 );
 
 router.delete(
-  "/remove",
+  "/:workspaceId/remove",
   jwtValidation,
   roleGuard(["OWNER", "ADMIN"]),
   controller.removeMember
 );
+
 
 module.exports = router;

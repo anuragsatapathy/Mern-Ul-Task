@@ -4,22 +4,40 @@ const responses = require("../utility/response");
 const roleGuard = (allowedRoles) => {
   return async (req, res, next) => {
     try {
-      const workspaceId = req.body.workspaceId || req.query.workspaceId;
+      const workspaceId =
+        req.params.id ||
+        req.params.workspaceId ||
+        req.body.workspaceId ||
+        req.query.workspaceId;
 
       if (!workspaceId) {
         return responses.badRequestResponse(res, "workspaceId is required");
       }
 
-      const member = await prisma.workspaceMember.findFirst({
+      const member = await prisma.workspaceMember.findUnique({
         where: {
-          workspaceId,
-          userId: req.user.id,
+          userId_workspaceId: {
+            userId: req.user.id,
+            workspaceId,
+          },
         },
       });
 
-      if (!member || !allowedRoles.includes(member.role)) {
-        return responses.authFailureResponse(res, "Access denied");
+      if (!member) {
+        return responses.authFailureResponse(
+          res,
+          "You are not a workspace member"
+        );
       }
+
+      if (!allowedRoles.includes(member.role)) {
+        return responses.authFailureResponse(
+          res,
+          "Insufficient permission"
+        );
+      }
+      
+      req.workspaceRole = member.role.toLowerCase();
 
       next();
     } catch (err) {

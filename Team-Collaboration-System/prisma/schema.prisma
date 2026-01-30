@@ -44,18 +44,19 @@ model Workspace {
   name        String
   description String?
   isDeleted   Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  createdAt   DateTime @default(now()) 
 
   members  WorkspaceMember[]
   projects Project[]
+  invites  WorkspaceInvite[] 
 }
 
-
 model WorkspaceMember {
-  id          String         @id @default(uuid())
+  id          String        @id @default(uuid())
   userId      String
   workspaceId String
-  role        WorkspaceRole
+  role        WorkspaceRole @default(MEMBER)
+  createdAt   DateTime      @default(now())-
 
   user      User      @relation(fields: [userId], references: [id])
   workspace Workspace @relation(fields: [workspaceId], references: [id])
@@ -101,4 +102,16 @@ model Activity {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
+}
+
+model WorkspaceInvite {
+  id          String   @id @default(uuid())
+  email       String
+  workspaceId String
+  role        WorkspaceRole
+  isAccepted  Boolean  @default(false)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
 }

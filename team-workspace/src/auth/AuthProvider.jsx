@@ -28,9 +28,9 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         token,
-        role: user?.role || null,
+        role: user?.role || null, // ✅ required for RoleGuard fallback
         isAuthenticated: Boolean(user && token),
-        initialized,   
+        initialized,
         setUser,
         setToken,
         logout,

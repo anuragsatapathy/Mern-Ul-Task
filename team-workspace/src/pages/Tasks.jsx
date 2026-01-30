@@ -2,272 +2,253 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "../api/axios";
 import Navbar from "../components/Navbar";
+import ConfirmDialog from "../components/ConfirmDialog";
+import TaskCard from "../components/TaskCard";
 import {
   Box,
-  Button,
-  TextField,
   Typography,
-  Container,
+  TextField,
+  Button,
+  Select,
+  MenuItem,
   Paper,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Checkbox,
+  Grid,
+  CircularProgress,
+  Container,
+  FormControl,
+  InputLabel,
+  Stack,
   Divider,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Chip
 } from "@mui/material";
-import {
-  Add as AddIcon,
-  Assignment as TaskIcon,
-  Edit,
-  Delete,
-  Save,
-  Close,
+import { 
+  Add as AddIcon, 
+  TaskAlt as TaskIcon, 
+  Update as UpdateIcon 
 } from "@mui/icons-material";
-import { showError, showSuccess } from "../utils/toast";
+import { showSuccess, showError } from "../utils/toast";
+import useAuth from "../auth/useAuth";
 
 const Tasks = () => {
   const { projectId } = useParams();
+  const { user } = useAuth();
+
   const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [status, setStatus] = useState("TODO");
+  const [priority, setPriority] = useState("MEDIUM");
+  const [dueDate, setDueDate] = useState("");
 
-  const [editId, setEditId] = useState(null);
-  const [editTitle, setEditTitle] = useState("");
-
+  const [editTask, setEditTask] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-
-  const load = async () => {
+  const loadTasks = async () => {
     try {
-      const res = await axios.get(`/tasks?projectId=${projectId}`);
+      setLoading(true);
+      const res = await axios.get(`/tasks`, {
+        params: { projectId },
+      });
       setTasks(res.data.data || []);
     } catch {
       showError("Failed to load tasks");
-    }
-  };
-
-  const create = async () => {
-    if (!title.trim()) {
-      showError("Task title is required");
-      return;
-    }
-    try {
-      await axios.post("/tasks", { title, projectId });
-      showSuccess("Task added");
-      setTitle("");
-      load();
-    } catch {
-      showError("Failed to create task");
-    }
-  };
-
-  const startEdit = (task) => {
-    setEditId(task.id);
-    setEditTitle(task.title);
-  };
-
-  const cancelEdit = () => {
-    setEditId(null);
-    setEditTitle("");
-  };
-
-  const saveEdit = async () => {
-    if (!editTitle.trim()) {
-      showError("Task title cannot be empty");
-      return;
-    }
-    try {
-      await axios.put(`/tasks/${editId}`, { title: editTitle });
-      showSuccess("Task updated");
-      cancelEdit();
-      load();
-    } catch {
-      showError("Failed to update task");
-    }
-  };
-
-  const confirmDelete = async () => {
-    try {
-      await axios.delete(`/tasks/${deleteId}`);
-      showSuccess("Task deleted");
-      setDeleteId(null);
-      load();
-    } catch {
-      showError("Failed to delete task");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    load();
+    if (projectId) loadTasks();
   }, [projectId]);
 
+  useEffect(() => {
+    if (editTask) {
+      setTitle(editTask.title || "");
+      setDescription(editTask.description || "");
+      setStatus(editTask.status || "TODO");
+      setPriority(editTask.priority || "MEDIUM");
+      setDueDate(editTask.dueDate ? editTask.dueDate.split('T')[0] : "");
+    }
+  }, [editTask]);
+
+  const saveTask = async () => {
+    if (!title.trim()) {
+      showError("Title required");
+      return;
+    }
+
+    const payload = {
+      title,
+      description,
+      status,
+      priority,
+      dueDate: dueDate || null,
+      projectId, 
+    };
+
+    try {
+      if (editTask) {
+        await axios.put(`/tasks/${editTask.id}`, payload);
+        showSuccess("Task updated");
+      } else {
+        await axios.post(`/tasks`, payload);
+        showSuccess("Task created");
+      }
+
+      setTitle("");
+      setDescription("");
+      setStatus("TODO");
+      setPriority("MEDIUM");
+      setDueDate("");
+      setEditTask(null);
+
+      loadTasks();
+    } catch (err) {
+      showError("Failed to save task");
+    }
+  };
+  const deleteTask = async () => {
+    try {
+      await axios.delete(`/tasks/${deleteId}`);
+      showSuccess("Task deleted");
+      setDeleteId(null);
+      loadTasks();
+    } catch {
+      showError("Delete failed");
+    }
+  };
+
   return (
-    <Box sx={{ display: "flex", bgcolor: "#f8fafc", minHeight: "100vh" }}>
+    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#f1f5f9" }}>
       <Navbar />
 
-      <Container maxWidth="md" sx={{ py: 6 }}>
+      <Container maxWidth="xl" sx={{ py: 6, px: { md: 8 } }}>
+       
+        <Box sx={{ mb: 5 }}>
+          <Typography variant="h3" sx={{ fontWeight: 800, color: "#1e293b", mb: 1, fontSize: '2.5rem' }}>
+            Tasks
+          </Typography>
+          <Typography variant="body1" sx={{ color: "#64748b", fontWeight: 500 }}>
+            Manage your project requirements and daily objectives
+          </Typography>
+        </Box>
         <Paper 
+          elevation={0}
           sx={{ 
-            p: 4, 
-            borderRadius: 4, 
-            boxShadow: "0 10px 30px rgba(0,0,0,0.04)", 
-            border: "1px solid #e2e8f0",
-            bgcolor: "#fff"
+            p: 2.5, mb: 8, borderRadius: '16px', 
+            border: "1px solid #e2e8f0", 
+            bgcolor: "#ffffff",
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2
           }}
         >
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: "#1e293b", mb: 1 }}>
-              Tasks
-            </Typography>
-            <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500 }}>
-              Manage and track your project deliverables
-            </Typography>
-          </Box>
-
-          <Box sx={{ display: "flex", gap: 2, mb: 4 }}>
-            <TextField
-              fullWidth
-              placeholder="What needs to be done?"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              size="small"
-              sx={{ 
-                "& .MuiOutlinedInput-root": { 
-                  borderRadius: 3,
-                  bgcolor: "#fcfdfe" 
-                } 
-              }}
-            />
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={create}
-              sx={{ 
-                px: 3, 
-                borderRadius: 3, 
-                fontWeight: 600, 
-                textTransform: "none",
-                bgcolor: "#6366f1",
-                "&:hover": { bgcolor: "#4f46e5" }
-              }}
-            >
-              Add Task
-            </Button>
-          </Box>
-
-          <Divider sx={{ mb: 3 }} />
-
-          {/* Task List */}
-          {tasks.length === 0 ? (
-            <Box sx={{ textAlign: "center", py: 10 }}>
-              <TaskIcon sx={{ fontSize: 60, color: "#e2e8f0", mb: 2 }} />
-              <Typography sx={{ color: "#94a3b8", fontWeight: 500 }}>
-                No tasks found. Start by adding one above!
-              </Typography>
-            </Box>
-          ) : (
-            <List disablePadding>
-              {tasks.map((t) => (
-                <ListItem
-                  key={t.id}
-                  sx={{
-                    mb: 2,
-                    border: "1px solid #f1f5f9",
-                    borderRadius: 3,
-                    transition: "all 0.2s ease",
-                    "&:hover": { 
-                      borderColor: "#6366f1",
-                      bgcolor: "#f8faff",
-                      transform: "translateX(4px)",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.03)"
-                    },
-                  }}
-                  secondaryAction={
-                    editId === t.id ? (
-                      <Box sx={{ display: 'flex', gap: 0.5 }}>
-                        <IconButton onClick={saveEdit} color="primary" size="small">
-                          <Save fontSize="small" />
-                        </IconButton>
-                        <IconButton onClick={cancelEdit} color="error" size="small">
-                          <Close fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    ) : (
-                      <Box sx={{ display: 'flex', gap: 0.5 }}>
-                        <IconButton onClick={() => startEdit(t)} size="small" sx={{ color: "#94a3b8" }}>
-                          <Edit fontSize="small" />
-                        </IconButton>
-                        <IconButton onClick={() => setDeleteId(t.id)} size="small" sx={{ color: "#fca5a5" }}>
-                          <Delete fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    )
-                  }
-                >
-                  <ListItemIcon sx={{ minWidth: 48 }}>
-                    <Checkbox 
-                      sx={{ 
-                        color: "#cbd5e1", 
-                        "&.Mui-checked": { color: "#6366f1" } 
-                      }} 
-                    />
-                  </ListItemIcon>
-
-                  {editId === t.id ? (
-                    <TextField
-                      fullWidth
-                      size="small"
-                      autoFocus
-                      value={editTitle}
-                      onChange={(e) => setEditTitle(e.target.value)}
-                      sx={{ mr: 2, "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
-                    />
-                  ) : (
-                    <ListItemText 
-                      primary={t.title} 
-                      primaryTypographyProps={{ 
-                        fontWeight: 500, 
-                        color: "#334155",
-                        fontSize: "0.95rem"
-                      }} 
-                    />
-                  )}
-                </ListItem>
-              ))}
-            </List>
-          )}
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} md={2.5}>
+              <TextField
+                fullWidth placeholder="Task Title" size="medium"
+                value={title} onChange={(e) => setTitle(e.target.value)}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: '12px', bgcolor: '#fff' } }}
+              />
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <TextField
+                fullWidth type="date" size="medium"
+                value={dueDate} onChange={(e) => setDueDate(e.target.value)}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: '12px', bgcolor: '#fff' } }}
+              />
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <TextField
+                fullWidth placeholder="Description" size="medium"
+                value={description} onChange={(e) => setDescription(e.target.value)}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: '12px', bgcolor: '#fff' } }}
+              />
+            </Grid>
+            <Grid item xs={6} md={1.5}>
+              <Select 
+                fullWidth value={status} size="medium"
+                onChange={(e) => setStatus(e.target.value)} 
+                sx={{ borderRadius: '12px', bgcolor: '#fff' }}
+              >
+                <MenuItem value="TODO">Todo</MenuItem>
+                <MenuItem value="IN_PROGRESS">In Progress</MenuItem>
+                <MenuItem value="DONE">Done</MenuItem>
+              </Select>
+            </Grid>
+            <Grid item xs={6} md={1.5}>
+              <Select 
+                fullWidth value={priority} size="medium"
+                onChange={(e) => setPriority(e.target.value)} 
+                sx={{ borderRadius: '12px', bgcolor: '#fff' }}
+              >
+                <MenuItem value="LOW">Low</MenuItem>
+                <MenuItem value="MEDIUM">Medium</MenuItem>
+                <MenuItem value="HIGH">High</MenuItem>
+              </Select>
+            </Grid>
+            <Grid item xs={12} md={1.5}>
+              <Button 
+                fullWidth variant="contained" 
+                startIcon={editTask ? <UpdateIcon /> : <AddIcon />}
+                onClick={saveTask}
+                sx={{ 
+                  borderRadius: '12px', py: 1.5, textTransform: "none", fontWeight: 700, 
+                  bgcolor: "#6366f1", boxShadow: 'none',
+                  "&:hover": { bgcolor: "#4f46e5", boxShadow: 'none' }
+                }}
+              >
+                {editTask ? "Update" : "Create"}
+              </Button>
+            </Grid>
+          </Grid>
         </Paper>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+           <Typography sx={{ fontWeight: 700, color: '#94a3b8', fontSize: '0.9rem', mr: 2 }}>Your Tasks</Typography>
+           <Divider sx={{ flexGrow: 1, borderColor: '#e2e8f0' }} />
+        </Box>
+
+        {/* LIST SECTION */}
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+            <CircularProgress sx={{ color: "#6366f1" }} />
+          </Box>
+        ) : tasks.length === 0 ? (
+          <Paper 
+            sx={{ 
+              textAlign: "center", py: 12, borderRadius: 6, 
+              border: '2px dashed #e2e8f0', bgcolor: 'transparent' 
+            }} 
+            elevation={0}
+          >
+            <Typography variant="h6" sx={{ color: "#94a3b8", fontWeight: 600 }}>
+              No tasks found for this project.
+            </Typography>
+          </Paper>
+        ) : (
+          <Grid container spacing={3}>
+            {tasks.map((task) => (
+              <Grid item xs={12} sm={6} md={4} key={task.id}>
+                <TaskCard
+                  task={task}
+                  onEdit={() => setEditTask(task)}
+                  onDelete={() => setDeleteId(task.id)}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        )}
       </Container>
 
-      <Dialog 
-        open={!!deleteId} 
-        onClose={() => setDeleteId(null)}
-        PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
-      >
-        <DialogTitle sx={{ fontWeight: 700 }}>Delete Task?</DialogTitle>
-        <DialogContent>
-          <Typography sx={{ color: "#64748b" }}>
-            This action is permanent and cannot be undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, pt: 0 }}>
-          <Button onClick={() => setDeleteId(null)} sx={{ color: "#64748b", textTransform: 'none' }}>
-            Cancel
-          </Button>
-          <Button 
-            variant="contained" 
-            color="error" 
-            onClick={confirmDelete}
-            sx={{ borderRadius: 2, textTransform: 'none', px: 3 }}
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmDialog
+        open={!!deleteId}
+        title="Delete Task?"
+        message="This action cannot be undone."
+        onConfirm={deleteTask}
+        onCancel={() => setDeleteId(null)}
+      />
     </Box>
   );
 };
