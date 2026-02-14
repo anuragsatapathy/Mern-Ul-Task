@@ -43,7 +43,8 @@ const updateWorkspace = async (req, res) => {
   try {
     const result = await service.updateWorkspace(
       req.params.id,
-      req.body
+      req.body,
+      req.user.id 
     );
 
     if (result.status !== 200) {
@@ -59,7 +60,11 @@ const updateWorkspace = async (req, res) => {
 
 const deleteWorkspace = async (req, res) => {
   try {
-    const result = await service.deleteWorkspace(req.params.id);
+    const result = await service.deleteWorkspace(
+      req.params.id,
+      req.user.id 
+
+    );
 
     if (result.status !== 200) {
       return responses.notFoundResponse(res, result.message);

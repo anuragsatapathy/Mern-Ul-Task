@@ -112,7 +112,7 @@ const Navbar = () => {
           () => navigate("/workspaces")
         )}
 
-           {menuItem(
+           {/* {menuItem(
           "Projects",
           <FolderCopy />,
           "/projects",
@@ -123,6 +123,13 @@ const Navbar = () => {
               navigate("/workspaces"); // force user to pick workspace
             }
           }
+        )} */}
+
+        {menuItem(
+          "Projects",
+          <FolderCopy />,
+          "/all-projects",
+          () => navigate("/all-projects")
         )}
 
           
@@ -134,12 +141,17 @@ const Navbar = () => {
             () => navigate(`/project-preview/${activeProject}`)
           )} */}
 
-        {activeProject &&
-          menuItem(
+        {menuItem(
             "Tasks",
             <AssignmentTurnedIn />,
             "/tasks",
-            () => navigate(`/tasks/${activeProject}`)
+            () => {
+              // if (activeProject) {
+                navigate(`/tasks/${activeProject}`);
+              // } else {
+              //   navigate("/workspaces"); 
+              // }
+            }
           )}
 
         {menuItem(

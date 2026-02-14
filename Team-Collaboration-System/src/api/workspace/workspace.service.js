@@ -1,5 +1,7 @@
 const prisma = require("../../config/db");
+const activityService = require("../activity/activity.service"); // ⭐ ADDED
 
+/* ================= CREATE WORKSPACE ================= */
 const createWorkspace = async (data, userId) => {
   try {
     const workspace = await prisma.workspace.create({
@@ -7,7 +9,6 @@ const createWorkspace = async (data, userId) => {
         name: data.name,
         description: data.description || null,
         isDeleted: false,
-
         members: {
           create: {
             userId,
@@ -17,19 +18,28 @@ const createWorkspace = async (data, userId) => {
       },
     });
 
+    /* ⭐ ACTIVITY LOG */
+    await activityService.logActivity({
+      userId,
+      type: "WORKSPACE_CREATED",
+      message: `Created workspace "${workspace.name}"`,
+      entityId: workspace.id,
+    });
+
     return { status: 200, data: workspace };
   } catch (err) {
     throw err;
   }
 };
 
+/* ================= GET WORKSPACES ================= */
 const getWorkspaces = async (userId) => {
   try {
     const workspaces = await prisma.workspace.findMany({
       where: {
         isDeleted: false,
         members: {
-          some: { userId }, 
+          some: { userId },
         },
       },
       include: {
@@ -45,13 +55,9 @@ const getWorkspaces = async (userId) => {
     });
 
     const formatted = workspaces.map((w) => {
-      const myMember = w.members.find(
-        (m) => m.userId === userId
-      );
+      const myMember = w.members.find((m) => m.userId === userId);
 
-      const ownerMember = w.members.find(
-        (m) => m.role === "OWNER"
-      );
+      const ownerMember = w.members.find((m) => m.role === "OWNER");
 
       return {
         id: w.id,
@@ -84,7 +90,8 @@ const getWorkspaces = async (userId) => {
   }
 };
 
-const updateWorkspace = async (id, data) => {
+/* ================= UPDATE WORKSPACE ================= */
+const updateWorkspace = async (id, data, userId) => {
   const result = await prisma.workspace.updateMany({
     where: {
       id,
@@ -100,10 +107,19 @@ const updateWorkspace = async (id, data) => {
     return { status: 404, message: "Workspace not found" };
   }
 
+  /* ⭐ ACTIVITY LOG */
+  await activityService.logActivity({
+    userId,
+    type: "WORKSPACE_UPDATED",
+    message: `Updated workspace details`,
+    entityId: id,
+  });
+
   return { status: 200, data: result };
 };
 
-const deleteWorkspace = async (id) => {
+/* ================= DELETE WORKSPACE ================= */
+const deleteWorkspace = async (id, userId) => {
   const result = await prisma.workspace.updateMany({
     where: {
       id,
@@ -115,6 +131,14 @@ const deleteWorkspace = async (id) => {
   if (!result.count) {
     return { status: 404, message: "Workspace not found" };
   }
+
+  /* ⭐ ACTIVITY LOG */
+  await activityService.logActivity({
+    userId,
+    type: "WORKSPACE_DELETED",
+    message: `Deleted a workspace`,
+    entityId: id,
+  });
 
   return { status: 200, data: result };
 };

@@ -16,7 +16,7 @@ app.use(
 
 app.use(express.json());
 
-app.use("/invites", require("./src/api/invite/invite.routes"));
+app.use("/api/invites", require("./src/api/invite/invite.routes"));
 
 app.use("/api", apiRouter);
 

@@ -1,78 +1,56 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "../api/axios";
 import { Box, Typography, CircularProgress, Button } from "@mui/material";
 import useAuth from "../auth/useAuth";
 import { showError, showSuccess } from "../utils/toast";
 
 const InviteAccept = () => {
-  const location = useLocation();
+  const { token } = useParams();
   const navigate = useNavigate();
-  const { token: authToken, user } = useAuth();
-
-  const queryParams = new URLSearchParams(location.search);
-  const workspaceId = queryParams.get("workspaceId");
+  const { token: authToken } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [invite, setInvite] = useState(null);
 
-  // ✅ Validate invite (NO TOKEN, email + workspaceId)
+  // ✅ Validate invite (PUBLIC)
   useEffect(() => {
     const validateInvite = async () => {
-      if (!authToken) {
-        navigate(`/login?inviteWorkspace=${workspaceId}`);
-        return;
-      }
-
       try {
-        const res = await axios.post(
-          "/invites/validate",
-          { workspaceId },
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-          }
-        );
-
+        const res = await axios.get(`/invites/${token}`);
         setInvite(res.data.data);
       } catch (err) {
         showError("Invalid or expired invite");
-        navigate("/workspaces");
+        navigate("/login");
       } finally {
         setLoading(false);
       }
     };
 
-    if (workspaceId) {
-      validateInvite();
-    } else {
-      showError("Invalid invitation link");
-      navigate("/workspaces");
-    }
-  }, [workspaceId, authToken, navigate]);
+    validateInvite();
+  }, [token, navigate]);
 
-  // ✅ Accept invite
   const acceptInvite = async () => {
+    if (!authToken) {
+      navigate(`/login?invite=${token}`);
+      return;
+    }
+
     try {
-      const res = await axios.post(
+      await axios.post(
         "/invites/accept",
-        { workspaceId },
+        { token },
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
           },
         }
       );
-
-      const { role } = res.data.data;
-
-      localStorage.setItem("activeWorkspace", workspaceId);
-      localStorage.setItem("workspaceRole", role);
+      localStorage.setItem("workspaceRole", invite.role.toLowerCase());
 
       showSuccess("Workspace joined successfully");
       navigate("/workspaces");
-    } catch (err) {
+    } catch {
       showError("Failed to accept invite");
     }
   };
@@ -87,6 +65,8 @@ const InviteAccept = () => {
 
   if (!invite) return null;
 
+  const isAlreadyAccepted = invite.status === "ACCEPTED"; 
+
   return (
     <Box sx={{ maxWidth: 500, mx: "auto", mt: 10, textAlign: "center" }}>
       <Typography variant="h5" fontWeight={700} mb={2}>
@@ -98,9 +78,15 @@ const InviteAccept = () => {
         <b>{invite.role}</b>
       </Typography>
 
-      <Button variant="contained" onClick={acceptInvite}>
-        Accept Invitation
-      </Button>
+      {isAlreadyAccepted ? (
+        <Typography color="success.main" fontWeight={600}>
+          ✅ You have already accepted this invitation.
+        </Typography>
+      ) : (
+        <Button variant="contained" onClick={acceptInvite}>
+          Accept Invitation
+        </Button>
+      )}
     </Box>
   );
 };

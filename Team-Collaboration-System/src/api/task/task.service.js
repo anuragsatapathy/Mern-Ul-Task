@@ -1,5 +1,7 @@
 const prisma = require("../../config/db");
+const activityService = require("../activity/activity.service");
 
+/* ================= CREATE TASK ================= */
 const createTask = async (data, userId) => {
   try {
     if (!data.title || !data.projectId) {
@@ -28,19 +30,17 @@ const createTask = async (data, userId) => {
       return { status: 403, message: "Permission denied" };
     }
 
-  
     const statusMap = {
-      "todo": "TODO",
+      todo: "TODO",
       "in-progress": "IN_PROGRESS",
-      "done": "DONE",
+      done: "DONE",
     };
 
     const priorityMap = {
-      "low": "LOW",
-      "medium": "MEDIUM",
-      "high": "HIGH",
+      low: "LOW",
+      medium: "MEDIUM",
+      high: "HIGH",
     };
-
 
     const task = await prisma.task.create({
       data: {
@@ -49,29 +49,81 @@ const createTask = async (data, userId) => {
         status: statusMap[data.status] || "TODO",
         priority: priorityMap[data.priority] || "MEDIUM",
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
-
-        projectId: data.projectId,   
-        assignedTo: userId,          
+        projectId: data.projectId,
+        assignedTo: data.assigneeId || userId,
       },
       include: {
-        user: {
-          select: { id: true, name: true },
-        },
-        project: {
-          select: { id: true, name: true },
-        },
+        user: { select: { id: true, name: true } },
+        project: { select: { id: true, name: true, workspaceId: true } },
       },
+    });
+
+    // ✅ TASK ASSIGNED ACTIVITY
+    await activityService.logActivity({
+      userId: task.assignedTo,
+      type: "TASK_ASSIGNED",
+      message: `You were assigned task "${task.title}"`,
+      entityId: task.id,
     });
 
     return { status: 200, data: task };
   } catch (err) {
-    console.error("CREATE TASK ERROR:", err);
+    console.error(err);
     return { status: 500, message: err.message };
   }
 };
 
+/* ================= GLOBAL TASKS ================= */
+const getTasks = async (userId) => {
+  try {
+    const tasks = await prisma.task.findMany({
+      where: {
+        assignedTo: userId,
+        isDeleted: false,
+      },
+      include: {
+        user: { select: { id: true, name: true } },
+        project: {
+          select: {
+            id: true,
+            name: true,
+            workspace: {
+              select: {
+                id: true,
+                name: true,
+                members: {
+                  where: { userId },
+                  select: { role: true },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
-const getTasks = async (projectId, userId) => {
+    const mappedTasks = tasks.map((t) => ({
+      ...t,
+      project: {
+        ...t.project,
+        workspace: {
+          id: t.project.workspace.id,
+          name: t.project.workspace.name,
+          role: t.project.workspace.members[0]?.role || "MEMBER",
+        },
+      },
+    }));
+
+    return { status: 200, data: mappedTasks };
+  } catch (err) {
+    console.error(err);
+    return { status: 500, message: err.message };
+  }
+};
+
+/* ================= PROJECT TASKS ================= */
+const getTasksByProject = async (projectId, userId) => {
   try {
     const project = await prisma.project.findUnique({
       where: { id: projectId },
@@ -101,24 +153,50 @@ const getTasks = async (projectId, userId) => {
       },
       include: {
         user: { select: { id: true, name: true } },
+        project: {
+          select: {
+            id: true,
+            name: true,
+            workspace: {
+              select: {
+                id: true,
+                name: true,
+                members: {
+                  where: { userId },
+                  select: { role: true },
+                },
+              },
+            },
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
 
-    return { status: 200, data: tasks };
+    const mappedTasks = tasks.map((t) => ({
+      ...t,
+      project: {
+        ...t.project,
+        workspace: {
+          id: t.project.workspace.id,
+          name: t.project.workspace.name,
+          role: t.project.workspace.members[0]?.role || "MEMBER",
+        },
+      },
+    }));
+
+    return { status: 200, data: mappedTasks };
   } catch (err) {
+    console.error(err);
     return { status: 500, message: err.message };
   }
 };
 
-
+/* ================= UPDATE ================= */
 const updateTask = async (id, data, userId) => {
   try {
     const task = await prisma.task.findFirst({
-      where: {
-        id,
-        isDeleted: false,
-      },
+      where: { id, isDeleted: false },
       include: {
         project: {
           include: {
@@ -143,15 +221,15 @@ const updateTask = async (id, data, userId) => {
     }
 
     const statusMap = {
-      "todo": "TODO",
+      todo: "TODO",
       "in-progress": "IN_PROGRESS",
-      "done": "DONE",
+      done: "DONE",
     };
 
     const priorityMap = {
-      "low": "LOW",
-      "medium": "MEDIUM",
-      "high": "HIGH",
+      low: "LOW",
+      medium: "MEDIUM",
+      high: "HIGH",
     };
 
     const updatedTask = await prisma.task.update({
@@ -162,11 +240,30 @@ const updateTask = async (id, data, userId) => {
         status: statusMap[data.status] || task.status,
         priority: priorityMap[data.priority] || task.priority,
         dueDate: data.dueDate ? new Date(data.dueDate) : task.dueDate,
-      },
-      include: {
-        user: { select: { id: true, name: true } },
+        assignedTo: data.assigneeId || task.assignedTo,
       },
     });
+
+    /* ⭐ ACTIVITY LOGIC (ADDED — LOGIC SAME) */
+    if (
+      data.status &&
+      statusMap[data.status] === "DONE" &&
+      task.status !== "DONE"
+    ) {
+      await activityService.logActivity({
+        userId,
+        type: "TASK_COMPLETED",
+        message: `Completed task "${task.title}"`,
+        entityId: task.id,
+      });
+    } else if (data.status) {
+      await activityService.logActivity({
+        userId,
+        type: "TASK_UPDATED",
+        message: `Updated task "${task.title}"`,
+        entityId: task.id,
+      });
+    }
 
     return { status: 200, data: updatedTask };
   } catch (err) {
@@ -174,14 +271,11 @@ const updateTask = async (id, data, userId) => {
   }
 };
 
-
+/* ================= DELETE ================= */
 const deleteTask = async (id, userId) => {
   try {
     const task = await prisma.task.findFirst({
-      where: {
-        id,
-        isDeleted: false,
-      },
+      where: { id, isDeleted: false },
       include: {
         project: {
           include: {
@@ -205,12 +299,19 @@ const deleteTask = async (id, userId) => {
       return { status: 403, message: "Permission denied" };
     }
 
-    const deletedTask = await prisma.task.update({
+    await prisma.task.update({
       where: { id },
       data: { isDeleted: true },
     });
 
-    return { status: 200, data: deletedTask };
+    await activityService.logActivity({
+      userId,
+      type: "TASK_DELETED",
+      message: `Deleted task "${task.title}"`,
+      entityId: task.id,
+    });
+
+    return { status: 200, data: true };
   } catch (err) {
     return { status: 500, message: err.message };
   }
@@ -219,6 +320,7 @@ const deleteTask = async (id, userId) => {
 module.exports = {
   createTask,
   getTasks,
+  getTasksByProject,
   updateTask,
   deleteTask,
 };

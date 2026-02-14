@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react"; // Added useMemo
 import { useNavigate } from "react-router-dom";
 import axios from "../api/axios";
 import Navbar from "../components/Navbar";
@@ -27,6 +27,8 @@ import {
   AvatarGroup,
   Tooltip,
   Stack,
+  InputAdornment, // Added
+  Pagination, // Added
 } from "@mui/material";
 import {
   Edit as EditIcon,
@@ -34,8 +36,11 @@ import {
   GroupAdd as GroupIcon,
   ArrowForward,
   Workspaces as WorkspaceIcon,
+  Search as SearchIcon, // Added
 } from "@mui/icons-material";
 import { showSuccess, showError } from "../utils/toast";
+
+const ITEMS_PER_PAGE = 10;
 
 const Workspaces = () => {
   const navigate = useNavigate();
@@ -43,9 +48,14 @@ const Workspaces = () => {
   const [workspaces, setWorkspaces] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Search and Pagination State
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+
   // Create
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  //const workspaceRole = localStorage.getItem("workspaceRole");
 
   // Edit
   const [editId, setEditId] = useState(null);
@@ -65,7 +75,7 @@ const Workspaces = () => {
       setLoading(true);
       const res = await axios.get("/workspaces");
       setWorkspaces(res.data.data || []);
-    } catch(error) {
+    } catch (error) {
       showError("Failed to load workspaces");
       console.log(error);
     } finally {
@@ -76,7 +86,27 @@ const Workspaces = () => {
   useEffect(() => {
     fetchWorkspaces();
   }, []);
-console.log(workspaces);
+
+  /* ================= SEARCH & PAGINATION LOGIC ================= */
+  const filteredWorkspaces = useMemo(() => {
+    return workspaces.filter((w) =>
+      w.name.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [workspaces, search]);
+
+  const totalPages = Math.ceil(filteredWorkspaces.length / ITEMS_PER_PAGE);
+
+  const paginatedWorkspaces = useMemo(() => {
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    return filteredWorkspaces.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredWorkspaces, page]);
+
+  // Reset to page 1 when searching
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
+
+  /* ================= ACTIONS ================= */
   const createWorkspace = async () => {
     if (!name.trim()) return showError("Workspace name is required");
     try {
@@ -131,6 +161,10 @@ console.log(workspaces);
     }
   };
 
+//   const canCreateWorkspace = workspaces.some(
+//   (w) => ["owner","admin"].includes(w.myRole?.toLowerCase())
+// );
+
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#f8fafc" }}>
       <Navbar />
@@ -150,10 +184,12 @@ console.log(workspaces);
         </Box>
 
         {/* CREATE WORKSPACE BAR */}
+       {/* <RoleGuard allow={["owner", "admin"]}  role={workspaceRole}> */}
+       {/* { canCreateWorkspace &&  */}
         <Paper 
           elevation={0}
           sx={{ 
-            p: 2.5, mb: 8, borderRadius: '24px', 
+            p: 2.5, mb: 4, borderRadius: '24px', 
             border: "1px solid #e2e8f0", 
             bgcolor: "#ffffff",
             display: 'flex', gap: 2,
@@ -183,147 +219,204 @@ console.log(workspaces);
             Create
           </Button>
         </Paper>
+        {/* </RoleGuard> */}
+
+        {/* SEARCH BAR SECTION */}
+        <Box sx={{ mb: 6, display: 'flex', justifyContent: 'flex-end' }}>
+          <TextField
+            placeholder="Search workspaces by name..."
+            variant="outlined"
+            size="small"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: "#94a3b8" }} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              width: { xs: '100%', sm: 350 },
+              "& .MuiOutlinedInput-root": {
+                borderRadius: '12px',
+                bgcolor: '#fff',
+                "&:hover": { borderColor: '#6366f1' },
+                "&.Mui-focused": { boxShadow: '0 0 0 4px rgba(99, 102, 241, 0.1)' }
+              }
+            }}
+          />
+        </Box>
 
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
             <CircularProgress thickness={5} sx={{ color: "#6366f1" }} />
           </Box>
         ) : (
-          <Grid container spacing={4}>
-            {workspaces.map((w) => (
-              <Grid item xs={12} sm={6} lg={4} key={w.id}>
-                <Card 
-                  elevation={0}
-                  sx={{ 
-                    position: "relative", borderRadius: '24px', border: '1px solid #e2e8f0',
-                    bgcolor: '#fff',
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                    "&:hover": { 
-                      transform: 'translateY(-8px)',
-                      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                      borderColor: '#6366f1' 
+          <>
+            <Grid container spacing={4}>
+              {paginatedWorkspaces.length > 0 ? (
+                paginatedWorkspaces.map((w) => (
+                  <Grid item xs={12} sm={6} lg={4} key={w.id}>
+                    <Card 
+                      elevation={0}
+                      sx={{ 
+                        position: "relative", borderRadius: '24px', border: '1px solid #e2e8f0',
+                        bgcolor: '#fff',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                        "&:hover": { 
+                          transform: 'translateY(-8px)',
+                          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                          borderColor: '#6366f1' 
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ p: 4, flexGrow: 1 }}>
+                        {editId === w.id ? (
+                          <Stack spacing={2.5}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <EditIcon sx={{ color: '#6366f1', fontSize: 18 }} />
+                              <Typography variant="overline" sx={{ fontWeight: 900, color: '#6366f1', letterSpacing: 1.2 }}>
+                                Edit Workspace
+                              </Typography>
+                            </Box>
+                            <TextField
+                              fullWidth label="Name"
+                              value={editName} onChange={(e) => setEditName(e.target.value)}
+                              sx={{ "& .MuiOutlinedInput-root": { borderRadius: '12px' } }}
+                            />
+                            <TextField
+                              fullWidth label="Description" multiline rows={2}
+                              value={editDescription} onChange={(e) => setEditDescription(e.target.value)}
+                              sx={{ "& .MuiOutlinedInput-root": { borderRadius: '12px' } }}
+                            />
+                            <Stack direction="row" spacing={1.5}>
+                              <Button fullWidth variant="contained" onClick={updateWorkspace} sx={{ borderRadius: '12px', bgcolor: '#6366f1', textTransform: 'none', fontWeight: 700 }}>Save</Button>
+                              <Button fullWidth variant="text" onClick={() => setEditId(null)} sx={{ borderRadius: '12px', color: '#64748b', textTransform: 'none' }}>Cancel</Button>
+                            </Stack>
+                          </Stack>
+                        ) : (
+                          <>
+                            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+                              <Chip 
+                                label={w.myRole?.toLowerCase() || "member"}
+                                size="small" 
+                                sx={{ 
+                                  fontSize: '11px', fontWeight: 800, textTransform: 'uppercase',
+                                  bgcolor: w.myRole === 'OWNER' ? '#eef2ff' : '#f1f5f9', 
+                                  color: w.myRole === 'OWNER' ? '#6366f1' : '#64748b', 
+                                  borderRadius: '8px', px: 0.5
+                                }} 
+                              />
+                              <RoleGuard allow={["owner", "admin"]} role={w.myRole}>
+                                <Stack direction="row" spacing={0.5}>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => { setEditId(w.id); setEditName(w.name); setEditDescription(w.description || ""); }}
+                                    sx={{ color: '#94a3b8', "&:hover": { color: '#6366f1', bgcolor: '#f0f2ff' } }}
+                                  >
+                                    <EditIcon fontSize="small" />
+                                  </IconButton>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => setDeleteId(w.id)}
+                                    sx={{ color: '#94a3b8', "&:hover": { color: '#ef4444', bgcolor: '#fef2f2' } }}
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </Stack>
+                              </RoleGuard>
+                            </Box>
+
+                            <Typography variant="h5" sx={{ fontWeight: 800, color: '#1e293b', mb: 1.5, lineHeight: 1.3 }}>
+                              {w.name}
+                            </Typography>
+                            
+                            <Typography variant="body2" sx={{ color: "#64748b", mb: 4, lineHeight: 1.7, fontSize: '0.95rem' }}>
+                              {w.description || "No description provided for this workspace."}
+                            </Typography>
+
+                            <Divider sx={{ my: 3, opacity: 0.6 }} />
+
+                            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              <Stack direction="row" spacing={1.5} alignItems="center">
+                                <AvatarGroup max={3} sx={{ "& .MuiAvatar-root": { width: 34, height: 34, fontSize: '14px', border: '2px solid #fff' } }}>
+                                  {w.members?.map((m) => (
+                                    <Tooltip key={m.id} title={`${m.user.name} (${m.role})`}>
+                                      <Avatar sx={{ bgcolor: '#818cf8', fontWeight: 600 }}>{m.user.name.charAt(0)}</Avatar>
+                                    </Tooltip>
+                                  ))}
+                                </AvatarGroup>
+                                <RoleGuard allow={["owner", "admin"]} role={w.myRole}>
+                                  <Tooltip title="Add Members">
+                                    <IconButton 
+                                      size="small" 
+                                      onClick={() => setMemberDialog(w)} 
+                                      sx={{ bgcolor: '#f1f5f9', color: '#64748b', "&:hover": { bgcolor: '#eef2ff', color: '#6366f1' } }}
+                                    >
+                                      <GroupIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                </RoleGuard>
+                              </Stack>
+
+                              <Button
+                                variant="text"
+                                onClick={() => {
+                                  localStorage.setItem("activeWorkspace", w.id);
+                                  localStorage.removeItem("activeProject");
+                                  localStorage.setItem("workspaceRole", w.myRole.toLowerCase());
+                                  navigate(`/projects/${w.id}`);
+                                }}
+                                endIcon={<ArrowForward sx={{ transition: '0.2s', transform: 'translateX(0px)' }} />}
+                                sx={{ 
+                                  fontWeight: 800, color: '#6366f1', textTransform: 'none', fontSize: '0.95rem',
+                                  "&:hover": { bgcolor: 'transparent', "& .MuiButton-endIcon": { transform: 'translateX(4px)' } } 
+                                }}
+                              >
+                                Enter
+                              </Button>
+                            </Box>
+                          </>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))
+              ) : (
+                <Grid item xs={12}>
+                  <Box sx={{ textAlign: 'center', py: 10 }}>
+                    <Typography sx={{ color: '#64748b', fontWeight: 600 }}>No workspaces found matching your search.</Typography>
+                  </Box>
+                </Grid>
+              )}
+            </Grid>
+
+            {/* PAGINATION COMPONENT */}
+            {totalPages > 1 && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
+                <Pagination 
+                  count={totalPages} 
+                  page={page} 
+                  onChange={(_, v) => setPage(v)}
+                  sx={{
+                    "& .MuiPaginationItem-root": { 
+                      fontWeight: 700, 
+                      borderRadius: '12px',
+                      color: '#64748b'
+                    },
+                    "& .Mui-selected": { 
+                      bgcolor: '#6366f1 !important', 
+                      color: '#fff' 
                     }
                   }}
-                >
-                  <CardContent sx={{ p: 4, flexGrow: 1 }}>
-                    {editId === w.id ? (
-                      /* EDITING UI */
-                      <Stack spacing={2.5}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <EditIcon sx={{ color: '#6366f1', fontSize: 18 }} />
-                          <Typography variant="overline" sx={{ fontWeight: 900, color: '#6366f1', letterSpacing: 1.2 }}>
-                            Edit Workspace
-                          </Typography>
-                        </Box>
-                        <TextField
-                          fullWidth label="Name"
-                          value={editName} onChange={(e) => setEditName(e.target.value)}
-                          sx={{ "& .MuiOutlinedInput-root": { borderRadius: '12px' } }}
-                        />
-                        <TextField
-                          fullWidth label="Description" multiline rows={2}
-                          value={editDescription} onChange={(e) => setEditDescription(e.target.value)}
-                          sx={{ "& .MuiOutlinedInput-root": { borderRadius: '12px' } }}
-                        />
-                        <Stack direction="row" spacing={1.5}>
-                          <Button fullWidth variant="contained" onClick={updateWorkspace} sx={{ borderRadius: '12px', bgcolor: '#6366f1', textTransform: 'none', fontWeight: 700 }}>Save</Button>
-                          <Button fullWidth variant="text" onClick={() => setEditId(null)} sx={{ borderRadius: '12px', color: '#64748b', textTransform: 'none' }}>Cancel</Button>
-                        </Stack>
-                      </Stack>
-                    ) : (
-                      /* VIEWING UI */
-                      <>
-                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
-                          <Chip 
-                            label={w.myRole?.toLowerCase() || "member"}
-                            size="small" 
-                            sx={{ 
-                              fontSize: '11px', fontWeight: 800, textTransform: 'uppercase',
-                              bgcolor: w.myRole === 'OWNER' ? '#eef2ff' : '#f1f5f9', 
-                              color: w.myRole === 'OWNER' ? '#6366f1' : '#64748b', 
-                              borderRadius: '8px', px: 0.5
-                            }} 
-                          />
-                          <RoleGuard allow={["owner", "admin"]} role={w.myRole}>
-                            <Stack direction="row" spacing={0.5}>
-                              <IconButton
-                                size="small"
-                                onClick={() => { setEditId(w.id); setEditName(w.name); setEditDescription(w.description || ""); }}
-                                sx={{ color: '#94a3b8', "&:hover": { color: '#6366f1', bgcolor: '#f0f2ff' } }}
-                              >
-                                <EditIcon fontSize="small" />
-                              </IconButton>
-                              <IconButton
-                                size="small"
-                                onClick={() => setDeleteId(w.id)}
-                                sx={{ color: '#94a3b8', "&:hover": { color: '#ef4444', bgcolor: '#fef2f2' } }}
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            </Stack>
-                          </RoleGuard>
-                        </Box>
-
-                        <Typography variant="h5" sx={{ fontWeight: 800, color: '#1e293b', mb: 1.5, lineHeight: 1.3 }}>
-                          {w.name}
-                        </Typography>
-                        
-                        <Typography variant="body2" sx={{ color: "#64748b", mb: 4, lineHeight: 1.7, fontSize: '0.95rem' }}>
-                          {w.description || "No description provided for this workspace."}
-                        </Typography>
-
-                        <Divider sx={{ my: 3, opacity: 0.6 }} />
-
-                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <Stack direction="row" spacing={1.5} alignItems="center">
-                            <AvatarGroup max={3} sx={{ "& .MuiAvatar-root": { width: 34, height: 34, fontSize: '14px', border: '2px solid #fff' } }}>
-                              {w.members?.map((m) => (
-                                <Tooltip key={m.id} title={`${m.user.name} (${m.role})`}>
-                                  <Avatar sx={{ bgcolor: '#818cf8', fontWeight: 600 }}>{m.user.name.charAt(0)}</Avatar>
-                                </Tooltip>
-                              ))}
-                            </AvatarGroup>
-                            <RoleGuard allow={["owner", "admin"]} role={w.myRole}>
-                              <Tooltip title="Add Members">
-                                <IconButton 
-                                  size="small" 
-                                  onClick={() => setMemberDialog(w)} 
-                                  sx={{ bgcolor: '#f1f5f9', color: '#64748b', "&:hover": { bgcolor: '#eef2ff', color: '#6366f1' } }}
-                                >
-                                  <GroupIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </RoleGuard>
-                          </Stack>
-
-                          <Button
-                            variant="text"
-                            onClick={() => {
-                              localStorage.setItem("activeWorkspace", w.id);
-                              localStorage.removeItem("activeProject");
-                              localStorage.setItem("workspaceRole", w.myRole.toLowerCase());
-
-                              navigate(`/projects/${w.id}`);
-                            }}
-                            endIcon={<ArrowForward sx={{ transition: '0.2s', transform: 'translateX(0px)' }} />}
-                            sx={{ 
-                              fontWeight: 800, color: '#6366f1', textTransform: 'none', fontSize: '0.95rem',
-                              "&:hover": { bgcolor: 'transparent', "& .MuiButton-endIcon": { transform: 'translateX(4px)' } } 
-                            }}
-                          >
-                            Enter
-                          </Button>
-                        </Box>
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+                />
+              </Box>
+            )}
+          </>
         )}
       </Container>
 
@@ -365,7 +458,7 @@ console.log(workspaces);
       <ConfirmDialog
         open={!!deleteId}
         title="Delete Workspace?"
-        message="All projects, tasks, and data within this workspace will be permanently erased."
+        message="Are you sure you want to delete this workspace ?"
         confirmText="Delete Workspace"
         onConfirm={deleteWorkspace}
         onCancel={() => setDeleteId(null)}

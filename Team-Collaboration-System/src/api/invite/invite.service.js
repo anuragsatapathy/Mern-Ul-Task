@@ -1,5 +1,7 @@
 const prisma = require("../../config/db");
 const nodemailer = require("nodemailer");
+const crypto = require("crypto");
+
 
 const VALID_ROLES = ["OWNER", "ADMIN", "MEMBER"];
 
@@ -41,28 +43,28 @@ const sendInvite = async ({ email, role, workspaceId, invitedBy }) => {
   }
 
   // Prevent duplicate active invite
-  const existingInvite = await prisma.workspaceInvite.findFirst({
+    const existingMember = await prisma.workspaceMember.findFirst({
     where: {
-      email,
       workspaceId,
-      isAccepted: false,
-      expiresAt: {
-        gt: new Date(),
+      user: {
+        email,
       },
     },
   });
 
-  if (existingInvite) {
-    return { status: 200 };
+  if (existingMember) {
+    return { status: 200 }; // user already joined, do not create new invite
   }
+const token = crypto.randomUUID();
 
   // Create invite 
   await prisma.workspaceInvite.create({
     data: {
       email,
       role: normalizedRole,
+      token,
       workspaceId,
-      isAccepted: false,
+      //isAccepted: false,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     },
   });
@@ -80,7 +82,9 @@ const sendInvite = async ({ email, role, workspaceId, invitedBy }) => {
     },
   });
 
-  const inviteLink = `http://localhost:5173/invite?workspaceId=${workspaceId}`;
+    const inviteLink = `http://localhost:5173/invite/${token}`;
+
+  //const inviteLink = `http://localhost:5173/invite?workspaceId=${workspaceId}`;
 
   await transporter.sendMail({
     from: process.env.MAIL_USER,
@@ -98,80 +102,78 @@ const sendInvite = async ({ email, role, workspaceId, invitedBy }) => {
   return { status: 200 };
 };
 
-const validateInvite = async ({ workspaceId, userId }) => {
-  const invite = await prisma.workspaceInvite.findFirst({
-    where: {
-      workspaceId,
-      isAccepted: false,
-      expiresAt: {
-        gt: new Date(),
-      },
-    },
+const validateInvite = async ({ token }) => {
+  const invite = await prisma.workspaceInvite.findUnique({
+    where: { token },
     include: {
-      workspace: {
-        select: { name: true },
-      },
+      workspace: { select: { name: true } },
     },
   });
 
-  if (!invite) {
+  console.log('invite', invite)
+
+  if (!invite || invite.expiresAt < new Date()) {
     return { status: 400, message: "Invalid or expired invite" };
   }
 
   return {
     status: 200,
     data: {
+      workspaceId: invite.workspaceId,
       workspaceName: invite.workspace.name,
-      role: invite.role,
+      role: invite.role.toLowerCase(),
+      isAccepted: invite.isAccepted,
     },
   };
 };
 
-const acceptInvite = async ({ workspaceId, userId }) => {
-  const invite = await prisma.workspaceInvite.findFirst({
-    where: {
-      workspaceId,
-      isAccepted: false,
-      expiresAt: {
-        gt: new Date(),
-      },
-    },
+
+const acceptInvite = async ({ token, userId }) => {
+  const invite = await prisma.workspaceInvite.findUnique({
+    where: { token },
   });
 
-  if (!invite) {
+  console.log('accpet ionvite', invite)
+
+  if (!invite || invite.expiresAt < new Date()) {
     return { status: 400, message: "Invalid or expired invite" };
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+
+  if (user.email !== invite.email) {
+    return { status: 403, message: "Invite email mismatch" };
   }
 
   await prisma.workspaceMember.upsert({
     where: {
       userId_workspaceId: {
         userId,
-        workspaceId,
+        workspaceId: invite.workspaceId,
       },
     },
-    update: {
-      role: invite.role,
-    },
+    update: { role: invite.role },
     create: {
       userId,
-      workspaceId,
+      workspaceId: invite.workspaceId,
       role: invite.role,
     },
   });
 
   await prisma.workspaceInvite.update({
-    where: { id: invite.id },
+    where: { token },
     data: { isAccepted: true },
   });
 
   return {
     status: 200,
     data: {
-      workspaceId,
+      workspaceId: invite.workspaceId,
       role: invite.role.toLowerCase(),
     },
   };
 };
+
 
 module.exports = {
   sendInvite,

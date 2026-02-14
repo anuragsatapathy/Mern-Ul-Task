@@ -1,31 +1,60 @@
 const service = require("./task.service");
 const responses = require("../../utility/response");
 
+/* ================= CREATE ================= */
 const createTask = async (req, res) => {
   try {
     const result = await service.createTask(req.body, req.user.id);
+
     if (result.status !== 200) {
       return responses.badRequestResponse(res, result.message);
     }
+
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);
   }
 };
 
+/* ================= GLOBAL TASKS ================= */
+/* Used by Tasks.jsx page */
 const getTasks = async (req, res) => {
   try {
-    if (!req.query.projectId) {
-      return responses.badRequestResponse(res, "projectId is required");
+    const result = await service.getTasks(req.user.id);
+
+    if (result.status !== 200) {
+      return responses.generateResponse(
+        res,
+        false,
+        result.message,
+        result.status
+      );
     }
 
-    const result = await service.getTasks(
-      req.query.projectId,
+    return responses.successResponse(res, result.data);
+  } catch (err) {
+    return responses.internalFailureResponse(res, err);
+  }
+};
+
+/* ================= PROJECT TASKS ================= */
+/* ⭐ Used by ProjectPreview.jsx */
+const getTasksByProject = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    const result = await service.getTasksByProject(
+      projectId,
       req.user.id
     );
 
     if (result.status !== 200) {
-      return responses.generateResponse(res, false, result.message, result.status);
+      return responses.generateResponse(
+        res,
+        false,
+        result.message,
+        result.status
+      );
     }
 
     return responses.successResponse(res, result.data);
@@ -34,29 +63,40 @@ const getTasks = async (req, res) => {
   }
 };
 
+/* ================= GET BY ID ================= */
 const getTaskById = async (req, res) => {
   try {
-    const result = await service.getTaskById(req.params.id, req.user.id);
-    if (!result.data) {
+    const result = await service.getTaskById(
+      req.params.id,
+      req.user.id
+    );
+
+    if (!result?.data) {
       return responses.notFoundResponse(res, "Task not found");
     }
+
     return responses.successResponse(res, result.data);
   } catch (err) {
     return responses.internalFailureResponse(res, err);
   }
 };
 
+/* ================= UPDATE ================= */
 const updateTask = async (req, res) => {
   try {
     const result = await service.updateTask(
       req.params.id,
       req.body,
-      req.user.id,
-      req.user.role 
+      req.user.id
     );
 
     if (result.status !== 200) {
-      return responses.generateResponse(res, false, result.message, result.status);
+      return responses.generateResponse(
+        res,
+        false,
+        result.message,
+        result.status
+      );
     }
 
     return responses.successResponse(res, result.data);
@@ -65,16 +105,21 @@ const updateTask = async (req, res) => {
   }
 };
 
+/* ================= DELETE ================= */
 const deleteTask = async (req, res) => {
   try {
     const result = await service.deleteTask(
       req.params.id,
-      req.user.id,
-      req.user.role 
+      req.user.id
     );
 
     if (result.status !== 200) {
-      return responses.generateResponse(res, false, result.message, result.status);
+      return responses.generateResponse(
+        res,
+        false,
+        result.message,
+        result.status
+      );
     }
 
     return responses.successResponse(res, result.data);
@@ -86,6 +131,7 @@ const deleteTask = async (req, res) => {
 module.exports = {
   createTask,
   getTasks,
+  getTasksByProject, // ⭐ VERY IMPORTANT
   getTaskById,
   updateTask,
   deleteTask,

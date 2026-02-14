@@ -3,10 +3,11 @@ const router = express.Router();
 const controller = require("./invite.controller");
 const jwtValidation = require("../../middlewares/jwtValidation");
 
-// Validate invite (public)
+console.log('first')
+// ✅ Validate invite (PUBLIC)
 router.get("/:token", controller.validateInvite);
 
-// Accept invite (MUST be authenticated)
+// ✅ Accept invite (AUTH REQUIRED)
 router.post("/accept", jwtValidation, controller.acceptInvite);
 
 module.exports = router;

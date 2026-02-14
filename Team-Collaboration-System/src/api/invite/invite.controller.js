@@ -22,31 +22,28 @@ const sendInvite = async (req, res) => {
 
 const validateInvite = async (req, res) => {
   try {
-    const { workspaceId } = req.body;
+    const { token } = req.params;
+    console.log('second', token)
 
-    const result = await service.validateInvite({
-      workspaceId,
-      userId: req.user.id, 
-    });
+    const result = await service.validateInvite({ token });
 
     if (result.status !== 200) {
-      return responses.generateResponse(res, false, result.message, 400);
+      return responses.badRequestResponse(res, result.message);
     }
 
     return responses.successResponse(res, result.data);
   } catch (err) {
-    console.error("VALIDATE INVITE ERROR:", err);
     return responses.internalFailureResponse(res, err);
   }
 };
 
 const acceptInvite = async (req, res) => {
   try {
-    const { workspaceId } = req.body;
+    const { token } = req.body;
 
     const result = await service.acceptInvite({
-      workspaceId,
-      userId: req.user.id, 
+      token,
+      userId: req.user.id,
     });
 
     if (result.status !== 200) {
@@ -55,7 +52,6 @@ const acceptInvite = async (req, res) => {
 
     return responses.successResponse(res, result.data, "Invite accepted");
   } catch (err) {
-    console.error("ACCEPT INVITE ERROR:", err);
     return responses.internalFailureResponse(res, err);
   }
 };

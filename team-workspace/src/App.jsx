@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import Workspaces from "./pages/Workspaces";
 import WorkspaceMembers from "./pages/WorkspaceMembers";
 import Projects from "./pages/Projects";
+import AllProjects from "./pages/AllProjects";
 import ProjectPreview from "./pages/ProjectPreview";
 import Tasks from "./pages/Tasks";
 import Activity from "./pages/Activity";
@@ -76,6 +77,16 @@ const App = () => {
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/all-projects"
+        element={
+          <ProtectedRoute>
+            <AllProjects />
+          </ProtectedRoute>
+        }
+      />
+
 
       <Route
         path="/activity"

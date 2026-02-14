@@ -1,4 +1,5 @@
 const prisma = require("../../config/db");
+const activityService = require("../activity/activity.service"); // ⭐ ADDED
 
 const hasWriteAccess = async (projectId, userId) => {
   const project = await prisma.project.findUnique({
@@ -49,6 +50,14 @@ const createProject = async (data, userId) => {
           select: { id: true, name: true },
         },
       },
+    });
+
+    /* ⭐ ACTIVITY LOG */
+    await activityService.logActivity({
+      userId,
+      type: "PROJECT_CREATED",
+      message: `Created project "${project.name}"`,
+      entityId: project.id,
     });
 
     return { status: 200, data: project };
@@ -138,6 +147,14 @@ const updateProject = async (projectId, data, userId) => {
       },
     });
 
+    /* ⭐ ACTIVITY LOG */
+    await activityService.logActivity({
+      userId,
+      type: "PROJECT_UPDATED",
+      message: `Updated project "${project.name}"`,
+      entityId: project.id,
+    });
+
     return { status: 200, data: project };
   } catch (err) {
     return { status: 500, message: err.message };
@@ -154,6 +171,14 @@ const deleteProject = async (projectId, userId) => {
     const project = await prisma.project.update({
       where: { id: projectId },
       data: { isDeleted: true },
+    });
+
+    /* ⭐ ACTIVITY LOG */
+    await activityService.logActivity({
+      userId,
+      type: "PROJECT_DELETED",
+      message: `Deleted project "${project.name}"`,
+      entityId: project.id,
     });
 
     return { status: 200, data: project };

@@ -5,6 +5,8 @@ const jwtValidation = require("../../middlewares/jwtValidation");
 
 router.post("/", jwtValidation, controller.createTask);
 router.get("/", jwtValidation, controller.getTasks);
+router.get("/project/:projectId", jwtValidation, controller.getTasksByProject);
+
 router.get("/:id", jwtValidation, controller.getTaskById);
 router.put("/:id", jwtValidation, controller.updateTask);
 router.delete("/:id", jwtValidation, controller.deleteTask);

@@ -54,46 +54,31 @@ const Login = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: "" });
   };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validate()) return;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validate()) return;
+  try {
+    const res = await axios.post("/auth/login", form);
+    const { token, user } = res.data.data;
 
-    try {
-      const res = await axios.post("/auth/login", form);
-      const { token, user } = res.data.data;
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
 
-      
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
+    setToken(token);
+    setUser(user);
 
-      setToken(token);
-      setUser(user);
+    showSuccess("Login successful");
 
-     
-      if (inviteToken) {
-           await axios.post(
-          "/invites/accept",
-          { token: inviteToken },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+    // 🔥 DO NOT accept invite here
+    navigate("/workspaces", { replace: true });
+  } catch (err) {
+    showError(
+      err.response?.data?.message || "Invalid email or password"
+    );
+  }
+};
 
-      }
-
-      showSuccess("Login successful");
-
-     
-      navigate("/workspaces", { replace: true });
-    } catch (err) {
-      showError(
-        err.response?.data?.message || "Invalid email or password"
-      );
-    }
-  };
 
   const inputStyles = {
     "& .MuiOutlinedInput-root": {

@@ -19,7 +19,7 @@ router.use(
 );
 
 router.use(
-  "/activities",
+  "/activity",
   require("./activity/activity.router")
 );
 
