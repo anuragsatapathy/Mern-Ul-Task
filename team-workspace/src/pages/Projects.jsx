@@ -291,7 +291,7 @@ const Projects = () => {
                       },
                     }}
                   >
-                    {/* Floating Action Buttons */}
+               
                     {editId !== p.id && (
                       <Box sx={{ position: "absolute", top: -15, right: 15, display: "flex", gap: 1 }}>
                         <RoleGuard allow={["owner", "admin"]} role={workspaceRole}>

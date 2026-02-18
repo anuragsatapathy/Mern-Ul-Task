@@ -70,7 +70,7 @@ const handleSubmit = async (e) => {
 
     showSuccess("Login successful");
 
-    // 🔥 DO NOT accept invite here
+   
     navigate("/workspaces", { replace: true });
   } catch (err) {
     showError(

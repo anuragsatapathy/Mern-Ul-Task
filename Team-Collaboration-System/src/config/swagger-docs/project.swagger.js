@@ -11,11 +11,14 @@
  *   post:
  *     tags: [Project]
  *     summary: Create project
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
+ *             type: object
  *             required: [name, workspaceId]
  *             properties:
  *               name:
@@ -26,11 +29,13 @@
  *                 type: string
  *     responses:
  *       200:
- *         description: Project created
+ *         description: Project created successfully
  *
  *   get:
  *     tags: [Project]
  *     summary: Get projects
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: workspaceId
@@ -39,7 +44,7 @@
  *           type: string
  *     responses:
  *       200:
- *         description: Project list
+ *         description: Project list retrieved successfully
  */
 
 /**
@@ -48,6 +53,8 @@
  *   get:
  *     tags: [Project]
  *     summary: Get project by ID
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -56,11 +63,13 @@
  *           type: string
  *     responses:
  *       200:
- *         description: Project details
+ *         description: Project details retrieved successfully
  *
  *   put:
  *     tags: [Project]
  *     summary: Update project
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -72,6 +81,7 @@
  *       content:
  *         application/json:
  *           schema:
+ *             type: object
  *             properties:
  *               name:
  *                 type: string
@@ -81,11 +91,13 @@
  *                 type: string
  *     responses:
  *       200:
- *         description: Project updated
+ *         description: Project updated successfully
  *
  *   delete:
  *     tags: [Project]
  *     summary: Delete project
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -94,5 +106,5 @@
  *           type: string
  *     responses:
  *       200:
- *         description: Project deleted
+ *         description: Project deleted successfully
  */

@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Box, TextField, Button, Typography, Paper } from "@mui/material";
+import { Box, TextField, Button, Typography, Checkbox, FormControlLabel, Link as MuiLink, InputAdornment } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "../api/axios";
 import toast from "react-hot-toast";
 import { connectSocket } from "../context/SocketContext";
-
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -18,7 +19,6 @@ export default function Login() {
 
   const validate = () => {
     let temp = {};
-
     if (!form.email) temp.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(form.email))
       temp.email = "Invalid email format";
@@ -33,21 +33,35 @@ export default function Login() {
 
   const handleSubmit = async () => {
     if (!validate()) return;
-            try {
-            const res = await axios.post("/auth/login", form);
-
-            localStorage.setItem("token", res.data.data.token);
-            localStorage.setItem("userId", res.data.data.user._id);
-            connectSocket();
-
-            toast.success("Login successful");
-            navigate("/chat");
-            } catch (err) {
-
-      toast.error(
-        err.response?.data?.message || "Invalid credentials"
-      );
+    try {
+      const res = await axios.post("/auth/login", form);
+      localStorage.setItem("token", res.data.data.token);
+      localStorage.setItem("userId", res.data.data.user._id);
+      localStorage.setItem("role", res.data.data.user.role);
+      connectSocket();
+      toast.success("Login successful");
+      navigate("/chat");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Invalid credentials");
     }
+  };
+
+  const glassInputStyles = {
+    '& .MuiOutlinedInput-root': {
+      color: 'white',
+      borderRadius: '50px',
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      backdropFilter: 'blur(8px)',
+      paddingLeft: '15px',
+      '& fieldset': { border: 'none' },
+      '&:hover fieldset': { border: 'none' },
+      '&.Mui-focused fieldset': { border: 'none' },
+    },
+    '& .MuiInputBase-input::placeholder': {
+      color: 'rgba(255, 255, 255, 0.7)',
+      opacity: 1,
+    },
+    mb: 2,
   };
 
   return (
@@ -55,55 +69,93 @@ export default function Login() {
       sx={{
         height: "100vh",
         display: "flex",
+        flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        bgcolor: "#f5f5f5",
+      
+        background: "linear-gradient(180deg, #1e529e 0%, #3d85d3 40%, #9bc4e2 100%)",
+        fontFamily: "'Segoe UI', Roboto, sans-serif",
       }}
     >
-      <Paper sx={{ p: 4, width: 400 }} elevation={3}>
-        <Typography variant="h5" mb={3} align="center">
-          Login
-        </Typography>
+      {/* Header Section */}
+      <Typography variant="body1" sx={{ color: "rgba(255, 255, 255, 0.9)", mb: 0.5 }}>
+        Have an account?
+      </Typography>
+      
+      <Typography variant="h3" sx={{ color: "white", fontWeight: 400, mb: 5, letterSpacing: 1 }}>
+        Login
+      </Typography>
 
+      <Box sx={{ width: '100%', maxWidth: 420, px: 4 }}>
+      
         <TextField
           fullWidth
-          label="Email"
-          margin="normal"
+          placeholder="Username"
           value={form.email}
-          onChange={(e) =>
-            setForm({ ...form, email: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
           error={!!errors.email}
           helperText={errors.email}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <PersonOutlineIcon sx={{ color: 'white', fontSize: 20 }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={glassInputStyles}
         />
 
+      
         <TextField
           fullWidth
           type="password"
-          label="Password"
-          margin="normal"
+          placeholder="Password"
           value={form.password}
-          onChange={(e) =>
-            setForm({ ...form, password: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, password: e.target.value })}
           error={!!errors.password}
           helperText={errors.password}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <LockOutlinedIcon sx={{ color: 'white', fontSize: 20 }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={glassInputStyles}
         />
 
+       
         <Button
           fullWidth
           variant="contained"
-          sx={{ mt: 2 }}
           onClick={handleSubmit}
+          sx={{
+            py: 1.8,
+            mt: 1,
+            borderRadius: '50px',
+            bgcolor: 'rgba(255, 255, 255, 0.85)',
+            color: '#2a5298',
+            fontWeight: 'bold',
+            fontSize: '1rem',
+            textTransform: 'none',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+            '&:hover': { 
+                bgcolor: 'white',
+                boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+            },
+          }}
         >
           Login
         </Button>
 
-        <Typography mt={2} align="center">
+        
+        <Typography mt={6} align="center" sx={{ color: 'white', fontSize: '0.9rem' }}>
           Don't have an account?{" "}
-          <Link to="/register">Register</Link>
+          <Link to="/register" style={{ color: 'white', fontWeight: 600, textDecoration: 'underline' }}>
+            Register
+          </Link>
         </Typography>
-      </Paper>
+      </Box>
     </Box>
   );
 }

@@ -48,7 +48,7 @@ import { showSuccess, showError } from "../utils/toast";
 const ITEMS_PER_PAGE = 10;
 
 const ProjectPreview = () => {
-  /* ================= LOGIC (UNCHANGED) ================= */
+ 
   const { projectId } = useParams();
   const workspaceRole = localStorage.getItem("workspaceRole");
 
@@ -181,7 +181,7 @@ const ProjectPreview = () => {
     return filteredTasks.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredTasks, page]);
 
-  /*  UI HELPERS */
+
   const getPriorityStyles = (priority) => {
     const p = priority?.toLowerCase();
     if (p === "high") return { color: "#ef4444", bg: "#fef2f2", label: "High" };

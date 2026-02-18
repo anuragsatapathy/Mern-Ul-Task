@@ -1,7 +1,7 @@
 const prisma = require("../../config/db");
-const activityService = require("../activity/activity.service"); // ⭐ ADDED
+const activityService = require("../activity/activity.service"); 
 
-/* ================= CREATE WORKSPACE ================= */
+
 const createWorkspace = async (data, userId) => {
   try {
     const workspace = await prisma.workspace.create({
@@ -18,7 +18,7 @@ const createWorkspace = async (data, userId) => {
       },
     });
 
-    /* ⭐ ACTIVITY LOG */
+
     await activityService.logActivity({
       userId,
       type: "WORKSPACE_CREATED",
@@ -32,7 +32,7 @@ const createWorkspace = async (data, userId) => {
   }
 };
 
-/* ================= GET WORKSPACES ================= */
+
 const getWorkspaces = async (userId) => {
   try {
     const workspaces = await prisma.workspace.findMany({
@@ -90,7 +90,7 @@ const getWorkspaces = async (userId) => {
   }
 };
 
-/* ================= UPDATE WORKSPACE ================= */
+
 const updateWorkspace = async (id, data, userId) => {
   const result = await prisma.workspace.updateMany({
     where: {
@@ -107,7 +107,6 @@ const updateWorkspace = async (id, data, userId) => {
     return { status: 404, message: "Workspace not found" };
   }
 
-  /* ⭐ ACTIVITY LOG */
   await activityService.logActivity({
     userId,
     type: "WORKSPACE_UPDATED",
@@ -118,7 +117,7 @@ const updateWorkspace = async (id, data, userId) => {
   return { status: 200, data: result };
 };
 
-/* ================= DELETE WORKSPACE ================= */
+
 const deleteWorkspace = async (id, userId) => {
   const result = await prisma.workspace.updateMany({
     where: {
@@ -132,7 +131,6 @@ const deleteWorkspace = async (id, userId) => {
     return { status: 404, message: "Workspace not found" };
   }
 
-  /* ⭐ ACTIVITY LOG */
   await activityService.logActivity({
     userId,
     type: "WORKSPACE_DELETED",

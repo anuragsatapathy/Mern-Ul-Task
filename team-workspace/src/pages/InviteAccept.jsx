@@ -13,7 +13,7 @@ const InviteAccept = () => {
   const [loading, setLoading] = useState(true);
   const [invite, setInvite] = useState(null);
 
-  // ✅ Validate invite (PUBLIC)
+  
   useEffect(() => {
     const validateInvite = async () => {
       try {
@@ -80,7 +80,7 @@ const InviteAccept = () => {
 
       {isAlreadyAccepted ? (
         <Typography color="success.main" fontWeight={600}>
-          ✅ You have already accepted this invitation.
+           You have already accepted this invitation.
         </Typography>
       ) : (
         <Button variant="contained" onClick={acceptInvite}>

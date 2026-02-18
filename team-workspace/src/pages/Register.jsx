@@ -20,7 +20,7 @@ const Register = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Invite token (if coming from invite link)
+
   const inviteToken = new URLSearchParams(location.search).get("invite");
 
   const [form, setForm] = useState({

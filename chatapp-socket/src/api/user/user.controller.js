@@ -3,13 +3,21 @@ const responses = require("../../utility/response");
 
 const getUsers = async (req, res) => {
   try {
-    const data = await service.getUsers();
-
-    return responses.successResponse(res, data, "Users fetched successfully");
+    const data = await service.getUsers(req.user);
+    return responses.successResponse(res, data);
   } catch (e) {
-    console.log("GET USERS ERROR:", e); // 👈 debug log
-    return responses.internalFailureResponse(res, e.message);
+    return responses.internalFailureResponse(res);
   }
 };
 
-module.exports = { getUsers };
+const searchUsers = async (req, res) => {
+  try {
+    const { keyword } = req.query;
+    const data = await service.searchUsers(req.user, keyword);
+    return responses.successResponse(res, data);
+  } catch (e) {
+    return responses.internalFailureResponse(res);
+  }
+};
+
+module.exports = { getUsers, searchUsers };

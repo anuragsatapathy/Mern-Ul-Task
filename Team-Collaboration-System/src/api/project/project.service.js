@@ -1,5 +1,5 @@
 const prisma = require("../../config/db");
-const activityService = require("../activity/activity.service"); // ⭐ ADDED
+const activityService = require("../activity/activity.service"); 
 
 const hasWriteAccess = async (projectId, userId) => {
   const project = await prisma.project.findUnique({
@@ -52,7 +52,7 @@ const createProject = async (data, userId) => {
       },
     });
 
-    /* ⭐ ACTIVITY LOG */
+    /*  ACTIVITY LOG */
     await activityService.logActivity({
       userId,
       type: "PROJECT_CREATED",
@@ -147,7 +147,7 @@ const updateProject = async (projectId, data, userId) => {
       },
     });
 
-    /* ⭐ ACTIVITY LOG */
+    /*  ACTIVITY LOG */
     await activityService.logActivity({
       userId,
       type: "PROJECT_UPDATED",
@@ -173,7 +173,7 @@ const deleteProject = async (projectId, userId) => {
       data: { isDeleted: true },
     });
 
-    /* ⭐ ACTIVITY LOG */
+    /*  ACTIVITY LOG */
     await activityService.logActivity({
       userId,
       type: "PROJECT_DELETED",

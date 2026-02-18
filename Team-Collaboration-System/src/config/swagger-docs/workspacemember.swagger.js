@@ -7,19 +7,26 @@
 
 /**
  * @swagger
- * /workspace-members/add:
+ * /workspace-members/{workspaceId}/add:
  *   post:
  *     tags: [WorkspaceMember]
- *     summary: Add workspace member
+ *     summary: Add workspace member (OWNER / ADMIN)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: workspaceId
+ *         required: true
+ *         schema:
+ *           type: string
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             required: [workspaceId, userId, role]
+ *             type: object
+ *             required: [userId, role]
  *             properties:
- *               workspaceId:
- *                 type: string
  *               userId:
  *                 type: string
  *               role:
@@ -27,24 +34,31 @@
  *                 enum: [OWNER, ADMIN, MEMBER]
  *     responses:
  *       200:
- *         description: Member added
+ *         description: Member added successfully
  */
 
 /**
  * @swagger
- * /workspace-members/role:
+ * /workspace-members/{workspaceId}/role:
  *   put:
  *     tags: [WorkspaceMember]
- *     summary: Update member role
+ *     summary: Update member role (OWNER only)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: workspaceId
+ *         required: true
+ *         schema:
+ *           type: string
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             required: [workspaceId, userId, role]
+ *             type: object
+ *             required: [userId, role]
  *             properties:
- *               workspaceId:
- *                 type: string
  *               userId:
  *                 type: string
  *               role:
@@ -52,27 +66,34 @@
  *                 enum: [OWNER, ADMIN, MEMBER]
  *     responses:
  *       200:
- *         description: Role updated
+ *         description: Role updated successfully
  */
 
 /**
  * @swagger
- * /workspace-members/remove:
+ * /workspace-members/{workspaceId}/remove:
  *   delete:
  *     tags: [WorkspaceMember]
- *     summary: Remove workspace member
+ *     summary: Remove workspace member (OWNER / ADMIN)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: workspaceId
+ *         required: true
+ *         schema:
+ *           type: string
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             required: [workspaceId, userId]
+ *             type: object
+ *             required: [userId]
  *             properties:
- *               workspaceId:
- *                 type: string
  *               userId:
  *                 type: string
  *     responses:
  *       200:
- *         description: Member removed
+ *         description: Member removed successfully
  */

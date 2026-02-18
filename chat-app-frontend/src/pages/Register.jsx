@@ -1,8 +1,19 @@
 import { useState } from "react";
-import { Box, TextField, Button, Typography, Paper } from "@mui/material";
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  MenuItem,
+  InputAdornment,
+} from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "../api/axios";
 import toast from "react-hot-toast";
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import MailOutlineIcon from '@mui/icons-material/MailOutline';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -11,19 +22,17 @@ export default function Register() {
     name: "",
     email: "",
     password: "",
+    role: "user",
   });
 
   const [errors, setErrors] = useState({});
 
   const validate = () => {
     let temp = {};
-
     if (!form.name) temp.name = "Name is required";
-
     if (!form.email) temp.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(form.email))
       temp.email = "Invalid email format";
-
     if (!form.password) temp.password = "Password is required";
     else if (form.password.length < 6)
       temp.password = "Minimum 6 characters required";
@@ -34,7 +43,6 @@ export default function Register() {
 
   const handleSubmit = async () => {
     if (!validate()) return;
-
     try {
       await axios.post("/auth/register", form);
       toast.success("Registration successful");
@@ -46,72 +54,156 @@ export default function Register() {
     }
   };
 
+
+  const glassInputStyles = {
+    '& .MuiOutlinedInput-root': {
+      color: 'white',
+      borderRadius: '50px',
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      backdropFilter: 'blur(8px)',
+      paddingLeft: '15px',
+      '& fieldset': { border: 'none' },
+      '&:hover fieldset': { border: 'none' },
+      '&.Mui-focused fieldset': { border: 'none' },
+    },
+    '& .MuiInputBase-input::placeholder': {
+      color: 'rgba(255, 255, 255, 0.7)',
+      opacity: 1,
+    },
+    '& .MuiSvgIcon-root': { color: 'white' }, 
+    mb: 2,
+  };
+
   return (
     <Box
       sx={{
         height: "100vh",
         display: "flex",
+        flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        bgcolor: "#f5f5f5",
+        background: "linear-gradient(180deg, #1e529e 0%, #3d85d3 40%, #9bc4e2 100%)",
+        fontFamily: "'Segoe UI', Roboto, sans-serif",
       }}
     >
-      <Paper sx={{ p: 4, width: 400 }} elevation={3}>
-        <Typography variant="h5" mb={3} align="center">
-          Register
-        </Typography>
+      <Typography variant="body1" sx={{ color: "rgba(255, 255, 255, 0.9)", mb: 0.5 }}>
+        Join Us
+      </Typography>
 
+      <Typography variant="h3" sx={{ color: "white", fontWeight: 400, mb: 4, letterSpacing: 1 }}>
+        Register
+      </Typography>
+
+      <Box sx={{ width: '100%', maxWidth: 420, px: 4 }}>
+        {/* Name Field */}
         <TextField
           fullWidth
-          label="Name"
-          margin="normal"
+          placeholder="Full Name"
           value={form.name}
-          onChange={(e) =>
-            setForm({ ...form, name: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
           error={!!errors.name}
           helperText={errors.name}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <PersonOutlineIcon sx={{ color: 'white', fontSize: 20 }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={glassInputStyles}
         />
 
+        {/* Email Field */}
         <TextField
           fullWidth
-          label="Email"
-          margin="normal"
+          placeholder="Email Address"
           value={form.email}
-          onChange={(e) =>
-            setForm({ ...form, email: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
           error={!!errors.email}
           helperText={errors.email}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <MailOutlineIcon sx={{ color: 'white', fontSize: 20 }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={glassInputStyles}
         />
 
+        {/* Password Field */}
         <TextField
           fullWidth
           type="password"
-          label="Password"
-          margin="normal"
+          placeholder="Password"
           value={form.password}
-          onChange={(e) =>
-            setForm({ ...form, password: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, password: e.target.value })}
           error={!!errors.password}
           helperText={errors.password}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <LockOutlinedIcon sx={{ color: 'white', fontSize: 20 }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={glassInputStyles}
         />
 
+        {/* Role Select Field */}
+        <TextField
+          select
+          fullWidth
+          value={form.role}
+          onChange={(e) => setForm({ ...form, role: e.target.value })}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <BadgeOutlinedIcon sx={{ color: 'white', fontSize: 20, mr: 1 }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            ...glassInputStyles,
+            '& .MuiSelect-select': { color: 'white' }
+          }}
+        >
+          <MenuItem value="user">User</MenuItem>
+          <MenuItem value="admin">Admin</MenuItem>
+        </TextField>
+
+        {/* Register Button */}
         <Button
           fullWidth
           variant="contained"
-          sx={{ mt: 2 }}
           onClick={handleSubmit}
+          sx={{
+            py: 1.8,
+            mt: 1,
+            borderRadius: '50px',
+            bgcolor: 'rgba(255, 255, 255, 0.85)',
+            color: '#2a5298',
+            fontWeight: 'bold',
+            fontSize: '1rem',
+            textTransform: 'none',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+            '&:hover': {
+              bgcolor: 'white',
+              boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+            },
+          }}
         >
-          Register
+          Create Account
         </Button>
 
-        <Typography mt={2} align="center">
+        {/* Login Redirect */}
+        <Typography mt={4} align="center" sx={{ color: 'white', fontSize: '0.9rem' }}>
           Already have an account?{" "}
-          <Link to="/">Login</Link>
+          <Link to="/" style={{ color: 'white', fontWeight: 600, textDecoration: 'underline' }}>
+            Login
+          </Link>
         </Typography>
-      </Paper>
+      </Box>
     </Box>
   );
 }

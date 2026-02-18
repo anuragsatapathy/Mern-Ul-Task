@@ -57,7 +57,7 @@ const Activity = () => {
     <Box sx={{ 
       display: "flex", 
       minHeight: "100vh", 
-      bgcolor: "#fcfdfe", // Softer professional white
+      bgcolor: "#fcfdfe", 
       backgroundImage: "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)" 
     }}>
       <Navbar />
@@ -152,7 +152,7 @@ const Activity = () => {
               </Fade>
             ))}
 
-            {/* Pagination Controls */}
+            
             {totalPages > 1 && (
               <Box sx={{ display: "flex", justifyContent: "center", mt: 6, pb: 4 }}>
                 <Pagination 

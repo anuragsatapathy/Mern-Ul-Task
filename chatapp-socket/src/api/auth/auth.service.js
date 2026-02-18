@@ -3,9 +3,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const register = async (data) => {
-  const { name, email, password } = data;
+  const { name, email, password, role } = data;
 
-  // check duplicate email
   const existing = await User.findOne({ email });
   if (existing) {
     throw new Error("Email already exists");
@@ -17,9 +16,9 @@ const register = async (data) => {
     name,
     email,
     password: hash,
+    role: role || "user",
   });
 
-  // remove password before sending response
   const userObj = user.toObject();
   delete userObj.password;
 
@@ -30,19 +29,17 @@ const login = async (data) => {
   const { email, password } = data;
 
   const user = await User.findOne({ email });
-
   if (!user) return null;
 
   const match = await bcrypt.compare(password, user.password);
   if (!match) return null;
 
   const token = jwt.sign(
-    { id: user._id },
+    { id: user._id, role: user.role }, 
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN || "1h" }
   );
 
-  // remove password before sending
   const userObj = user.toObject();
   delete userObj.password;
 

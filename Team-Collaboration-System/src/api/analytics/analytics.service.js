@@ -6,7 +6,6 @@ const dashboard = async (workspaceId) => {
       return { status: 400, message: "workspaceId required" };
     }
 
-    /* ================= TASKS PER STATUS ================= */
     const tasksByStatus = await prisma.task.groupBy({
       by: ["status"],
       where: {
@@ -36,7 +35,7 @@ const dashboard = async (workspaceId) => {
     });
 
 
-    /* ================= OVERDUE TASKS ================= */
+    
     const overdueTasks = await prisma.task.count({
       where: {
         isDeleted: false,
@@ -46,7 +45,6 @@ const dashboard = async (workspaceId) => {
       },
     });
 
-    /* ================= PROJECT COUNT ================= */
     const projectsCount = await prisma.project.count({
       where: {
         workspaceId,
@@ -54,7 +52,7 @@ const dashboard = async (workspaceId) => {
       },
     });
 
-    /* ================= PRODUCTIVITY SUMMARY ================= */
+
     const productivityRaw = await prisma.task.groupBy({
       by: ["assignedTo"],
       where: {
@@ -66,7 +64,7 @@ const dashboard = async (workspaceId) => {
     });
 
     /**
-     * ⭐ IMPORTANT FIX (NO LOGIC CHANGE)
+     * 
      * groupBy does NOT return user relation
      * So we fetch users separately and attach names
      */

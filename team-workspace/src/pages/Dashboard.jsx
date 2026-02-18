@@ -34,7 +34,7 @@ import {
   TrendingUp,
   FiberManualRecord,
   DonutLarge,
-  WorkspacesOutlined, // New Icon for dropdown
+  WorkspacesOutlined, 
 } from "@mui/icons-material";
 import { showError } from "../utils/toast";
 
@@ -190,7 +190,7 @@ const Dashboard = () => {
               </Typography>
             </Box>
 
-            {/* ELEGANT WORKSPACE SELECTOR */}
+          
             <FormControl size="small" sx={{ minWidth: 220 }}>
               <Select
                 value={selectedWorkspace}
@@ -365,7 +365,7 @@ const Dashboard = () => {
   );
 };
 
-/* --- Helper Components stay the same --- */
+
 const ChartPaper = ({ title, icon, children }) => (
   <Paper elevation={0} sx={{ 
     p: 3, borderRadius: 3, border: "1px solid #e2e8f0", height: 400, display: "flex", flexDirection: "column",

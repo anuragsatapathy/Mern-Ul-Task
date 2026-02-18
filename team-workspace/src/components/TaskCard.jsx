@@ -307,7 +307,7 @@ const TaskCard = ({ task, onEdit, onDelete, onUpdate, role }) => {
         </CardContent>
       </Card>
 
-      {/* DELETE DIALOG - Refined for elegance */}
+  
       <Dialog 
         open={openDelete} 
         onClose={() => setOpenDelete(false)}

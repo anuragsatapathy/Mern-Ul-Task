@@ -11,11 +11,14 @@
  *   post:
  *     tags: [Workspace]
  *     summary: Create workspace
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
+ *             type: object
  *             required: [name]
  *             properties:
  *               name:
@@ -29,6 +32,8 @@
  *   get:
  *     tags: [Workspace]
  *     summary: Get user workspaces
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Workspace list
@@ -40,6 +45,8 @@
  *   get:
  *     tags: [Workspace]
  *     summary: Get workspace by ID
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -53,6 +60,8 @@
  *   put:
  *     tags: [Workspace]
  *     summary: Update workspace
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -64,6 +73,7 @@
  *       content:
  *         application/json:
  *           schema:
+ *             type: object
  *             properties:
  *               name:
  *                 type: string
@@ -76,6 +86,8 @@
  *   delete:
  *     tags: [Workspace]
  *     summary: Delete workspace
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -85,4 +97,42 @@
  *     responses:
  *       200:
  *         description: Workspace deleted
+ */
+
+/**
+ * @swagger
+ * /workspaces/members/by-project/{projectId}:
+ *   get:
+ *     tags: [Workspace]
+ *     summary: Get members by project
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Project members list
+ */
+
+/**
+ * @swagger
+ * /workspaces/{id}/invite:
+ *   post:
+ *     tags: [Workspace]
+ *     summary: Send workspace invite (OWNER / ADMIN)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Invite sent successfully
  */

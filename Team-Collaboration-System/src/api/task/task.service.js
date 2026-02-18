@@ -1,7 +1,6 @@
 const prisma = require("../../config/db");
 const activityService = require("../activity/activity.service");
 
-/* ================= CREATE TASK ================= */
 const createTask = async (data, userId) => {
   try {
     if (!data.title || !data.projectId) {
@@ -58,7 +57,7 @@ const createTask = async (data, userId) => {
       },
     });
 
-    // ✅ TASK ASSIGNED ACTIVITY
+   
     await activityService.logActivity({
       userId: task.assignedTo,
       type: "TASK_ASSIGNED",
@@ -73,7 +72,6 @@ const createTask = async (data, userId) => {
   }
 };
 
-/* ================= GLOBAL TASKS ================= */
 const getTasks = async (userId) => {
   try {
     const tasks = await prisma.task.findMany({
@@ -122,7 +120,6 @@ const getTasks = async (userId) => {
   }
 };
 
-/* ================= PROJECT TASKS ================= */
 const getTasksByProject = async (projectId, userId) => {
   try {
     const project = await prisma.project.findUnique({
@@ -192,7 +189,7 @@ const getTasksByProject = async (projectId, userId) => {
   }
 };
 
-/* ================= UPDATE ================= */
+
 const updateTask = async (id, data, userId) => {
   try {
     const task = await prisma.task.findFirst({
@@ -244,7 +241,7 @@ const updateTask = async (id, data, userId) => {
       },
     });
 
-    /* ⭐ ACTIVITY LOGIC (ADDED — LOGIC SAME) */
+   
     if (
       data.status &&
       statusMap[data.status] === "DONE" &&
@@ -271,7 +268,6 @@ const updateTask = async (id, data, userId) => {
   }
 };
 
-/* ================= DELETE ================= */
 const deleteTask = async (id, userId) => {
   try {
     const task = await prisma.task.findFirst({

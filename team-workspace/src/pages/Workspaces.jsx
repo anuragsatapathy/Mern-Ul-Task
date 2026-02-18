@@ -27,8 +27,8 @@ import {
   AvatarGroup,
   Tooltip,
   Stack,
-  InputAdornment, // Added
-  Pagination, // Added
+  InputAdornment, 
+  Pagination, 
 } from "@mui/material";
 import {
   Edit as EditIcon,
@@ -36,7 +36,7 @@ import {
   GroupAdd as GroupIcon,
   ArrowForward,
   Workspaces as WorkspaceIcon,
-  Search as SearchIcon, // Added
+  Search as SearchIcon,
 } from "@mui/icons-material";
 import { showSuccess, showError } from "../utils/toast";
 
@@ -87,7 +87,7 @@ const Workspaces = () => {
     fetchWorkspaces();
   }, []);
 
-  /* ================= SEARCH & PAGINATION LOGIC ================= */
+
   const filteredWorkspaces = useMemo(() => {
     return workspaces.filter((w) =>
       w.name.toLowerCase().includes(search.toLowerCase())
@@ -106,7 +106,7 @@ const Workspaces = () => {
     setPage(1);
   }, [search]);
 
-  /* ================= ACTIONS ================= */
+
   const createWorkspace = async () => {
     if (!name.trim()) return showError("Workspace name is required");
     try {

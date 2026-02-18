@@ -11,11 +11,14 @@
  *   post:
  *     tags: [Task]
  *     summary: Create task
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
+ *             type: object
  *             required: [title, projectId, assignedTo]
  *             properties:
  *               title:
@@ -32,14 +35,35 @@
  *                 type: string
  *     responses:
  *       200:
- *         description: Task created
+ *         description: Task created successfully
  *
  *   get:
  *     tags: [Task]
  *     summary: Get tasks
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Task list
+ *         description: Task list retrieved successfully
+ */
+
+/**
+ * @swagger
+ * /tasks/project/{projectId}:
+ *   get:
+ *     tags: [Task]
+ *     summary: Get tasks by project
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Project tasks retrieved successfully
  */
 
 /**
@@ -48,6 +72,8 @@
  *   get:
  *     tags: [Task]
  *     summary: Get task by ID
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -56,11 +82,13 @@
  *           type: string
  *     responses:
  *       200:
- *         description: Task details
+ *         description: Task details retrieved successfully
  *
  *   put:
  *     tags: [Task]
  *     summary: Update task
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -72,6 +100,7 @@
  *       content:
  *         application/json:
  *           schema:
+ *             type: object
  *             properties:
  *               title:
  *                 type: string
@@ -86,11 +115,13 @@
  *                 format: date-time
  *     responses:
  *       200:
- *         description: Task updated
+ *         description: Task updated successfully
  *
  *   delete:
  *     tags: [Task]
  *     summary: Delete task
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -99,5 +130,5 @@
  *           type: string
  *     responses:
  *       200:
- *         description: Task deleted
+ *         description: Task deleted successfully
  */

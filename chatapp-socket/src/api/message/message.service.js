@@ -1,11 +1,12 @@
 const Message = require("../../models/message.model");
 
-const sendMessage = async (data) => {
-  return Message.create(data);
+const getMessages = async (currentUserId, otherUserId) => {
+  return Message.find({
+    $or: [
+      { senderId: currentUserId, receiverId: otherUserId },
+      { senderId: otherUserId, receiverId: currentUserId },
+    ],
+  }).sort({ createdAt: 1 });
 };
 
-const getMessages = async (chatId) => {
-  return Message.find({ chatId });
-};
-
-module.exports = { sendMessage, getMessages };
+module.exports = { getMessages };

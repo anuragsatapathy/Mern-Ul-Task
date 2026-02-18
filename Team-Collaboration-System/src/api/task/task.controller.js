@@ -1,7 +1,6 @@
 const service = require("./task.service");
 const responses = require("../../utility/response");
 
-/* ================= CREATE ================= */
 const createTask = async (req, res) => {
   try {
     const result = await service.createTask(req.body, req.user.id);
@@ -16,8 +15,7 @@ const createTask = async (req, res) => {
   }
 };
 
-/* ================= GLOBAL TASKS ================= */
-/* Used by Tasks.jsx page */
+
 const getTasks = async (req, res) => {
   try {
     const result = await service.getTasks(req.user.id);
@@ -37,8 +35,7 @@ const getTasks = async (req, res) => {
   }
 };
 
-/* ================= PROJECT TASKS ================= */
-/* ⭐ Used by ProjectPreview.jsx */
+
 const getTasksByProject = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -63,7 +60,7 @@ const getTasksByProject = async (req, res) => {
   }
 };
 
-/* ================= GET BY ID ================= */
+
 const getTaskById = async (req, res) => {
   try {
     const result = await service.getTaskById(
@@ -81,7 +78,7 @@ const getTaskById = async (req, res) => {
   }
 };
 
-/* ================= UPDATE ================= */
+
 const updateTask = async (req, res) => {
   try {
     const result = await service.updateTask(
@@ -105,7 +102,6 @@ const updateTask = async (req, res) => {
   }
 };
 
-/* ================= DELETE ================= */
 const deleteTask = async (req, res) => {
   try {
     const result = await service.deleteTask(
@@ -131,7 +127,7 @@ const deleteTask = async (req, res) => {
 module.exports = {
   createTask,
   getTasks,
-  getTasksByProject, // ⭐ VERY IMPORTANT
+  getTasksByProject, 
   getTaskById,
   updateTask,
   deleteTask,
